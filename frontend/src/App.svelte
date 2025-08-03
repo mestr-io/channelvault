@@ -4,7 +4,7 @@
   import Progress from "./lib/components/Progress.svelte";
   import {viewState} from "./lib/store"
 	import { onMount } from 'svelte';
-  import { GetViewState } from '../wailsjs/go/main/App';
+  import { GetViewState } from '../wailsjs/go/app/App';
   import * as runtime from "../wailsjs/runtime"
 
   // onMount is the perfect lifecycle hook to set up listeners.
