@@ -2,7 +2,6 @@
   import FileUploader from "./lib/components/FileUploader.svelte";
   import Dashboard from "./lib/components/Dashboard.svelte";
   import Progress from "./lib/components/Progress.svelte";
-  // import {viewState} from "./lib/store"
 	import { onMount } from 'svelte';
   import { GetViewState } from '../wailsjs/go/main/App';
   import * as runtime from "../wailsjs/runtime"
@@ -16,12 +15,9 @@
   // It runs once after the component is first added to the DOM.
   onMount(async () => {
     try {
-      // Correctly update the top-level `viewState` variable by direct assignment.
-      // Do not redeclare it with `const`.
       viewState = (await GetViewState()) as ViewState;
       console.log(`Initial state set to: ${viewState}`);
 
-      // Set up the event listener.
       // We pass a function that directly reassigns the `viewState`.
       runtime.EventsOn('backend:viewState', (newState: string) => {
         console.log(`Received event from backend. New state: ${newState}`);
@@ -29,8 +25,6 @@
       });
     } catch (error) {
       console.error('Failed to initialize view state or set up listener:', error);
-      // Optional: handle the error gracefully, e.g., set a specific state
-      // viewState = 'error';
     }
   });
 
