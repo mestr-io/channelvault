@@ -1,4 +1,4 @@
-module slack-viewer
+module github.com/mestr-io/slack-export-viewer
 
 go 1.24
 

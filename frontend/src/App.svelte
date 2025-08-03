@@ -3,7 +3,7 @@
   import Dashboard from "./lib/components/Dashboard.svelte";
   import Progress from "./lib/components/Progress.svelte";
 	import { onMount } from 'svelte';
-  import { GetViewState } from '../wailsjs/go/main/App';
+  import { GetViewState } from '../wailsjs/go/app/App';
   import * as runtime from "../wailsjs/runtime"
 
 
