@@ -14,6 +14,6 @@ export function Import(arg1) {
   return window['go']['main']['App']['Import'](arg1);
 }
 
-export function SetViewState() {
-  return window['go']['main']['App']['SetViewState']();
+export function SetViewState(arg1) {
+  return window['go']['main']['App']['SetViewState'](arg1);
 }

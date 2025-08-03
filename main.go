@@ -25,6 +25,14 @@ var assets embed.FS
 
 const AppName = "SlackImportViewer"
 
+type ViewState string
+
+const (
+	ViewStateSetup     ViewState = "setup"
+	ViewStateDashboard ViewState = "dashboard"
+	VIewStateLoading   ViewState = "loading"
+)
+
 type App struct {
 	ctx    context.Context
 	sqlite *sql.DB // Store the database connection pool
@@ -85,12 +93,12 @@ func (a *App) getDuckDBPath() (string, error) {
 	return dbPath, nil
 }
 
-func (a *App) GetViewState() string {
-	return "setup"
+func (a *App) GetViewState() ViewState {
+	return ViewStateSetup
 }
 
-func (a *App) SetViewState() {
-
+func (a *App) SetViewState(state ViewState) {
+	// Set the application state
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -153,7 +161,7 @@ func (a *App) Import(path string) {
 		log.Panicf("FATAL: fail to open the zip export file: %v", err)
 	}
 	defer r.Close()
-	runtime.EventsEmit(a.ctx, "backend:viewState", "loading")
+	runtime.EventsEmit(a.ctx, "backend:viewState", ViewStateSetup)
 	for _, f := range r.File {
 		select {
 		case <-a.ctx.Done():
