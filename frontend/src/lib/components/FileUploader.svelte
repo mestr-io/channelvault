@@ -1,7 +1,7 @@
 <script lang="ts">
-  let resultText: string = "Drop your slack import zip file here";
-  let isDragging: boolean = false;
-  let dragCounter: number = 0;
+  let resultText = $state("Drop your slack import zip file here");
+  let isDragging = $state(false);
+  let dragCounter = $state(0);
 
   // --- Drag & Drop Event Handlers ---
   function handleDragEnter(event: DragEvent): void {
@@ -36,10 +36,12 @@
 <div
   class="drop-zone"
   class:is-dragging={isDragging}
-  on:dragenter={handleDragEnter}
-  on:dragleave={handleDragLeave}
-  on:dragover={handleDragOver}
-  on:drop={handleDrop}
+  role="button"
+  tabindex="0"
+  ondragenter={handleDragEnter}
+  ondragleave={handleDragLeave}
+  ondragover={handleDragOver}
+  ondrop={handleDrop}
 >
   <div class="icons-container">
     <!-- Slack Logo SVG -->
@@ -96,10 +98,7 @@
     /* No margin-bottom here, it's in the container */
   }
 
-  .slack-icon {
-    color: #e01e5a; /* Slack pink/red color */
-    margin-right: 0.5rem; /* Space between Slack and file icon */
-  }
+  
 
   .result-text {
     font-size: 1.25rem;
