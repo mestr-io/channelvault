@@ -60,7 +60,7 @@ func NewApp(appName string) *App {
 }
 
 func (a *App) GetViewState() string {
-	return "setup"
+	return string(ViewStateDashboard)
 }
 
 func (a *App) Startup(ctx context.Context) {
