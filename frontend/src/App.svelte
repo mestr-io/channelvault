@@ -62,7 +62,7 @@
     justify-content: center;
     background-color: #1a202c;
     color: #f7fafc;
-    padding: 1rem;
+    /* padding: 1rem; */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
