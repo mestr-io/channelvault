@@ -1,16 +1,17 @@
 package app
 
 import (
-	"archive/zip"
 	"context"      // For the context.Context type
 	"database/sql" // For embedding frontend assets
 	"fmt"          // For formatting output, like in LogPrintf
 	"log"
 	"path/filepath"
+	"time"
 
 	"github.com/adrg/xdg"
 	_ "github.com/marcboeker/go-duckdb"
 	_ "github.com/mattn/go-sqlite3" // For checking the build mode
+	"github.com/mestr-io/slack-export-viewer/backend/importer"
 
 	// Ensure this is imported for assetserver.Options
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -25,8 +26,9 @@ const (
 )
 
 type App struct {
-	ctx context.Context
-	db  *sql.DB
+	ctx   context.Context
+	db    *sql.DB
+	state ViewState
 }
 
 func getSqliteDatabasePath(appName string) (string, error) {
@@ -63,6 +65,11 @@ func (a *App) GetViewState() string {
 	return string(ViewStateSetup)
 }
 
+func (a *App) setViewState(state ViewState) {
+	a.state = state
+	runtime.EventsEmit(a.ctx, "backend:viewState", a.state)
+}
+
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
@@ -76,34 +83,48 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 	if len(paths) != 1 {
 		log.Panicf("FATAL: internal error. import part incorrect: %v", paths)
 	}
-	go func(p string) {
-		a.Import(p)
-	}(paths[0])
+
+	a.processImport(paths[0])
 }
 
-func (a *App) Import(path string) {
-	r, err := zip.OpenReader(path)
-	if err != nil {
-		log.Panicf("FATAL: fail to open the zip export file: %v", err)
-	}
-	defer r.Close()
+// processImport is the new method that manages the import lifecycle.
+func (a *App) processImport(path string) {
+	// 1. Set state to Loading and notify frontend
+	a.setViewState(VIewStateLoading)
 
-	for _, f := range r.File {
-		select {
-		case <-a.ctx.Done():
-			runtime.LogInfo(a.ctx, "Import operation was canceled.")
-			return
-		default:
-			// Context is not canceled, so we can continue our work.
-			runtime.LogInfof(a.ctx, "Processing file: %s", f.Name)
-			runtime.EventsEmit(a.ctx, "import:progress", f.Name)
+	// 2. Create the channel and the importer
+	progressChan := make(chan importer.Progress)
+	imp := importer.NewImporter(a.ctx, path, a.db)
 
-			// parse users.json -> users.parquet
-			// parse channels.json -> channels.parquet
-			// iterate over channels
-			// for each channel in channels
-			// ---- enter channel directory and parse messages and files -> messages/chanel_idxxx.parquet  files/channel_idxxx.parquet
-			// -----download binaries
+	// 3. Start the import in its own goroutine
+	var importErr error
+	go func() {
+		importErr = imp.Import(progressChan)
+	}()
+
+	// 4. Listen for progress updates until the channel is closed
+	var lastUpdateTime time.Time
+
+	for p := range progressChan {
+		// For every progress update, emit an event to the Wails frontend
+		if time.Since(lastUpdateTime) >= time.Second {
+			runtime.EventsEmit(a.ctx, "importProgress", p)
+			lastUpdateTime = time.Now()
 		}
+		log.Printf("processed: %v\n", p)
 	}
+
+	// 5. The loop above finishes only when the channel is closed.
+	//    Now we can check if the import function returned an error.
+	if importErr != nil {
+		log.Printf("ERROR: Import failed: %v", importErr)
+		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
+		a.setViewState(ViewStateSetup) // Go back to setup on failure
+		return
+	}
+
+	// 6. Success!
+	runtime.LogPrint(a.ctx, "Import completed successfully!")
+	runtime.EventsEmit(a.ctx, "importComplete")
+	a.setViewState(ViewStateDashboard) // Move to the dashboard
 }

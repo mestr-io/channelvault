@@ -9,7 +9,3 @@ export function GetChannels() {
 export function GetViewState() {
   return window['go']['app']['App']['GetViewState']();
 }
-
-export function Import(arg1) {
-  return window['go']['app']['App']['Import'](arg1);
-}

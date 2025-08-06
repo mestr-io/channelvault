@@ -53,7 +53,9 @@
     overflow: hidden; /* Added to remove scrollbars */
   }
 
+
   .app-main {
+    padding: 1rem;
     width: 100vw;
     height: 100vh;
     display: flex;

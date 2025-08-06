@@ -4,5 +4,3 @@
 export function GetChannels():Promise<Array<string>>;
 
 export function GetViewState():Promise<string>;
-
-export function Import(arg1:string):Promise<void>;
