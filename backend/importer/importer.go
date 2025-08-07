@@ -51,6 +51,23 @@ func (i *Importer) processUsers(f fs.File) error {
 	return i.repository.BulkInsertUsers(result)
 }
 
+func (i *Importer) processChannels(f fs.File) error {
+	defer f.Close()
+	var data []byte
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return fmt.Errorf("fail to read 'channels.json' file: %w", err)
+	}
+
+	var result []models.Channel
+	err = json.Unmarshal(data, &result)
+	if err != nil {
+		return fmt.Errorf("fail to deserialize 'channels.json': %v", err)
+	}
+
+	return i.repository.BulkInsertChannels(result)
+}
+
 func getExportBaseFolder(r *zip.ReadCloser) (string, error) {
 	if len(r.File) > 0 {
 		firstFile := r.File[0]
@@ -96,6 +113,17 @@ func (i *Importer) Import(c chan Progress) error {
 	i.processUsers(f)
 
 	// channels.json
+	f, err = r.Open(fmt.Sprintf("%s/channels.json", baseFolder))
+	if err != nil {
+		return fmt.Errorf("fail to open unzip channels.json file: %w", err)
+	}
+	c <- Progress{
+		FileName:    "channels.json",
+		Progress:    2.0 / float32(totalFiles),
+		TotalFiles:  totalFiles,
+		CurrentFile: 2,
+	}
+	i.processChannels(f)
 
 	// messages & threads
 	for idx, f := range r.File {
@@ -106,12 +134,12 @@ func (i *Importer) Import(c chan Progress) error {
 		default:
 			c <- Progress{
 				FileName:    f.Name,
-				Progress:    float32(idx+1) / float32(totalFiles),
+				Progress:    float32(idx+2) / float32(totalFiles),
 				TotalFiles:  totalFiles,
-				CurrentFile: idx + 1,
+				CurrentFile: idx + 2,
 			}
 		}
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond) //@mlg: unbuffered channel send blocks... remove?
 	}
 	return nil
 }
