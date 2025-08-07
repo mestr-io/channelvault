@@ -3,7 +3,6 @@ package repository
 import (
 	"fmt"
 	"log"
-	"errors"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
@@ -13,13 +12,10 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-
 	defer func() {
+		// in case of error then rollback the txn
 		if err != nil {
-			terr := tx.Rollback()
-			if terr != nil {
-				err = errors.Join(err, terr)
-			}
+			tx.Rollback()
 		}
 	}()
 

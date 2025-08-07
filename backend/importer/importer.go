@@ -67,6 +67,25 @@ func (i *Importer) processChannels(f fs.File) error {
 	return i.repository.BulkInsertChannels(result)
 }
 
+func (i *Importer) processMessages(ChannelID string, f *zip.File) error {
+	file, err := f.Open()
+	if err != nil {
+		return fmt.Errorf("FATAL: fail to open messages file %s: %v", f.Name, err)
+	}
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("fail to read 'users.json' file: %w", err)
+	}
+
+	var result []models.Message
+	err = json.Unmarshal(data, &result)
+	if err != nil {
+		return fmt.Errorf("fail to deserialize 'users.json': %v", err)
+	}
+
+	return i.repository.BulkInserMessages(ChannelID, result)
+}
+
 func getExportBaseFolder(r *zip.ReadCloser) (string, error) {
 	if len(r.File) > 0 {
 		firstFile := r.File[0]
@@ -131,6 +150,16 @@ func (i *Importer) Import(c chan Progress) error {
 				TotalFiles:  totalFiles,
 				CurrentFile: idx + 1,
 			}
+			// files in a root folder -> ignore them
+			// we only want channels
+			path := strings.Split(f.Name, "/")
+			// This is pretty weird considering that the zip file has been produced
+			// at slack side
+			if path[0] == "__MACOSX" || f.FileInfo().IsDir() || len(path) < 3 {
+				continue
+			}
+
+			i.processMessages(path[1], f)
 		}
 
 	}
