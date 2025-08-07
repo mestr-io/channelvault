@@ -64,3 +64,37 @@ type FieldValue struct {
 	Value string `json:"value"`
 	Alt   string `json:"alt"`
 }
+
+type ChannelTopic struct {
+	Value   string `json:"value"`
+	Creator string `json:"creator"`
+	LastSet int64  `json:"last_set"`
+}
+
+type ChannelPurpose struct {
+	Value   string `json:"value"`
+	Creator string `json:"creator"`
+	LastSet int64  `json:"last_set"`
+}
+
+type ChannelPin struct {
+	ID      string `json:"id"`
+	Type    string `json:"type"`
+	Created int64  `json:"created"`
+	User    string `json:"user"`
+	Owner   string `json:"owner"`
+}
+
+type Channel struct {
+	ID         string         `json:"id"`
+	Name       string         `json:"name"`
+	Created    int64          `json:"created"` // Timestamp of channel creation
+	IsChannel  bool           `json:"is_channel"`
+	Creator    string         `json:"creator"` // User ID of the channel creator
+	IsArchived bool           `json:"is_archived"`
+	IsGeneral  bool           `json:"is_general"`
+	Members    []string       `json:"members"` // List of user IDs
+	Topic      ChannelTopic   `json:"topic"`
+	Purpose    ChannelPurpose `json:"purpose"`
+	Pins       []ChannelPin   `json:"pins,omitempty"`
+}
