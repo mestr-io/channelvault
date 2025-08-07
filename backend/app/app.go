@@ -1,17 +1,16 @@
 package app
 
 import (
-	"context"      // For the context.Context type
-	"database/sql" // For embedding frontend assets
-	"fmt"          // For formatting output, like in LogPrintf
+	"context" // For the context.Context type
+	// For embedding frontend assets
+	// For formatting output, like in LogPrintf
 	"log"
-	"path/filepath"
 	"time"
 
-	"github.com/adrg/xdg"
 	_ "github.com/marcboeker/go-duckdb"
 	_ "github.com/mattn/go-sqlite3" // For checking the build mode
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
+	"github.com/mestr-io/slack-export-viewer/backend/repository"
 
 	// Ensure this is imported for assetserver.Options
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -26,38 +25,14 @@ const (
 )
 
 type App struct {
-	ctx   context.Context
-	db    *sql.DB
-	state ViewState
+	ctx        context.Context
+	repository *repository.Repository
+	state      ViewState
 }
 
-func getSqliteDatabasePath(appName string) (string, error) {
-	// xdg.DataFile will create a path like: <OS_DATA_DIR>/<AppName>/<filename>
-	// This is the most reliable and recommended method.
-	dbPath, err := xdg.DataFile(filepath.Join(appName, "data.db"))
-	if err != nil {
-		return "", fmt.Errorf("could not resolve XDG data path: %w", err)
-	}
-	return dbPath, nil
-}
-
-func NewApp(appName string) *App {
-	dbPath, err := getSqliteDatabasePath(appName)
-	if err != nil {
-		log.Panicf("FATAL: Could not determine database path: %v", err)
-	}
-
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		log.Panicf("FATAL: Could not determine database path: %v", err)
-	}
-
-	if err := db.Ping(); err != nil {
-		log.Panicf("FATAL: fail to open database: %v", err)
-	}
-
+func New(repository *repository.Repository) *App {
 	return &App{
-		db: db,
+		repository: repository,
 	}
 }
 
@@ -94,7 +69,7 @@ func (a *App) processImport(path string) {
 
 	// 2. Create the channel and the importer
 	progressChan := make(chan importer.Progress)
-	imp := importer.NewImporter(a.ctx, path, a.db)
+	imp := importer.NewImporter(a.ctx, path, a.repository)
 
 	// 3. Start the import in its own goroutine
 	var importErr error
