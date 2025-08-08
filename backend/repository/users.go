@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"log"
+	"errors"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
@@ -15,7 +16,10 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			terr := tx.Rollback()
+			if terr != nil {
+				err = errors.Join(err, terr)
+			}
 		}
 	}()
 
