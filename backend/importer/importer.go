@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/fs"
 	"strings"
-	"time"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
@@ -51,6 +50,23 @@ func (i *Importer) processUsers(f fs.File) error {
 	return i.repository.BulkInsertUsers(result)
 }
 
+func (i *Importer) processChannels(f fs.File) error {
+	defer f.Close()
+	var data []byte
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return fmt.Errorf("fail to read 'channels.json' file: %w", err)
+	}
+
+	var result []models.Channel
+	err = json.Unmarshal(data, &result)
+	if err != nil {
+		return fmt.Errorf("fail to deserialize 'channels.json': %v", err)
+	}
+
+	return i.repository.BulkInsertChannels(result)
+}
+
 func getExportBaseFolder(r *zip.ReadCloser) (string, error) {
 	if len(r.File) > 0 {
 		firstFile := r.File[0]
@@ -87,18 +103,23 @@ func (i *Importer) Import(c chan Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to open unzip users.json file: %w", err)
 	}
-	c <- Progress{
-		FileName:    "users.json",
-		Progress:    1.0 / float32(totalFiles),
-		TotalFiles:  totalFiles,
-		CurrentFile: 1,
-	}
 	i.processUsers(f)
 
 	// channels.json
+	f, err = r.Open(fmt.Sprintf("%s/channels.json", baseFolder))
+	if err != nil {
+		return fmt.Errorf("fail to open unzip channels.json file: %w", err)
+	}
+	i.processChannels(f)
 
 	// messages & threads
 	for idx, f := range r.File {
+		if len(strings.Split(f.Name, "/")) == 1 {
+			// Skip files that are not in a subfolder (e.g., users.json, channels.json)
+			// NOTE: progress is not superaccurate here, but it's fine for now
+			continue
+		}
+
 		select {
 		case <-i.ctx.Done():
 			// The context was cancelled (e.g., app is shutting down).
@@ -111,7 +132,7 @@ func (i *Importer) Import(c chan Progress) error {
 				CurrentFile: idx + 1,
 			}
 		}
-		time.Sleep(1 * time.Millisecond)
+
 	}
 	return nil
 }
