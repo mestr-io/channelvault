@@ -7,12 +7,17 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) BulkInsertUsers(users []models.User) error {
+func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
 
 	stmt, err := tx.Prepare("INSERT OR REPLACE INTO users (id, name, profile_image_url) VALUES (?, ?, ?)")
 	if err != nil {
