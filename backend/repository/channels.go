@@ -6,12 +6,18 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) BulkInsertChannels(channels []models.Channel) error {
+func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 	tx, err := r.db.Begin()
+	
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	
+	defer func() { 
+	 	if err != nil  { 
+			tx.Rollback() 
+		} 
+	}()
 
 	stmt, err := tx.Prepare("INSERT OR REPLACE INTO channels (id, name) VALUES (?, ?)")
 	if err != nil {

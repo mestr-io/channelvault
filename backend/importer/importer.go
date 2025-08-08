@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/fs"
 	"strings"
-	"time"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
@@ -104,12 +103,6 @@ func (i *Importer) Import(c chan Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to open unzip users.json file: %w", err)
 	}
-	c <- Progress{
-		FileName:    "users.json",
-		Progress:    1.0 / float32(totalFiles),
-		TotalFiles:  totalFiles,
-		CurrentFile: 1,
-	}
 	i.processUsers(f)
 
 	// channels.json
@@ -117,16 +110,16 @@ func (i *Importer) Import(c chan Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to open unzip channels.json file: %w", err)
 	}
-	c <- Progress{
-		FileName:    "channels.json",
-		Progress:    2.0 / float32(totalFiles),
-		TotalFiles:  totalFiles,
-		CurrentFile: 2,
-	}
 	i.processChannels(f)
 
 	// messages & threads
 	for idx, f := range r.File {
+		if len(strings.Split(f.Name, "/")) == 1 {
+			// Skip files that are not in a subfolder (e.g., users.json, channels.json)
+			// NOTE: progress is not superaccurate here, but it's fine for now
+			continue
+		}
+
 		select {
 		case <-i.ctx.Done():
 			// The context was cancelled (e.g., app is shutting down).
@@ -134,12 +127,12 @@ func (i *Importer) Import(c chan Progress) error {
 		default:
 			c <- Progress{
 				FileName:    f.Name,
-				Progress:    float32(idx+2) / float32(totalFiles),
+				Progress:    float32(idx+1) / float32(totalFiles),
 				TotalFiles:  totalFiles,
-				CurrentFile: idx + 2,
+				CurrentFile: idx + 1,
 			}
 		}
-		time.Sleep(1 * time.Millisecond) //@mlg: unbuffered channel send blocks... remove?
+
 	}
 	return nil
 }
