@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"regexp"
 	"strings"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
@@ -109,13 +110,6 @@ func getExportBaseFolder(files []*zip.File) (string, error) {
 	return "", fmt.Errorf("no base folder found")
 }
 
-func isNotValidMessageFile(path []string) bool {
-	// This is pretty weird considering that the zip file has been produced
-	// at slack side
-	lastIndex := len(path) - 1
-	return path[0] == "__MACOSX" || path[lastIndex] == "" || len(path) < 3
-}
-
 // Import now returns an error instead of panicking
 func (i *Importer) Import(c chan Progress) error {
 	defer close(c)
@@ -149,12 +143,6 @@ func (i *Importer) Import(c chan Progress) error {
 
 	// messages & threads
 	for idx, f := range r.File {
-		if len(strings.Split(f.Name, "/")) == 1 {
-			// Skip files that are not in a subfolder (e.g., users.json, channels.json)
-			// NOTE: progress is not superaccurate here, but it's fine for now
-			continue
-		}
-
 		select {
 		case <-i.ctx.Done():
 			// The context was cancelled (e.g., app is shutting down).
@@ -168,14 +156,12 @@ func (i *Importer) Import(c chan Progress) error {
 			}
 
 			// only process history files
-			path := strings.Split(f.Name, "/")
-			if isNotValidMessageFile(path) {
-				continue
+			messagesFileRegex := regexp.MustCompile(`([^/]+)/(\d{4}-\d{2}-\d{2}\.json)$`)
+			if matches := messagesFileRegex.FindStringSubmatch(f.Name); len(matches) > 1 {
+				channelID := matches[1]
+				i.processMessages(channelID, f)
 			}
-
-			i.processMessages(path[1], f)
 		}
-
 	}
 	return nil
 }
