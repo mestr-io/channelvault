@@ -78,10 +78,10 @@ type ChannelPurpose struct {
 }
 
 type ChannelPin struct {
-	ID      string `json:"id"` 
+	ID      string `json:"id"`
 	Type    string `json:"type"`
 	Created int64  `json:"created"`
-	User    string `json:"user"` // User ID of the user who pinned the item
+	User    string `json:"user"`  // User ID of the user who pinned the item
 	Owner   string `json:"owner"` // User ID of the owner of the pinned item
 }
 
@@ -89,7 +89,6 @@ type Channel struct {
 	ID         string         `json:"id"`
 	Name       string         `json:"name"`
 	Created    int64          `json:"created"` // Timestamp of channel creation
-	IsChannel  bool           `json:"is_channel"`
 	Creator    string         `json:"creator"` // User ID of the channel creator
 	IsArchived bool           `json:"is_archived"`
 	IsGeneral  bool           `json:"is_general"`
