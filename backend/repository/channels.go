@@ -32,11 +32,6 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 
 	insertCount := 0
 	for _, channel := range channels {
-		// Filter out non channels
-		if !channel.IsChannel {
-			continue
-		}
-
 		_, err := stmt.Exec(channel.ID, channel.Name)
 		if err != nil {
 			return fmt.Errorf("failed to insert channel %s: %w", channel.ID, err)

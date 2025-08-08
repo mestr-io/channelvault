@@ -86,18 +86,34 @@ func (i *Importer) processMessages(ChannelID string, f *zip.File) error {
 	return i.repository.BulkInserMessages(ChannelID, result)
 }
 
-func getExportBaseFolder(r *zip.ReadCloser) (string, error) {
-	if len(r.File) > 0 {
-		firstFile := r.File[0]
-		path := strings.Split(firstFile.Name, "/")
-		if len(path) > 0 {
-			return path[0], nil
-		} else {
-			return "", fmt.Errorf("no base folder found")
+func getExportBaseFolder(files []*zip.File) (string, error) {
+	// Dani: i found that in an older export all the files are contained
+	// in a root folder with an arbitrary name. Newer ones are deflatted in root
+	// So. thanks slack. ill look i.e. users.json file, and from there i can calculate the
+	// base folder.
+
+	for _, f := range files {
+		path := strings.Split(f.Name, "/")
+		lastIndex := len(path) - 1
+		fileName := path[lastIndex]
+		if fileName == "users.json" {
+			// found it! return the base
+			if len(path) == 1 {
+				return "", nil
+			} else {
+				return fmt.Sprintf("%s/", path[0]), nil
+			}
 		}
-	} else {
-		return "", fmt.Errorf("no files in the zip")
 	}
+
+	return "", fmt.Errorf("no base folder found")
+}
+
+func isNotValidMessageFile(path []string) bool {
+	// This is pretty weird considering that the zip file has been produced
+	// at slack side
+	lastIndex := len(path) - 1
+	return path[0] == "__MACOSX" || path[lastIndex] == "" || len(path) < 3
 }
 
 // Import now returns an error instead of panicking
@@ -113,19 +129,19 @@ func (i *Importer) Import(c chan Progress) error {
 	totalFiles := len(r.File)
 
 	// get the base folder
-	baseFolder, err := getExportBaseFolder(r)
+	baseFolder, err := getExportBaseFolder(r.File)
 	if err != nil {
 		return err
 	}
 	// users.json
-	f, err := r.Open(fmt.Sprintf("%s/users.json", baseFolder))
+	f, err := r.Open(fmt.Sprintf("%susers.json", baseFolder))
 	if err != nil {
 		return fmt.Errorf("fail to open unzip users.json file: %w", err)
 	}
 	i.processUsers(f)
 
 	// channels.json
-	f, err = r.Open(fmt.Sprintf("%s/channels.json", baseFolder))
+	f, err = r.Open(fmt.Sprintf("%schannels.json", baseFolder))
 	if err != nil {
 		return fmt.Errorf("fail to open unzip channels.json file: %w", err)
 	}
@@ -150,12 +166,10 @@ func (i *Importer) Import(c chan Progress) error {
 				TotalFiles:  totalFiles,
 				CurrentFile: idx + 1,
 			}
-			// files in a root folder -> ignore them
-			// we only want channels
+
+			// only process history files
 			path := strings.Split(f.Name, "/")
-			// This is pretty weird considering that the zip file has been produced
-			// at slack side
-			if path[0] == "__MACOSX" || f.FileInfo().IsDir() || len(path) < 3 {
+			if isNotValidMessageFile(path) {
 				continue
 			}
 
