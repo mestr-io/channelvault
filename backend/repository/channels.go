@@ -43,3 +43,25 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 
 	return tx.Commit()
 }
+
+func (r *Repository) GetChannels() (channels []models.Channel, err error) {
+	rows, err := r.db.Query("select id, name from channels")
+	if err != nil {
+		return nil, fmt.Errorf("FATAL: couldnt query channels: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var channel models.Channel
+		err = rows.Scan(&channel.ID, &channel.Name)
+		if err != nil {
+			return nil, fmt.Errorf("FATAL: couldnt query channels: %v", err)
+		}
+		channels = append(channels, channel)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("FATAL: couldnt query channels: %v", err)
+	}
+	return channels, nil
+}

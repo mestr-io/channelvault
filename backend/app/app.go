@@ -37,7 +37,7 @@ func New(repository *repository.Repository) *App {
 }
 
 func (a *App) GetViewState() string {
-	return string(ViewStateSetup)
+	return string(ViewStateDashboard)
 }
 
 func (a *App) setViewState(state ViewState) {
@@ -62,26 +62,20 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 	a.processImport(paths[0])
 }
 
-// processImport is the new method that manages the import lifecycle.
 func (a *App) processImport(path string) {
-	// 1. Set state to Loading and notify frontend
 	a.setViewState(VIewStateLoading)
 
-	// 2. Create the channel and the importer
 	progressChan := make(chan importer.Progress)
 	imp := importer.NewImporter(a.ctx, path, a.repository)
 
-	// 3. Start the import in its own goroutine
 	var importErr error
 	go func() {
 		importErr = imp.Import(progressChan)
 	}()
 
-	// 4. Listen for progress updates until the channel is closed
 	var lastUpdateTime time.Time
 
 	for p := range progressChan {
-		// For every progress update, emit an event to the Wails frontend
 		if time.Since(lastUpdateTime) >= (time.Millisecond * 250) {
 			runtime.EventsEmit(a.ctx, "importProgress", p)
 			lastUpdateTime = time.Now()
@@ -89,8 +83,6 @@ func (a *App) processImport(path string) {
 		log.Printf("processed: %v\n", p)
 	}
 
-	// 5. The loop above finishes only when the channel is closed.
-	//    Now we can check if the import function returned an error.
 	if importErr != nil {
 		log.Printf("ERROR: Import failed: %v", importErr)
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
@@ -98,7 +90,6 @@ func (a *App) processImport(path string) {
 		return
 	}
 
-	// 6. Success!
 	runtime.LogPrint(a.ctx, "Import completed successfully!")
 	runtime.EventsEmit(a.ctx, "importComplete")
 	a.setViewState(ViewStateDashboard) // Move to the dashboard

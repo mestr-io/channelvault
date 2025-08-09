@@ -31,7 +31,7 @@ const (
 // Message represents a single object in the JSON array.
 type Message struct {
 	Subtype      MessageSubtype `json:"subtype,omitempty"`
-	User         string         `json:"user,omitempty"`
+	UserId       string         `json:"user,omitempty"`
 	Text         string         `json:"text,omitempty"`
 	Inviter      string         `json:"inviter,omitempty"`
 	Type         EventType      `json:"type,omitempty"`
@@ -48,6 +48,7 @@ type Message struct {
 	Edited       *Edited        `json:"edited,omitempty"` // Pointer for optional object
 	Files        []File         `json:"files,omitempty"`
 	Attachments  []Attachment   `json:"attachments,omitempty"`
+	UserName     string
 }
 
 // UserProfile contains information about the message author.

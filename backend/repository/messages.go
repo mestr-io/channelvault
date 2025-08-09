@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -76,7 +77,7 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 		_, err = stmt.Exec(
 			msg.Ts,
 			ChannelID, // Make sure this value is set in your Message struct before calling this function.
-			msg.User,
+			msg.UserId,
 			msg.Text,
 			msg.ThreadTs,
 			msg.Type,
@@ -96,4 +97,51 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 	// If the loop completes without errors, commit the transaction.
 	return tx.Commit()
 
+}
+
+func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
+	query := `
+        SELECT ts, text, user_id, u.name as author
+        FROM messages 
+		JOIN users AS u ON u.id = user_id
+		JOIN channels AS c ON c.name = channel_id
+        WHERE c.id = $1
+    `
+	args := []interface{}{channelID}
+
+	// If a cursor is provided, add a condition to fetch messages older than the cursor.
+	// This is a common pattern for keyset/cursor-based pagination.
+	if cursor != "" {
+		query += " AND ts < $2"
+		args = append(args, cursor)
+	}
+
+	// Always order by timestamp to ensure consistent pagination, and limit the result size.
+	query += " ORDER BY ts DESC LIMIT $3"
+	args = append(args, pageSize)
+
+	// Execute the query using the context for cancellation safety.
+	// Pass query parameters as arguments to prevent SQL injection.
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("could not query messages for channel %s: %w", channelID, err)
+	}
+	defer rows.Close()
+
+	var messages []models.Message
+	for rows.Next() {
+		var msg models.Message
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName); err != nil {
+			// Error during row scanning is a server-side issue.
+			return nil, fmt.Errorf("could not scan message row: %w", err)
+		}
+		messages = append(messages, msg)
+	}
+
+	// Check for any errors that occurred during iteration.
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating message rows: %w", err)
+	}
+
+	return messages, nil
 }
