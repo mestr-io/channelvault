@@ -82,7 +82,7 @@ func (a *App) processImport(path string) {
 
 	for p := range progressChan {
 		// For every progress update, emit an event to the Wails frontend
-		if time.Since(lastUpdateTime) >= time.Second {
+		if time.Since(lastUpdateTime) >= (time.Millisecond * 250) {
 			runtime.EventsEmit(a.ctx, "importProgress", p)
 			lastUpdateTime = time.Now()
 		}
