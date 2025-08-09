@@ -288,7 +288,7 @@ export namespace models {
 	    text?: string;
 	    inviter?: string;
 	    type?: string;
-	    ts?: string;
+	    ts: string;
 	    client_msg_id?: string;
 	    team?: string;
 	    user_profile?: UserProfile;
@@ -301,8 +301,8 @@ export namespace models {
 	    edited?: Edited;
 	    files?: File[];
 	    attachments?: Attachment[];
-	    UserName: string;
-	    UserProfileUrl: string;
+	    user_name?: string;
+	    avatar_url?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Message(source);
@@ -328,8 +328,8 @@ export namespace models {
 	        this.edited = this.convertValues(source["edited"], Edited);
 	        this.files = this.convertValues(source["files"], File);
 	        this.attachments = this.convertValues(source["attachments"], Attachment);
-	        this.UserName = source["UserName"];
-	        this.UserProfileUrl = source["UserProfileUrl"];
+	        this.user_name = source["user_name"];
+	        this.avatar_url = source["avatar_url"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

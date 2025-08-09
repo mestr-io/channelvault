@@ -35,7 +35,7 @@ type Message struct {
 	Text           string         `json:"text,omitempty"`
 	Inviter        string         `json:"inviter,omitempty"`
 	Type           EventType      `json:"type,omitempty"`
-	Ts             string         `json:"ts,omitempty"`
+	Ts             string         `json:"ts"`
 	ClientMsgID    string         `json:"client_msg_id,omitempty"`
 	Team           string         `json:"team,omitempty"`
 	UserProfile    *UserProfile   `json:"user_profile,omitempty"` // Pointer for optional object
@@ -48,8 +48,8 @@ type Message struct {
 	Edited         *Edited        `json:"edited,omitempty"` // Pointer for optional object
 	Files          []File         `json:"files,omitempty"`
 	Attachments    []Attachment   `json:"attachments,omitempty"`
-	UserName       string
-	UserProfileUrl string
+	UserName       string         `json:"user_name,omitempty"`
+	UserProfileUrl string         `json:"avatar_url,omitempty"`
 }
 
 // UserProfile contains information about the message author.

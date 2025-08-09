@@ -108,7 +108,6 @@
       <!-- Channel Header -->
       <header class="channel-header">
         <h2># {selectedChannel.name}</h2>
-        <p>This is where the magic happens. Send a message to get started!</p>
       </header>
 
       <!-- Messages Display -->
@@ -117,12 +116,12 @@
         <ul>
           {#each messages as msg (msg.ts)}
             <li class="message">
-              <img class="avatar" src={msg.UserProfileUrl} alt={msg.UserName} />
+              <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
               <div class="message-content">
                 <div class="message-header">
-                  <strong>{msg.UserName}</strong>
+                  <strong>{msg.user_name}</strong>
                   <span class="timestamp">
-                    {new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(parseFloat(msg.ts) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </span>
                 </div>
                 <p>{msg.text}</p>
