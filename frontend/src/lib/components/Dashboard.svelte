@@ -22,6 +22,7 @@
 
   let startX: number;
   let startWidth: number;
+  const initialDefaultWidth = 200;
 
   // Fetch initial channel list on component mount
   $effect(() => {
@@ -42,6 +43,13 @@
     const sidebar = document.getElementById("sidebar")!;
     const mainContent = document.getElementById("main-content")!;
 
+    // Retrieve the saved width from localStorage or set to default
+    const savedWidth = localStorage.getItem("sidebarWidth");
+    const initialWidth = savedWidth ? parseInt(savedWidth, 10) : initialDefaultWidth;
+
+    sidebar.style.width = `${initialWidth}px`;
+    mainContent.style.width = `calc(100% - ${initialWidth}px)`;
+
     separator.addEventListener("mousedown", startDrag);
 
     function startDrag(e) {
@@ -55,10 +63,13 @@
     function drag(e) {
       e.preventDefault();
       const diffX = e.pageX - startX;
-      const newWidth = Math.max(100, startWidth + diffX); // Minimum width of 100px
+      const newWidth = Math.max(200, startWidth + diffX); // Minimum width of 200px
 
       sidebar.style.width = newWidth + "px";
       mainContent.style.width = `calc(100% - ${newWidth}px)`;
+
+      // Save the new width to localStorage, so user will experience always last width
+      localStorage.setItem("sidebarWidth", newWidth.toString());
     }
 
     function stopDrag() {
@@ -226,8 +237,6 @@
     flex-grow: 0;
     background-color: var(--slack-sidebar-bg);
     color: var(--slack-sidebar-text);
-    /* TODO:  This is so strange */
-    width: 200px; 
   }
 
   .workspace-header {
