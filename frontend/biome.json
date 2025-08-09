@@ -6,11 +6,14 @@
 		"useIgnoreFile": false
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": ["src/**/*.js","src/**/*.ts", "src/**/*.svelte"]
 	},
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab"
+		"indentStyle": "space",
+		"indentWidth": 4,
+		"lineWidth": 120
 	},
 	"linter": {
 		"enabled": true,
