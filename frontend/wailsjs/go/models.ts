@@ -302,6 +302,7 @@ export namespace models {
 	    files?: File[];
 	    attachments?: Attachment[];
 	    UserName: string;
+	    UserProfileUrl: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Message(source);
@@ -328,6 +329,7 @@ export namespace models {
 	        this.files = this.convertValues(source["files"], File);
 	        this.attachments = this.convertValues(source["attachments"], Attachment);
 	        this.UserName = source["UserName"];
+	        this.UserProfileUrl = source["UserProfileUrl"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -57,7 +57,7 @@
     try {
       // The cursor is now the timestamp of the oldest message we have.
       // The list is sorted with newest at the bottom, so the oldest is at index 0.
-      const lastTimestamp = messages[0]?.timestamp || null;
+      const lastTimestamp = messages[0]?.ts || null;
       
       // Backend now returns Message[] directly, using the timestamp as the cursor.
       const newMessages: Message[] = await GetMessages(selectedChannel.id, lastTimestamp);
@@ -77,24 +77,6 @@
     }
   }
   
-  // Function to handle sending a new message
-  async function handleSendMessage() {
-    if (!newMessageText.trim() || !selectedChannel) return;
-    
-    try {
-      await SendMessage(selectedChannel.id, newMessageText);
-      newMessageText = ""; // Clear the input box
-      
-      // Refresh messages to show the new one. A more advanced implementation
-      // might use WebSockets or optimistic UI updates.
-      messages = []; 
-      hasMoreMessages = true; // Reset pagination
-      await loadMoreMessages();
-
-    } catch (error) {
-      console.error("Failed to send message:", error);
-    }
-  }
 </script>
 
 <!-- =================================================================================== -->
@@ -135,12 +117,12 @@
         <ul>
           {#each messages as msg (msg.ts)}
             <li class="message">
-              <img class="avatar" src={msg.authorAvatarUrl} alt={msg.authorName} />
+              <img class="avatar" src={msg.UserProfileUrl} alt={msg.UserName} />
               <div class="message-content">
                 <div class="message-header">
-                  <strong>{msg.authorName}</strong>
+                  <strong>{msg.UserName}</strong>
                   <span class="timestamp">
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 <p>{msg.text}</p>

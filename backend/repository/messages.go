@@ -101,7 +101,7 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 
 func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
 	query := `
-        SELECT ts, text, user_id, u.name as author
+        SELECT ts, text, user_id, u.name as author, u.profile_image_url as profile_url
         FROM messages 
 		JOIN users AS u ON u.id = user_id
 		JOIN channels AS c ON c.name = channel_id
@@ -131,7 +131,7 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName); err != nil {
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %w", err)
 		}
