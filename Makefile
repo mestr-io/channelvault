@@ -51,7 +51,7 @@ fmt:
 	cd $(TOP)/frontend && \
 	$(TOP)/frontend/node_modules/@biomejs/biome/bin/biome format --write
 
-check:	
+fmt-check:	
 	$(info) ">>> Check format on JS/TS code $(VERSION)-$(RELEASE) ..."
 	cd $(TOP)/frontend && \
 	$(TOP)/frontend/node_modules/@biomejs/biome/bin/biome format
