@@ -18,8 +18,7 @@ GOPROXY ?= ""
 # Inject the version in a global variable
 LDFLAGS  := "-X 'main.version=$(VERSION)-$(RELEASE)'"
 
-.PHONY: help build dev compile\
-	goversion
+.PHONY: help build dev compile goversion fmt check-fmt
 
 all: help
 
@@ -46,5 +45,15 @@ build: goversion ##                        Build apps
 dev: goversion ##                        Dev launch
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
 	@wails dev -tags webkit2_41
+
+fmt:
+	$(info) ">>> Format JS/TS code $(VERSION)-$(RELEASE) ..."
+	cd $(TOP)/frontend && \
+	$(TOP)/frontend/node_modules/@biomejs/biome/bin/biome format --write
+
+check:	
+	$(info) ">>> Check format on JS/TS code $(VERSION)-$(RELEASE) ..."
+	cd $(TOP)/frontend && \
+	$(TOP)/frontend/node_modules/@biomejs/biome/bin/biome format
 
 info := @printf "\033[32;01m%s\033[0m\n"
