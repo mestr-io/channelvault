@@ -1,125 +1,119 @@
 <script lang="ts">
-  import { GetChannels, GetMessages } from "../../../wailsjs/go/app/App";
-  import { models } from "../../../wailsjs/go/models";
-  import { onMount } from "svelte";
+import { GetChannels, GetMessages } from '../../../wailsjs/go/app/App'
+import { models } from '../../../wailsjs/go/models'
+import { onMount } from 'svelte'
 
-  // ===================================================================================
-  // 1. BACKEND INTERFACES
-  // These TypeScript interfaces must match the JSON tags of your Go structs.
-  // ===================================================================================
+// ===================================================================================
+// 1. BACKEND INTERFACES
+// These TypeScript interfaces must match the JSON tags of your Go structs.
+// ===================================================================================
 
-  // ===================================================================================
-  // 2. COMPONENT STATE
-  // State variables to manage the UI and data.
-  // ===================================================================================
+// ===================================================================================
+// 2. COMPONENT STATE
+// State variables to manage the UI and data.
+// ===================================================================================
 
-  let channels = $state<models.Channel[]>([]);
-  let messages = $state<models.Message[]>([]);
-  let selectedChannel = $state<models.Channel | null>(null);
-  let isLoadingMessages = $state(false);
-  let hasMoreMessages = $state(true); // Tracks if there are older messages to fetch
-  let newMessageText = $state("");
+let channels = $state<models.Channel[]>([])
+let messages = $state<models.Message[]>([])
+let selectedChannel = $state<models.Channel | null>(null)
+let isLoadingMessages = $state(false)
+let hasMoreMessages = $state(true) // Tracks if there are older messages to fetch
+let newMessageText = $state('')
 
-  let startX: number;
-  let startWidth: number;
-  const initialDefaultWidth = 200;
+let startX: number
+let startWidth: number
+const initialDefaultWidth = 200
 
-  // Fetch initial channel list on component mount
-  $effect(() => {
-    (async () => {
-      try {
-        channels = await GetChannels();
-        // Automatically select the first channel if available
-        if (channels.length > 0 && !selectedChannel) {
-          await selectChannel(channels[0]);
-        }
-      } catch (error) {
-        console.error("Failed to get channels:", error);
-      }
-    })();
-  });
-  onMount(() => {
-    const separator = document.getElementById("separator")!;
-    const sidebar = document.getElementById("sidebar")!;
-    const mainContent = document.getElementById("main-content")!;
-
-    // Retrieve the saved width from localStorage or set to default
-    const savedWidth = localStorage.getItem("sidebarWidth");
-    const initialWidth = savedWidth ? parseInt(savedWidth, 10) : initialDefaultWidth;
-
-    sidebar.style.width = `${initialWidth}px`;
-    mainContent.style.width = `calc(100% - ${initialWidth}px)`;
-
-    separator.addEventListener("mousedown", startDrag);
-
-    function startDrag(e) {
-      startX = e.pageX;
-      startWidth = sidebar.offsetWidth;
-
-      document.addEventListener("mousemove", drag);
-      document.addEventListener("mouseup", stopDrag);
-    }
-
-    function drag(e) {
-      e.preventDefault();
-      const diffX = e.pageX - startX;
-      const newWidth = Math.max(200, startWidth + diffX); // Minimum width of 200px
-
-      sidebar.style.width = newWidth + "px";
-      mainContent.style.width = `calc(100% - ${newWidth}px)`;
-
-      // Save the new width to localStorage, so user will experience always last width
-      localStorage.setItem("sidebarWidth", newWidth.toString());
-    }
-
-    function stopDrag() {
-      document.removeEventListener("mousemove", drag);
-      document.removeEventListener("mouseup", stopDrag);
-    }
-  });
-
-  // Function to switch channels and load its messages
-  async function selectChannel(channel: Channel) {
-    if (selectedChannel?.id === channel.id) return; // Avoid reloading same channel
-
-    selectedChannel = channel;
-    messages = []; // Clear previous messages
-    hasMoreMessages = true; // Reset pagination state for the new channel
-    await loadMoreMessages();
-  }
-
-  // Function to load a page of messages using the oldest message's timestamp as a cursor
-  async function loadMoreMessages() {
-    if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return;
-
-    isLoadingMessages = true;
+// Fetch initial channel list on component mount
+$effect(() => {
+  ;(async () => {
     try {
-      // The cursor is now the timestamp of the oldest message we have.
-      // The list is sorted with newest at the bottom, so the oldest is at index 0.
-      const lastTimestamp = messages[0]?.ts || null;
-
-      // Backend now returns Message[] directly, using the timestamp as the cursor.
-      const newMessages: Message[] = await GetMessages(
-        selectedChannel.id,
-        lastTimestamp,
-      );
-
-      if (newMessages && newMessages.length > 0) {
-        // Prepend older messages to the top of the list
-        messages = [...newMessages, ...messages];
-      } else {
-        // No more messages were returned, so we've reached the end.
-        hasMoreMessages = false;
+      channels = await GetChannels()
+      // Automatically select the first channel if available
+      if (channels.length > 0 && !selectedChannel) {
+        await selectChannel(channels[0])
       }
     } catch (error) {
-      console.error(
-        `Failed to get messages for channel ${selectedChannel.id}:`,
-        error,
-      );
-    } finally {
-      isLoadingMessages = false;
+      console.error('Failed to get channels:', error)
     }
+  })()
+})
+onMount(() => {
+  const separator = document.getElementById('separator')!
+  const sidebar = document.getElementById('sidebar')!
+  const mainContent = document.getElementById('main-content')!
+
+  // Retrieve the saved width from localStorage or set to default
+  const savedWidth = localStorage.getItem('sidebarWidth')
+  const initialWidth = savedWidth ? parseInt(savedWidth, 10) : initialDefaultWidth
+
+  sidebar.style.width = `${initialWidth}px`
+  mainContent.style.width = `calc(100% - ${initialWidth}px)`
+
+  separator.addEventListener('mousedown', startDrag)
+
+  function startDrag(e) {
+    startX = e.pageX
+    startWidth = sidebar.offsetWidth
+
+    document.addEventListener('mousemove', drag)
+    document.addEventListener('mouseup', stopDrag)
   }
+
+  function drag(e) {
+    e.preventDefault()
+    const diffX = e.pageX - startX
+    const newWidth = Math.max(200, startWidth + diffX) // Minimum width of 200px
+
+    sidebar.style.width = newWidth + 'px'
+    mainContent.style.width = `calc(100% - ${newWidth}px)`
+
+    // Save the new width to localStorage, so user will experience always last width
+    localStorage.setItem('sidebarWidth', newWidth.toString())
+  }
+
+  function stopDrag() {
+    document.removeEventListener('mousemove', drag)
+    document.removeEventListener('mouseup', stopDrag)
+  }
+})
+
+// Function to switch channels and load its messages
+async function selectChannel(channel: Channel) {
+  if (selectedChannel?.id === channel.id) return // Avoid reloading same channel
+
+  selectedChannel = channel
+  messages = [] // Clear previous messages
+  hasMoreMessages = true // Reset pagination state for the new channel
+  await loadMoreMessages()
+}
+
+// Function to load a page of messages using the oldest message's timestamp as a cursor
+async function loadMoreMessages() {
+  if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
+
+  isLoadingMessages = true
+  try {
+    // The cursor is now the timestamp of the oldest message we have.
+    // The list is sorted with newest at the bottom, so the oldest is at index 0.
+    const lastTimestamp = messages[0]?.ts || null
+
+    // Backend now returns Message[] directly, using the timestamp as the cursor.
+    const newMessages: Message[] = await GetMessages(selectedChannel.id, lastTimestamp)
+
+    if (newMessages && newMessages.length > 0) {
+      // Prepend older messages to the top of the list
+      messages = [...newMessages, ...messages]
+    } else {
+      // No more messages were returned, so we've reached the end.
+      hasMoreMessages = false
+    }
+  } catch (error) {
+    console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
+  } finally {
+    isLoadingMessages = false
+  }
+}
 </script>
 
 <!-- =================================================================================== -->

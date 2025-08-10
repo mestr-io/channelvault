@@ -3,53 +3,52 @@
   This version includes a console.log to diagnose the data from Go.
 -->
 <script>
-  import { onMount } from 'svelte';
-  import * as runtime from "../../../wailsjs/runtime";
+import { onMount } from 'svelte'
+import * as runtime from '../../../wailsjs/runtime'
 
-  let progress = {
-    FileName: "Waiting for file drop...",
-    Progress: 0,
-    TotalFiles: 0,
-    CurrentFile: 0,
-  };
-  let errorMessage = '';
-  let importComplete = false;
+let progress = {
+  FileName: 'Waiting for file drop...',
+  Progress: 0,
+  TotalFiles: 0,
+  CurrentFile: 0,
+}
+let errorMessage = ''
+let importComplete = false
 
-  onMount(() => {
-    runtime.EventsOn('importProgress', (p) => {
-      // --- DIAGNOSTIC LOG ---
-      // This is the most important line. It will show us the raw data.
-      console.log('Received progress object from Go:', p); 
+onMount(() => {
+  runtime.EventsOn('importProgress', p => {
+    // --- DIAGNOSTIC LOG ---
+    // This is the most important line. It will show us the raw data.
+    console.log('Received progress object from Go:', p)
 
-      if (!importComplete) {
-        progress = p;
-        errorMessage = '';
-      }
-    });
+    if (!importComplete) {
+      progress = p
+      errorMessage = ''
+    }
+  })
 
-    runtime.EventsOn('importError', (err) => {
-      errorMessage = err;
-      importComplete = false;
-    });
+  runtime.EventsOn('importError', err => {
+    errorMessage = err
+    importComplete = false
+  })
 
-    runtime.EventsOn('importComplete', () => {
-      importComplete = true;
-      progress = {
-        FileName: "Finished",
-        TotalFiles: progress.TotalFiles,
-        CurrentFile: progress.TotalFiles,
-        Progress: 1,
-      };
-    });
-  });
+  runtime.EventsOn('importComplete', () => {
+    importComplete = true
+    progress = {
+      FileName: 'Finished',
+      TotalFiles: progress.TotalFiles,
+      CurrentFile: progress.TotalFiles,
+      Progress: 1,
+    }
+  })
+})
 
-  // To be extra safe, we clamp the progress value between 0 and 1 before multiplying.
-  $: clampedProgress = Math.max(0, Math.min(1, progress.Progress || 0));
+// To be extra safe, we clamp the progress value between 0 and 1 before multiplying.
+$: clampedProgress = Math.max(0, Math.min(1, progress.Progress || 0))
 
-  // Use the clamped value for all calculations.
-  $: percentageValue = clampedProgress * 100;
-  $: formattedPercentage = percentageValue.toFixed(percentageValue >= 99.9 ? 0 : 1);
-
+// Use the clamped value for all calculations.
+$: percentageValue = clampedProgress * 100
+$: formattedPercentage = percentageValue.toFixed(percentageValue >= 99.9 ? 0 : 1)
 </script>
 
 <!-- HTML Markup -->
