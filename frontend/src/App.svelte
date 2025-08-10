@@ -1,34 +1,31 @@
 <script lang="ts">
-  import FileUploader from "./lib/components/FileUploader.svelte";
-  import Dashboard from "./lib/components/Dashboard.svelte";
-  import Progress from "./lib/components/Progress.svelte";
-  import { onMount } from "svelte";
-  import { GetViewState } from "../wailsjs/go/app/App";
-  import * as runtime from "../wailsjs/runtime";
+import FileUploader from './lib/components/FileUploader.svelte'
+import Dashboard from './lib/components/Dashboard.svelte'
+import Progress from './lib/components/Progress.svelte'
+import { onMount } from 'svelte'
+import { GetViewState } from '../wailsjs/go/app/App'
+import * as runtime from '../wailsjs/runtime'
 
-  type ViewState = "setup" | "dashboard" | "loading";
+type ViewState = 'setup' | 'dashboard' | 'loading'
 
-  let viewState = $state<ViewState>("loading");
+let viewState = $state<ViewState>('loading')
 
-  // onMount is the perfect lifecycle hook to set up listeners.
-  // It runs once after the component is first added to the DOM.
-  onMount(async () => {
-    try {
-      viewState = (await GetViewState()) as ViewState;
-      console.log(`Initial state set to: ${viewState}`);
+// onMount is the perfect lifecycle hook to set up listeners.
+// It runs once after the component is first added to the DOM.
+onMount(async () => {
+  try {
+    viewState = (await GetViewState()) as ViewState
+    console.log(`Initial state set to: ${viewState}`)
 
-      // We pass a function that directly reassigns the `viewState`.
-      runtime.EventsOn("backend:viewState", (newState: string) => {
-        console.log(`Received event from backend. New state: ${newState}`);
-        viewState = newState as ViewState;
-      });
-    } catch (error) {
-      console.error(
-        "Failed to initialize view state or set up listener:",
-        error,
-      );
-    }
-  });
+    // We pass a function that directly reassigns the `viewState`.
+    runtime.EventsOn('backend:viewState', (newState: string) => {
+      console.log(`Received event from backend. New state: ${newState}`)
+      viewState = newState as ViewState
+    })
+  } catch (error) {
+    console.error('Failed to initialize view state or set up listener:', error)
+  }
+})
 </script>
 
 <main class="app-main">

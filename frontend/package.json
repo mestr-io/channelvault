@@ -10,6 +10,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.1.4",
     "@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
     "@tsconfig/svelte": "^5.0.4",
     "svelte": "^5.0.0-next.154",

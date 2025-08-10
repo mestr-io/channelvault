@@ -1,36 +1,36 @@
 <script lang="ts">
-  let resultText = $state("Drop your slack import zip file here");
-  let isDragging = $state(false);
-  let dragCounter = $state(0);
+let resultText = $state('Drop your slack import zip file here')
+let isDragging = $state(false)
+let dragCounter = $state(0)
 
-  // --- Drag & Drop Event Handlers ---
-  function handleDragEnter(event: DragEvent): void {
-    event.preventDefault();
-    dragCounter++;
-    if (dragCounter === 1) {
-      isDragging = true;
-    }
+// --- Drag & Drop Event Handlers ---
+function handleDragEnter(event: DragEvent): void {
+  event.preventDefault()
+  dragCounter++
+  if (dragCounter === 1) {
+    isDragging = true
   }
+}
 
-  function handleDragOver(event: DragEvent): void {
-    event.preventDefault();
-    if (!isDragging) {
-      isDragging = true;
-    }
+function handleDragOver(event: DragEvent): void {
+  event.preventDefault()
+  if (!isDragging) {
+    isDragging = true
   }
+}
 
-  function handleDragLeave(event: DragEvent): void {
-    dragCounter--;
-    if (dragCounter === 0) {
-      isDragging = false;
-    }
+function handleDragLeave(event: DragEvent): void {
+  dragCounter--
+  if (dragCounter === 0) {
+    isDragging = false
   }
+}
 
-  function handleDrop(event: DragEvent): void {
-    event.preventDefault();
-    dragCounter = 0;
-    isDragging = false;
-  }  
+function handleDrop(event: DragEvent): void {
+  event.preventDefault()
+  dragCounter = 0
+  isDragging = false
+}
 </script>
 
 <div
