@@ -194,17 +194,21 @@ function handleScroll() {
 
   .sidebar h4 {
     padding: 1rem 1.25rem 0.5rem;
-    font-size: 0.85rem;
+    font-size: 1.2rem;
   }
 
   .channel-item button {
-    padding: 0.4rem 1.25rem;
-    cursor: pointer;
+    background: none;
     border-radius: 4px;
-    margin: 0 0.5rem;
-    white-space: nowrap;
+    border: none;
+    color: white;
     cursor: pointer;
+    margin: 0 0.5rem;
+    padding: 0.5rem 1.25rem;
+    text-align: left;
+    white-space: nowrap;
     width: 100%;
+    font-size: 1rem;
   }
 
   .channel-item button:hover {
@@ -250,5 +254,7 @@ function handleScroll() {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+  }
+  .unstyled-button {
   }
 </style>

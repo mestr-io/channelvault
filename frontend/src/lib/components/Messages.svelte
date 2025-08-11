@@ -52,7 +52,9 @@ const { messages, isLoadingMessages, hasMoreMessages } = $props()
   .message-content p {
     margin: 0;
     line-height: 1.45;
-    white-space: pre-wrap; /* ADDED: This is the key to fixing text formatting */
+    display: block;
+    word-wrap: break-word;
+    white-space: normal;
   }
   .message-header strong {
     font-weight: 900;
