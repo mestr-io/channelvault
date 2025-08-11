@@ -19,7 +19,6 @@ func (r *Repository) SetupSchemas() error {
 			reply_users_json TEXT,
 			replies_json TEXT,
 			files_json TEXT,
-			attachments_json TEXT,
 			reply_count INTEGER NOT NULL DEFAULT 0,
 			PRIMARY KEY (ts, channel_id)
 		);

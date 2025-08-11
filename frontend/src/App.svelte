@@ -51,7 +51,8 @@ onMount(async () => {
   }
 
   .app-main {
-    background-color: #1a202c;
+    border-radius: 12px;
+    background-color: transparent;
     color: #f7fafc;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

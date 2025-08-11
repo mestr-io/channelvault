@@ -171,6 +171,9 @@ function handleScroll() {
                   </span>
                 </div>
                 <p>{msg.text}</p>
+                {#if msg.thread_ts}
+                <p>{msg.reply_count} replies <button>View thread</button></p>
+                {/if}
               </div>
             </li>
           {/each}
