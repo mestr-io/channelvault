@@ -1,17 +1,13 @@
 <script lang="ts">
-  import { GetChannels, GetMessages } from '../../../wailsjs/go/app/App'
-  import { models } from '../../../wailsjs/go/models'
-  import { onMount, tick } from 'svelte'
+  import { GetChannels, GetMessages } from "../../../wailsjs/go/app/App";
+  import { models } from "../../../wailsjs/go/models";
+  import { onMount, tick } from "svelte";
 
-  // ===================================================================================
-  // 1. COMPONENT STATE & REFS
-  // ===================================================================================
-
-  let channels = $state<models.Channel[]>([])
-  let messages = $state<models.Message[]>([])
-  let selectedChannel = $state<models.Channel | null>(null)
-  let isLoadingMessages = $state(false)
-  let hasMoreMessages = $state(true)
+  let channels = $state<models.Channel[]>([]);
+  let messages = $state<models.Message[]>([]);
+  let selectedChannel = $state<models.Channel | null>(null);
+  let isLoadingMessages = $state(false);
+  let hasMoreMessages = $state(true);
 
   // State for sidebar resizing
   let startX: number;
@@ -19,28 +15,24 @@
   const initialDefaultWidth = 250;
 
   // State and refs for scroll management
+  // svelte-ignore non_reactive_update
   let messagesContainer: HTMLDivElement;
   let isInitialLoad = $state(true);
-
-  // ===================================================================================
-  // 2. LIFECYCLE & EFFECTS
-  // ===================================================================================
 
   // Fetch initial channel list
   $effect(() => {
     (async () => {
       try {
-        channels = await GetChannels()
+        channels = await GetChannels();
         if (channels.length > 0 && !selectedChannel) {
-          await selectChannel(channels[0])
+          await selectChannel(channels[0]);
         }
       } catch (error) {
-        console.error('Failed to get channels:', error)
+        console.error("Failed to get channels:", error);
       }
-    })()
-  })
-  
-  // Effect to scroll to bottom on initial load
+    })();
+  });
+
   $effect(() => {
     // This runs after messages are rendered. If it was the first load, scroll down.
     if (messages.length > 0 && isInitialLoad && messagesContainer) {
@@ -51,88 +43,97 @@
     }
   });
 
+  // TODO: move this to a component!!! <SideBar> ... </>
   // Sidebar resizing logic
   onMount(() => {
-    const separator = document.getElementById('separator')!
-    const sidebar = document.getElementById('sidebar')!
-    const mainContent = document.getElementById('main-content')!
-    const savedWidth = localStorage.getItem('sidebarWidth')
-    const initialWidth = savedWidth ? parseInt(savedWidth, 10) : initialDefaultWidth;
+    const separator = document.getElementById("separator")!;
+    const sidebar = document.getElementById("sidebar")!;
+    const mainContent = document.getElementById("main-content")!;
+    const savedWidth = localStorage.getItem("sidebarWidth");
+    const initialWidth = savedWidth
+      ? parseInt(savedWidth, 10)
+      : initialDefaultWidth;
 
-    sidebar.style.width = `${initialWidth}px`
-    mainContent.style.width = `calc(100% - ${initialWidth}px)`
+    sidebar.style.width = `${initialWidth}px`;
+    mainContent.style.width = `calc(100% - ${initialWidth}px)`;
 
-    separator.addEventListener('mousedown', startDrag)
+    separator.addEventListener("mousedown", startDrag);
 
     function startDrag(e: MouseEvent) {
-      startX = e.pageX
-      startWidth = sidebar.offsetWidth
-      document.addEventListener('mousemove', drag)
-      document.addEventListener('mouseup', stopDrag)
+      startX = e.pageX;
+      startWidth = sidebar.offsetWidth;
+      document.addEventListener("mousemove", drag);
+      document.addEventListener("mouseup", stopDrag);
     }
 
     function drag(e: MouseEvent) {
-      e.preventDefault()
-      const diffX = e.pageX - startX
-      const newWidth = Math.max(200, startWidth + diffX)
-      sidebar.style.width = newWidth + 'px'
-      mainContent.style.width = `calc(100% - ${newWidth}px)`
-      localStorage.setItem('sidebarWidth', newWidth.toString())
+      e.preventDefault();
+      const diffX = e.pageX - startX;
+      const newWidth = Math.max(200, startWidth + diffX);
+      sidebar.style.width = newWidth + "px";
+      mainContent.style.width = `calc(100% - ${newWidth}px)`;
+      localStorage.setItem("sidebarWidth", newWidth.toString());
     }
 
     function stopDrag() {
-      document.removeEventListener('mousemove', drag)
-      document.removeEventListener('mouseup', stopDrag)
+      document.removeEventListener("mousemove", drag);
+      document.removeEventListener("mouseup", stopDrag);
     }
-  })
+  });
 
-  // ===================================================================================
-  // 3. CORE LOGIC
-  // ===================================================================================
-  
   async function selectChannel(channel: models.Channel) {
-    if (selectedChannel?.id === channel.id) return
+    if (selectedChannel?.id === channel.id) return;
 
-    selectedChannel = channel
-    messages = []
-    hasMoreMessages = true
+    selectedChannel = channel;
+    messages = [];
+    hasMoreMessages = true;
     isInitialLoad = true;
-    await loadMoreMessages()
+    await loadMoreMessages();
   }
 
   async function loadMoreMessages() {
-    if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
+    if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return;
 
-    isLoadingMessages = true
+    isLoadingMessages = true;
     try {
-      const cursor = messages[0]?.ts || null;
+      const cursor = messages[0]?.ts || "";
       const oldScrollHeight = messagesContainer?.scrollHeight || 0;
 
       // The backend returns messages newest-to-oldest
-      const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 30); // Fetch 30 messages
-      
+      const newMessages: models.Message[] = await GetMessages(
+        selectedChannel.id,
+        cursor,
+      );
+
       if (newMessages?.length > 0) {
         // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
-        messages = [...newMessages.reverse(), ...messages]
+        messages = [...newMessages.reverse(), ...messages];
 
         // If this was NOT the initial load, preserve scroll position
         if (!isInitialLoad && messagesContainer) {
           await tick(); // Wait for DOM to update
-          messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight;
+          messagesContainer.scrollTop =
+            messagesContainer.scrollHeight - oldScrollHeight;
         }
-
       } else {
-        hasMoreMessages = false
+        hasMoreMessages = false;
       }
     } catch (error) {
-      console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
+      console.error(
+        `Failed to get messages for channel ${selectedChannel.id}:`,
+        error,
+      );
     } finally {
-      isLoadingMessages = false
+      isLoadingMessages = false;
     }
   }
 
   function handleScroll() {
-    if (messagesContainer.scrollTop === 0 && hasMoreMessages && !isLoadingMessages) {
+    if (
+      messagesContainer.scrollTop === 0 &&
+      hasMoreMessages &&
+      !isLoadingMessages
+    ) {
       loadMoreMessages();
     }
   }
@@ -144,7 +145,7 @@
     <ul class="channels-list">
       {#each channels as channel (channel.id)}
         <li
-          on:click={() => selectChannel(channel)}
+          onclick={() => selectChannel(channel)}
           class:active={channel.id === selectedChannel?.id}
         >
           # {channel.name}
@@ -160,8 +161,11 @@
       <header class="channel-header">
         <h2># {selectedChannel.name}</h2>
       </header>
-
-      <div class="messages-container" bind:this={messagesContainer} on:scroll={handleScroll}>
+      <div
+        class="messages-container"
+        bind:this={messagesContainer}
+        onscroll={handleScroll}
+      >
         {#if hasMoreMessages}
           <div class="loader">
             {#if isLoadingMessages}<span>Loading history...</span>{/if}
@@ -236,12 +240,19 @@
     margin: 0 0.5rem;
     white-space: nowrap;
   }
-  .channels-list li:hover { background-color: var(--slack-sidebar-hover-bg); }
-  .channels-list li.active { background-color: var(--slack-sidebar-active-bg); color: white; }
+  .channels-list li:hover {
+    background-color: var(--slack-sidebar-hover-bg);
+  }
+  .channels-list li.active {
+    background-color: var(--slack-sidebar-active-bg);
+    color: white;
+  }
   .separator {
     width: 5px;
     cursor: ew-resize;
-    background-color: var(--slack-border-color); /* MODIFIED: Darker separator */
+    background-color: var(
+      --slack-border-color
+    ); /* MODIFIED: Darker separator */
     border: none;
     flex-shrink: 0;
   }
@@ -263,7 +274,9 @@
     border-bottom: 1px solid var(--slack-border-color); /* MODIFIED: Darker border */
     flex-shrink: 0;
   }
-  .channel-header h2 { margin: 0; }
+  .channel-header h2 {
+    margin: 0;
+  }
   .messages-container {
     flex-grow: 1;
     overflow-y: auto;
@@ -297,7 +310,9 @@
     line-height: 1.45;
     white-space: pre-wrap; /* ADDED: This is the key to fixing text formatting */
   }
-  .message-header strong { font-weight: 900; }
+  .message-header strong {
+    font-weight: 900;
+  }
   .timestamp {
     color: #9e9ea6; /* MODIFIED: Lighter gray for timestamp */
     font-size: 0.8rem;

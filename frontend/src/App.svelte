@@ -51,7 +51,6 @@ onMount(async () => {
   }
 
   .app-main {
-    padding: 1rem;
     background-color: #1a202c;
     color: #f7fafc;
     -webkit-font-smoothing: antialiased;
