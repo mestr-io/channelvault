@@ -58,5 +58,4 @@ onMount(async () => {
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
   }
-  
 </style>

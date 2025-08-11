@@ -1,5 +1,5 @@
 <script lang="ts">
-  const { messages, isLoadingMessages, hasMoreMessages } = $props();
+const { messages, isLoadingMessages, hasMoreMessages } = $props()
 </script>
 
 {#if hasMoreMessages}
@@ -28,6 +28,11 @@
 </div>
 
 <style>
+  .loader {
+    text-align: center;
+    padding: 1rem;
+    min-height: 40px;
+  }
   .messages-container {
     margin: 1rem;
     margin-top: auto;
