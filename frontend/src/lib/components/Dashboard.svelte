@@ -23,6 +23,51 @@ let newMessageText = $state('')
 let startX: number
 let startWidth: number
 const initialDefaultWidth = 200
+// Add these two lines to your component state (section 2)
+let scrollTriggerEl: HTMLLIElement | undefined = $state()
+let messagesContainerEl: HTMLDivElement | undefined = $state()
+
+// PRESERVE SCROLL STATE
+// Add this new state variable
+let scrollHeightBeforeLoad = $state(0)
+
+$effect(() => {
+  // When messages are prepended, adjust scroll to keep the view stable
+  if (scrollHeightBeforeLoad && messagesContainerEl) {
+    messagesContainerEl.scrollTop +=
+      messagesContainerEl.scrollHeight - scrollHeightBeforeLoad
+    scrollHeightBeforeLoad = 0 // Reset after adjusting
+  }
+})
+
+// Add this $effect to create and manage the Intersection Observer
+$effect(() => {
+  if (!scrollTriggerEl || !messagesContainerEl) return
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      // If the trigger element is intersecting (visible) and we're not already loading...
+      if (entries[0].isIntersecting && !isLoadingMessages) {
+        // ...save the current scroll height before loading new messages
+        scrollHeightBeforeLoad = messagesContainerEl.scrollHeight
+        loadMoreMessages()
+      }
+    },
+    {
+      root: messagesContainerEl, // Observe within the messages container
+      threshold: 1.0, // Trigger when 100% of the element is visible
+    },
+  )
+
+  // Start observing the trigger element
+  observer.observe(scrollTriggerEl)
+
+  // Return a cleanup function to disconnect the observer when the component unmounts
+  // or the trigger element is removed from the DOM.
+  return () => {
+    observer.disconnect()
+  }
+})
 
 // Fetch initial channel list on component mount
 $effect(() => {
@@ -94,18 +139,13 @@ async function loadMoreMessages() {
 
   isLoadingMessages = true
   try {
-    // The cursor is now the timestamp of the oldest message we have.
-    // The list is sorted with newest at the bottom, so the oldest is at index 0.
-    const lastTimestamp = messages[0]?.ts || null
+    const lastTimestamp = messages.at(-1)?.ts || ""
 
-    // Backend now returns Message[] directly, using the timestamp as the cursor.
-    const newMessages: Message[] = await GetMessages(selectedChannel.id, lastTimestamp)
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, lastTimestamp)
 
     if (newMessages && newMessages.length > 0) {
-      // Prepend older messages to the top of the list
       messages = [...newMessages, ...messages]
     } else {
-      // No more messages were returned, so we've reached the end.
       hasMoreMessages = false
     }
   } catch (error) {
@@ -137,59 +177,56 @@ async function loadMoreMessages() {
   </div>
   <div class="separator" id="separator"></div>
   <!-- Main Content Area -->
-  <div class="main-content" id="main-content">
-    {#if isLoadingMessages}
-      <div class="loader">Loading messages...</div>
-    {/if}
+ <div class="main-content" id="main-content">
+  {#if selectedChannel}
+    <header class="channel-header">
+      <h2># {selectedChannel.name}</h2>
+    </header>
 
-    {#if hasMoreMessages && selectedChannel}
-      <button class="load-more-btn" on:click={loadMoreMessages}>
-        Load More Messages
-      </button>
-    {/if}
-    {#if selectedChannel}
-      <!-- Channel Header -->
-      <header class="channel-header">
-        <h2># {selectedChannel.name}</h2>
-      </header>
+    <div class="messages-container" bind:this={messagesContainerEl}>
+      <ul>
+        {#if hasMoreMessages && !isLoadingMessages}
+          <li class="scroll-trigger" bind:this={scrollTriggerEl}></li>
+        {/if}
 
-      <!-- Messages Display -->
-      <div class="messages-container">
-        <!-- Messages List -->
-        <ul>
-          {#each messages as msg (msg.ts)}
-            <li class="message">
-              <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
-              <div class="message-content">
-                <div class="message-header">
-                  <strong>{msg.user_name}</strong>
-                  <span class="timestamp">
-                    {new Date(parseFloat(msg.ts) * 1000).toLocaleTimeString(
-                      [],
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      },
-                    )}
-                  </span>
-                </div>
-                <p>{msg.text}</p>
+        {#if isLoadingMessages}
+          <li class="loader-li">
+            <div class="loader">Loading...</div>
+          </li>
+        {/if}
+
+        {#each messages as msg (msg.ts)}
+          <li class="message">
+            <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
+            <div class="message-content">
+              <div class="message-header">
+                <strong>{msg.user_name}</strong>
+                <span class="timestamp">
+                  {new Date(parseFloat(msg.ts) * 1000).toLocaleTimeString(
+                    [],
+                    {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    },
+                  )}
+                </span>
               </div>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {:else}
-      <!-- Welcome Screen -->
-      <div class="welcome-screen">
-        <h2>Welcome to your Slack Clone!</h2>
-        <p>Select a channel from the left sidebar to start chatting.</p>
-      </div>
-    {/if}
-  </div>
+              <p>{msg.text}</p>
+            </div>
+          </li>
+        {/each}
+      </ul>
+    </div>
+  {:else}
+    <div class="welcome-screen">
+      <h2>Welcome to your Slack Clone!</h2>
+      <p>Select a channel from the left sidebar to start chatting.</p>
+    </div>
+  {/if}
+</div>
 </main>
 
 <style>
@@ -225,6 +262,19 @@ async function loadMoreMessages() {
     border-right: 1px solid #ccc;
   }
 
+
+.scroll-trigger {
+  /* This makes the trigger element take up space but be invisible */
+  height: 1px;
+  visibility: hidden;
+}
+
+.loader-li {
+  /* This ensures the loader is centered without list-item styling */
+  list-style: none;
+  padding: 1rem 0;
+  text-align: center;
+}
   /* --- Sidebar --- */
   .sidebar {
     overflow: auto;

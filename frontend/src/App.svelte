@@ -2,6 +2,8 @@
 import FileUploader from './lib/components/FileUploader.svelte'
 import Dashboard from './lib/components/Dashboard.svelte'
 import Progress from './lib/components/Progress.svelte'
+import Main from './lib/components/Main.svelte'
+
 import { onMount } from 'svelte'
 import { GetViewState } from '../wailsjs/go/app/App'
 import * as runtime from '../wailsjs/runtime'
@@ -36,7 +38,7 @@ onMount(async () => {
   {:else if viewState === "setup"}
     <FileUploader />
   {:else if viewState === "dashboard"}
-    <Dashboard />
+    <Main />
   {/if}
   <footer></footer>
 </main>
