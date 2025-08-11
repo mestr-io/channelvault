@@ -1,35 +1,29 @@
 <script lang="ts">
 import { GetChannels, GetMessages } from '../../../wailsjs/go/app/App'
 import { models } from '../../../wailsjs/go/models'
-import { onMount } from 'svelte'
-
-// ===================================================================================
-// 1. BACKEND INTERFACES
-// These TypeScript interfaces must match the JSON tags of your Go structs.
-// ===================================================================================
-
-// ===================================================================================
-// 2. COMPONENT STATE
-// State variables to manage the UI and data.
-// ===================================================================================
+import { onMount, tick } from 'svelte'
 
 let channels = $state<models.Channel[]>([])
 let messages = $state<models.Message[]>([])
 let selectedChannel = $state<models.Channel | null>(null)
 let isLoadingMessages = $state(false)
-let hasMoreMessages = $state(true) // Tracks if there are older messages to fetch
-let newMessageText = $state('')
+let hasMoreMessages = $state(true)
 
+// State for sidebar resizing
 let startX: number
 let startWidth: number
-const initialDefaultWidth = 200
+const initialDefaultWidth = 250
 
-// Fetch initial channel list on component mount
+// State and refs for scroll management
+// svelte-ignore non_reactive_update
+let messagesContainer: HTMLDivElement
+let isInitialLoad = $state(true)
+
+// Fetch initial channel list
 $effect(() => {
   ;(async () => {
     try {
       channels = await GetChannels()
-      // Automatically select the first channel if available
       if (channels.length > 0 && !selectedChannel) {
         await selectChannel(channels[0])
       }
@@ -38,12 +32,23 @@ $effect(() => {
     }
   })()
 })
+
+$effect(() => {
+  // This runs after messages are rendered. If it was the first load, scroll down.
+  if (messages.length > 0 && isInitialLoad && messagesContainer) {
+    tick().then(() => {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight
+      isInitialLoad = false
+    })
+  }
+})
+
+// TODO: move this to a component!!! <SideBar> ... </>
+// Sidebar resizing logic
 onMount(() => {
   const separator = document.getElementById('separator')!
   const sidebar = document.getElementById('sidebar')!
   const mainContent = document.getElementById('main-content')!
-
-  // Retrieve the saved width from localStorage or set to default
   const savedWidth = localStorage.getItem('sidebarWidth')
   const initialWidth = savedWidth ? parseInt(savedWidth, 10) : initialDefaultWidth
 
@@ -52,23 +57,19 @@ onMount(() => {
 
   separator.addEventListener('mousedown', startDrag)
 
-  function startDrag(e) {
+  function startDrag(e: MouseEvent) {
     startX = e.pageX
     startWidth = sidebar.offsetWidth
-
     document.addEventListener('mousemove', drag)
     document.addEventListener('mouseup', stopDrag)
   }
 
-  function drag(e) {
+  function drag(e: MouseEvent) {
     e.preventDefault()
     const diffX = e.pageX - startX
-    const newWidth = Math.max(200, startWidth + diffX) // Minimum width of 200px
-
+    const newWidth = Math.max(200, startWidth + diffX)
     sidebar.style.width = newWidth + 'px'
     mainContent.style.width = `calc(100% - ${newWidth}px)`
-
-    // Save the new width to localStorage, so user will experience always last width
     localStorage.setItem('sidebarWidth', newWidth.toString())
   }
 
@@ -78,34 +79,37 @@ onMount(() => {
   }
 })
 
-// Function to switch channels and load its messages
-async function selectChannel(channel: Channel) {
-  if (selectedChannel?.id === channel.id) return // Avoid reloading same channel
+async function selectChannel(channel: models.Channel) {
+  if (selectedChannel?.id === channel.id) return
 
   selectedChannel = channel
-  messages = [] // Clear previous messages
-  hasMoreMessages = true // Reset pagination state for the new channel
+  messages = []
+  hasMoreMessages = true
+  isInitialLoad = true
   await loadMoreMessages()
 }
 
-// Function to load a page of messages using the oldest message's timestamp as a cursor
 async function loadMoreMessages() {
   if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
 
   isLoadingMessages = true
   try {
-    // The cursor is now the timestamp of the oldest message we have.
-    // The list is sorted with newest at the bottom, so the oldest is at index 0.
-    const lastTimestamp = messages[0]?.ts || null
+    const cursor = messages[0]?.ts || ''
+    const oldScrollHeight = messagesContainer?.scrollHeight || 0
 
-    // Backend now returns Message[] directly, using the timestamp as the cursor.
-    const newMessages: Message[] = await GetMessages(selectedChannel.id, lastTimestamp)
+    // The backend returns messages newest-to-oldest
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor)
 
-    if (newMessages && newMessages.length > 0) {
-      // Prepend older messages to the top of the list
-      messages = [...newMessages, ...messages]
+    if (newMessages?.length > 0) {
+      // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
+      messages = [...newMessages.reverse(), ...messages]
+
+      // If this was NOT the initial load, preserve scroll position
+      if (!isInitialLoad && messagesContainer) {
+        await tick() // Wait for DOM to update
+        messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight
+      }
     } else {
-      // No more messages were returned, so we've reached the end.
       hasMoreMessages = false
     }
   } catch (error) {
@@ -114,20 +118,21 @@ async function loadMoreMessages() {
     isLoadingMessages = false
   }
 }
+
+function handleScroll() {
+  if (messagesContainer.scrollTop === 0 && hasMoreMessages && !isLoadingMessages) {
+    loadMoreMessages()
+  }
+}
 </script>
 
-<!-- =================================================================================== -->
-<!-- 4. HTML STRUCTURE & STYLING                                                         -->
-<!-- =================================================================================== -->
-
 <main class="slack-clone">
-  <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <h4>Channels</h4>
     <ul class="channels-list">
       {#each channels as channel (channel.id)}
         <li
-          on:click={() => selectChannel(channel)}
+          onclick={() => selectChannel(channel)}
           class:active={channel.id === selectedChannel?.id}
         >
           # {channel.name}
@@ -135,27 +140,25 @@ async function loadMoreMessages() {
       {/each}
     </ul>
   </div>
-  <div class="separator" id="separator"></div>
-  <!-- Main Content Area -->
-  <div class="main-content" id="main-content">
-    {#if isLoadingMessages}
-      <div class="loader">Loading messages...</div>
-    {/if}
 
-    {#if hasMoreMessages && selectedChannel}
-      <button class="load-more-btn" on:click={loadMoreMessages}>
-        Load More Messages
-      </button>
-    {/if}
+  <div class="separator" id="separator"></div>
+
+  <div class="main-content" id="main-content">
     {#if selectedChannel}
-      <!-- Channel Header -->
       <header class="channel-header">
         <h2># {selectedChannel.name}</h2>
       </header>
+      <div
+        class="messages-container"
+        bind:this={messagesContainer}
+        onscroll={handleScroll}
+      >
+        {#if hasMoreMessages}
+          <div class="loader">
+            {#if isLoadingMessages}<span>Loading history...</span>{/if}
+          </div>
+        {/if}
 
-      <!-- Messages Display -->
-      <div class="messages-container">
-        <!-- Messages List -->
         <ul>
           {#each messages as msg (msg.ts)}
             <li class="message">
@@ -164,16 +167,7 @@ async function loadMoreMessages() {
                 <div class="message-header">
                   <strong>{msg.user_name}</strong>
                   <span class="timestamp">
-                    {new Date(parseFloat(msg.ts) * 1000).toLocaleTimeString(
-                      [],
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      },
-                    )}
+                    {new Date(parseFloat(msg.ts) * 1000).toLocaleString()}
                   </span>
                 </div>
                 <p>{msg.text}</p>
@@ -183,240 +177,132 @@ async function loadMoreMessages() {
         </ul>
       </div>
     {:else}
-      <!-- Welcome Screen -->
       <div class="welcome-screen">
-        <h2>Welcome to your Slack Clone!</h2>
-        <p>Select a channel from the left sidebar to start chatting.</p>
+        <h2>Welcome!</h2>
+        <p>Select a channel to view messages.</p>
       </div>
     {/if}
   </div>
 </main>
 
 <style>
-  /* CSS Variables for easy theming */
+  /* --- MODIFIED: Updated color variables for a Slack-like dark theme --- */
   :root {
-    --slack-sidebar-bg: #1a1d21;
+    --slack-sidebar-bg: #19171d; /* Slack's dark purple/eggplant */
+    --slack-main-bg: #1d1c1d; /* A slightly lighter dark gray for content */
+    --slack-main-text: #d1d2d3; /* Light gray text for readability on dark BG */
     --slack-sidebar-text: #d1d2d3;
     --slack-sidebar-hover-bg: #272a2e;
-    --slack-sidebar-active-bg: #1164a3;
-    --slack-sidebar-active-text: #ffffff;
+    --slack-sidebar-active-bg: #1164a3; /* Keep the highlight blue */
     --slack-border-color: #3b3d40;
-    --slack-main-bg: #f8f8f8;
-    --slack-main-text: #1d1c1d;
-    --slack-input-bg: #ffffff;
     --font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
       Helvetica, Arial, sans-serif;
   }
-
   .slack-clone {
     display: flex;
     height: 100vh;
-    /* width: 100vw; */
     font-family: var(--font-family);
     background-color: var(--slack-main-bg);
-    color: var(--slack-main-text);
+    color: var(--slack-main-text); /* MODIFIED: Set global text color */
   }
-
-  .separator {
-    width: 20px; /* Just for debugging process*/
-    cursor: ew-resize;
-    background-color: #eee;
-    border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-  }
-
-  /* --- Sidebar --- */
   .sidebar {
-    overflow: auto;
-    flex-grow: 0;
+    flex-shrink: 0;
+    overflow-y: auto;
     background-color: var(--slack-sidebar-bg);
     color: var(--slack-sidebar-text);
   }
-
-  .workspace-header {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--slack-border-color);
-  }
-
-  .workspace-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: white;
-  }
-
-  /* .channels-list-container {
-    padding: 1rem 0;
-  } */
-
   .sidebar h4 {
-    padding: 0 1.25rem 0.5rem;
-    margin: 0;
+    padding: 1rem 1.25rem 0.5rem;
     font-size: 0.85rem;
-    text-transform: uppercase;
-    font-weight: 700;
   }
-
   .channels-list {
     list-style: none;
     padding: 0;
     margin: 0;
   }
-
   .channels-list li {
     padding: 0.4rem 1.25rem;
     cursor: pointer;
     border-radius: 4px;
     margin: 0 0.5rem;
+    white-space: nowrap;
   }
-
   .channels-list li:hover {
     background-color: var(--slack-sidebar-hover-bg);
   }
-
   .channels-list li.active {
     background-color: var(--slack-sidebar-active-bg);
-    color: var(--slack-sidebar-active-text);
-    font-weight: bold;
+    color: white;
   }
-
-  /* --- Main Content --- */
+  .separator {
+    width: 5px;
+    cursor: ew-resize;
+    background-color: var(
+      --slack-border-color
+    ); /* MODIFIED: Darker separator */
+    border: none;
+    flex-shrink: 0;
+  }
   .main-content {
-    overflow: auto;
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
   }
-
   .welcome-screen {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100%;
-    color: #6c757d;
   }
-
   .channel-header {
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--slack-border-color); /* MODIFIED: Darker border */
     flex-shrink: 0;
   }
-
   .channel-header h2 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1.25rem;
-  }
-  .channel-header p {
     margin: 0;
-    font-size: 0.9rem;
-    color: #6c757d;
   }
-
-  /* --- Messages --- */
   .messages-container {
     flex-grow: 1;
     overflow-y: auto;
-    padding: 1rem;
     display: flex;
-    flex-direction: column-reverse; /* Key for chat UI */
+    flex-direction: column;
   }
-
   .messages-container ul {
     list-style: none;
-    padding: 0;
+    padding: 1rem;
+    margin: 0;
+    margin-top: auto;
   }
-
-  .loader,
-  .load-more-btn {
+  .loader {
     text-align: center;
-    padding: 0.75rem;
-    margin: 0.5rem auto;
+    padding: 1rem;
+    min-height: 40px;
   }
-
-  .load-more-btn {
-    background: #007a5a;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-
-  .load-more-btn:hover {
-    background: #148567;
-  }
-
   .message {
     display: flex;
     padding: 0.75rem 0;
   }
-
   .avatar {
     width: 40px;
     height: 40px;
     border-radius: 6px;
     margin-right: 1rem;
-    flex-shrink: 0;
     object-fit: cover;
   }
-
   .message-content p {
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.45;
+    white-space: pre-wrap; /* ADDED: This is the key to fixing text formatting */
   }
-
   .message-header strong {
     font-weight: 900;
   }
-
   .timestamp {
-    color: #616061;
+    color: #9e9ea6; /* MODIFIED: Lighter gray for timestamp */
     font-size: 0.8rem;
     margin-left: 0.5rem;
-  }
-
-  /* --- Message Input --- */
-  .message-input-area {
-    padding: 1rem;
-    flex-shrink: 0;
-  }
-
-  .message-input-area form {
-    display: flex;
-    align-items: center;
-    border: 1px solid #bdbdbd;
-    border-radius: 8px;
-    background-color: var(--slack-input-bg);
-    padding: 0.25rem;
-  }
-
-  .message-input-area input {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    padding: 0.75rem;
-    font-size: 1rem;
-    background: transparent;
-  }
-
-  .message-input-area button {
-    background-color: #007a5a;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    padding: 0.5rem;
-    margin-right: 0.25rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .message-input-area button:disabled {
-    background-color: #e0e0e0;
-    cursor: not-allowed;
-  }
-
-  .message-input-area button:not(:disabled):hover {
-    background-color: #148567;
   }
 </style>
