@@ -7,5 +7,5 @@ func (a *App) GetChannels() ([]models.Channel, error) {
 }
 
 func (a *App) GetMessages(channelID string, cursor string) ([]models.Message, error) {
-	return a.repository.GetMessages(a.ctx, channelID, cursor, 100)
+	return a.repository.GetMessages(a.ctx, channelID, cursor, 25)
 }
