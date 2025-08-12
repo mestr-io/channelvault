@@ -1,5 +1,5 @@
 <script lang="ts">
-  const { messages, isLoadingMessages, hasMoreMessages } = $props();
+const { messages, isLoadingMessages, hasMoreMessages } = $props()
 </script>
 
 {#if hasMoreMessages}
