@@ -303,6 +303,9 @@ export namespace models {
 	    attachments?: Attachment[];
 	    user_name?: string;
 	    avatar_url?: string;
+	    latest_reply?: string;
+	    reply_users_count?: number;
+	    reply_users?: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Message(source);
@@ -330,6 +333,9 @@ export namespace models {
 	        this.attachments = this.convertValues(source["attachments"], Attachment);
 	        this.user_name = source["user_name"];
 	        this.avatar_url = source["avatar_url"];
+	        this.latest_reply = source["latest_reply"];
+	        this.reply_users_count = source["reply_users_count"];
+	        this.reply_users = source["reply_users"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
