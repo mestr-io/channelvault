@@ -44,19 +44,24 @@ onMount(async () => {
 <style>
   /* Inter font from Google Fonts (or similar system font for local development) */
   :global(body) {
-    font-family: "Inter", sans-serif;
+    font-family:
+      "Lato",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
   }
 
   .app-main {
-    border-radius: 12px;
     background-color: transparent;
-    color: #f7fafc;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
   }
-  
 </style>
