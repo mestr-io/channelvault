@@ -108,7 +108,7 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
         SELECT 
 			ts, text, 
 			user_id, 
-			u.name as author, 
+			u.real_name as author, 
 			u.profile_image_url as profile_url,
 			thread_ts,
 			reply_count,

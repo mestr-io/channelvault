@@ -10,6 +10,10 @@ export function GetMessages(arg1, arg2) {
   return window['go']['app']['App']['GetMessages'](arg1, arg2);
 }
 
+export function GetUserAvatar(arg1) {
+  return window['go']['app']['App']['GetUserAvatar'](arg1);
+}
+
 export function GetViewState() {
   return window['go']['app']['App']['GetViewState']();
 }
