@@ -8,6 +8,7 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
+// TODO: add context to stop it if needed
 func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Message) (err error) {
 	// Start a new transaction
 	tx, err := r.db.Begin()
@@ -28,8 +29,8 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
         INSERT OR IGNORE INTO messages (
             ts, channel_id, user_id, text, thread_ts, event_type, event_subtype,
             reactions_json, reply_users_json, replies_json, files_json,
-            attachments_json, reply_count
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            attachments_json, reply_count, latest_reply, reply_users_count
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `
 
 	// Prepare the statement. This is compiled once and reused for every message.
@@ -88,7 +89,10 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 			string(filesJSON),
 			string(attachmentsJSON),
 			msg.ReplyCount,
+			msg.LatestReply,
+			msg.ReplyUsersCount,
 		)
+
 		if err != nil {
 			return fmt.Errorf("failed to execute statement for ts %s: %w", msg.Ts, err)
 		}
@@ -107,7 +111,10 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 			u.name as author, 
 			u.profile_image_url as profile_url,
 			thread_ts,
-			reply_count
+			reply_count,
+			latest_reply,
+			reply_users_json,
+			reply_users_count
         FROM messages 
 		JOIN users AS u ON u.id = user_id
 		JOIN channels AS c ON c.name = channel_id
@@ -137,9 +144,15 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount); err != nil {
+		var usersJson []byte
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %w", err)
+		}
+		err = json.Unmarshal(usersJson, &msg.ReplyUsers)
+		if err != nil {
+			return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+
 		}
 		messages = append(messages, msg)
 	}

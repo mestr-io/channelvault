@@ -37,7 +37,15 @@ func New(repository *repository.Repository) *App {
 }
 
 func (a *App) GetViewState() string {
-	return string(ViewStateDashboard)
+	ready, err := a.repository.NoFinishedImports(a.ctx)
+	if err != nil {
+		log.Panicf("FATAL: cannot get current imports: %v", err)
+	}
+	if ready {
+		return string(ViewStateDashboard)
+	} else {
+		return string(ViewStateSetup)
+	}
 }
 
 func (a *App) setViewState(state ViewState) {
@@ -64,6 +72,12 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 
 func (a *App) processImport(path string) {
 	a.setViewState(VIewStateLoading)
+	record, err := a.repository.StoreImport(a.ctx, path)
+	if err != nil {
+		log.Printf("ERROR: Import failed: %v", err)
+		a.setViewState(ViewStateSetup) // Go back to setup on failure
+		return
+	}
 
 	progressChan := make(chan importer.Progress)
 	imp := importer.NewImporter(a.ctx, path, a.repository)
@@ -92,5 +106,7 @@ func (a *App) processImport(path string) {
 
 	runtime.LogPrint(a.ctx, "Import completed successfully!")
 	runtime.EventsEmit(a.ctx, "importComplete")
+	a.repository.FinishedImport(a.ctx, record.ID)
+
 	a.setViewState(ViewStateDashboard) // Move to the dashboard
 }

@@ -20,7 +20,7 @@ const { messages, isLoadingMessages, hasMoreMessages } = $props()
         </div>
         <p>{msg.text}</p>
         {#if msg.thread_ts}
-          <p>{msg.reply_count} replies <button>View thread</button></p>
+          <p>{msg.reply_users_count} -- {msg.reply_users} -- {msg.latest}{msg.reply_count} -- {msg.latest_reply} replies <button>View thread</button></p>
         {/if}
       </div>
     </div>
