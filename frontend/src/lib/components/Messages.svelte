@@ -1,5 +1,5 @@
 <script lang="ts">
-const { messages, isLoadingMessages, hasMoreMessages } = $props()
+  const { messages, isLoadingMessages, hasMoreMessages } = $props();
 </script>
 
 {#if hasMoreMessages}
@@ -49,16 +49,24 @@ const { messages, isLoadingMessages, hasMoreMessages } = $props()
     margin-right: 1rem;
     object-fit: cover;
   }
+  .message-content {
+    flex: 1;
+    max-width: calc(100% - 50px); /* Adjusted for avatar width */
+  }
   .message-content p {
     margin: 0;
     line-height: 1.45;
     display: block;
+    max-width: 98%; /* some space to the right to balance with the thumbnail */
     word-wrap: break-word;
+    overflow-wrap: break-word;
     white-space: normal;
   }
+
   .message-header strong {
     font-weight: 900;
   }
+
   .timestamp {
     color: #9e9ea6; /* MODIFIED: Lighter gray for timestamp */
     font-size: 0.8rem;
