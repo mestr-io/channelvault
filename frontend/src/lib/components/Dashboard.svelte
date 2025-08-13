@@ -168,7 +168,26 @@
         <div class="main-content">
           <header class="channel-header">
             <h2>Thread</h2>
-            <a href="#" onclick={() => (selectedThread = undefined)}>X</a>
+            <button
+              class="close-thread-btn"
+              aria-label="Close thread"
+              onclick={() => (selectedThread = undefined)}
+            >
+              <svg
+                viewBox="0 0 20 20"
+                width="20"
+                height="20"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                fill="none"
+                shape-rendering="geometricPrecision"
+              >
+                <path d="M15 5L5 15"></path>
+                <path d="M5 5L15 15"></path>
+              </svg>
+            </button>
           </header>
           <div
             class="thread-container"
@@ -206,6 +225,34 @@
     font-size: 1.2rem;
   }
 
+  .channel-header {
+    /* Add these properties */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    /* Keep existing properties */
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #3b3d40;
+    flex-shrink: 0;
+  }
+  /* Add this new style block */
+  .close-thread-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    color: #dbc9e0; /* Match sidebar icon/text color */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.1s ease-in-out;
+  }
+
+  .close-thread-btn:hover {
+    background-color: #663867; /* Use existing hover color */
+  }
   .channel-item button {
     background: none;
     border-radius: 4px;
