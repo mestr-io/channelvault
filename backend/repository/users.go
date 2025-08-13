@@ -1,9 +1,8 @@
 package repository
 
 import (
-	"fmt"
-	"log"
-	"github.com/mestr-io/slack-export-viewer/backend/app_errors"
+	"fmt"	
+	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
@@ -15,7 +14,7 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 	defer func() {
 		// in case of error then rollback the txn
 		if err != nil {
-			err = app_errors.Finally(tx.Rollback, err)
+			err = Finally(tx.Rollback, err)
 		}
 	}()
 
@@ -23,7 +22,7 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer func(){err = app_errors.Finally(stmt.Close, err)}()
+	defer func(){err = Finally(stmt.Close, err)}()
 
 	// 5. Iterate over users, filter, and execute the prepared statement.
 	insertCount := 0
@@ -40,7 +39,7 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 		insertCount++
 	}
 
-	log.Printf("Successfully prepared %d users for insertion.", insertCount)
+	Infof("Successfully prepared %d users for insertion.", insertCount)
 
 	return tx.Commit()
 }

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/mestr-io/slack-export-viewer/backend/app_errors"
+	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 )
@@ -37,8 +37,8 @@ func (i *Importer) processUsers(zf *zip.File) (err error) {
 	if err != nil {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
 	}
-	defer func(){
-		err = app_errors.Finally(f.Close, err)
+	defer func() {
+		err = Finally(f.Close, err)
 	}()
 
 	data, err := io.ReadAll(f)
@@ -61,8 +61,8 @@ func (i *Importer) processChannels(zf *zip.File) error {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
 	}
 
-	defer func(){
-		err = app_errors.Finally(f.Close, err)
+	defer func() {
+		err = Finally(f.Close, err)
 	}()
 
 	data, err := io.ReadAll(f)
@@ -116,10 +116,9 @@ func (i *Importer) Import(c chan Progress) error {
 		return fmt.Errorf("fail to open the zip export file: %w", err)
 	}
 
-	defer func(){
-		err = app_errors.Finally(r.Close, err)
+	defer func() {
+		err = Finally(r.Close, err)
 	}()
-
 
 	totalFiles := len(r.File)
 
@@ -128,9 +127,9 @@ func (i *Importer) Import(c chan Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to open unzip users.json file: %w", err)
 	}
-	
+
 	err = i.processUsers(f)
-    if err != nil {
+	if err != nil {
 		return fmt.Errorf("fail to process users: %w", err)
 	}
 	// channels.json
@@ -168,3 +167,4 @@ func (i *Importer) Import(c chan Progress) error {
 	}
 	return nil
 }
+
