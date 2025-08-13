@@ -1,52 +1,50 @@
 <script lang="ts">
-import { LogError, LogInfo } from '../../../wailsjs/runtime'
-import { GetUserAvatar } from '../../../wailsjs/go/app/App'
+    import { LogError, LogInfo } from "../../../wailsjs/runtime";
+    import { GetUserAvatar } from "../../../wailsjs/go/app/App";
 
-const { replyUsers, replyCount } = $props()
-const cache = $state(new Map<string, string>())
-let avatars: string[] = $state([])
+    const { replyUsers, replyCount } = $props();
+    const cache = $state(new Map<string, string>());
+    let avatars: string[] = $state([]);
 
-async function getUser(userId: string): Promise<string> {
-  if (cache.has(userId)) {
-    LogInfo(`Cache hit for user ${userId}`)
-    return cache.get(userId)!
-  }
+    async function getUser(userId: string): Promise<string> {
+        if (cache.has(userId)) {
+            LogInfo(`Cache hit for user ${userId}`);
+            return cache.get(userId)!;
+        }
 
-  try {
-    const url = await GetUserAvatar(userId)
-    cache.set(userId, url)
+        try {
+            const url = await GetUserAvatar(userId);
+            cache.set(userId, url);
 
-    return url
-  } catch (error) {
-    LogError(`Failed to get user info for ${userId}:`)
-    return ''
-  }
-}
+            return url;
+        } catch (error) {
+            LogError(`Failed to get user info for ${userId}:`);
+            return "";
+        }
+    }
 
-async function getDedupedAvatars(users: string[]): Promise<string[]> {
-  const dedupedUsers = Array.from(new Set(users))
+    async function getDedupedAvatars(users: string[]): Promise<string[]> {
+        const dedupedUsers = Array.from(new Set(users));
 
-  const avatars = await Promise.all(dedupedUsers.map(userId => getUser(userId)))
+        const avatars = await Promise.all(
+            dedupedUsers.map((userId) => getUser(userId)),
+        );
 
-  // add a slice here if want to trim the list
-  return avatars
-}
+        // add a slice here if want to trim the list
+        return avatars;
+    }
 
-$effect(() => {
-  ;(async () => {
-    avatars = await getDedupedAvatars(replyUsers)
-  })()
-})
+    $effect(() => {
+        (async () => {
+            avatars = await getDedupedAvatars(replyUsers);
+        })();
+    });
 </script>
 
 <div class="thread-info">
     <div class="reply-avatars">
         {#each avatars as avatar_url}
-            {#if avatar_url}
-                <img class="reply-avatar" src={avatar_url} alt="Reply user" />
-            {:else}
-                <div class="reply-avatar-placeholder"></div>
-            {/if}
+            <img class="reply-avatar" src={avatar_url} alt="Reply user" />
         {/each}
     </div>
 
