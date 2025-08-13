@@ -15,9 +15,9 @@ let isLoadingMessages = $state(false)
 let hasMoreMessages = $state(true)
 let selectedThread = $state<string | undefined>(undefined)
 
-// State and refs for scroll management
 // svelte-ignore non_reactive_update
 let messagesContainer: HTMLDivElement
+// svelte-ignore non_reactive_update
 let threadContainer: HTMLDivElement
 
 let isInitialLoad = $state(true)
@@ -39,7 +39,7 @@ $effect(() => {
   })
   if (selectedThread && selectedChannel) {
     const loadThread = async () => {
-      threadMessages = await GetThreadByTs(selectedThread, selectedChannel.id)
+      threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
       await tick()
       threadContainer.scrollTop = threadContainer.scrollHeight
     }
