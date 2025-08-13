@@ -1,126 +1,108 @@
 <script lang="ts">
-  import {
-    GetChannels,
-    GetMessages,
-    GetThreadByTs,
-  } from "../../../wailsjs/go/app/App";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
+import { GetChannels, GetMessages, GetThreadByTs } from '../../../wailsjs/go/app/App'
+import { Pane, Splitpanes } from 'svelte-splitpanes'
 
-  import { models } from "../../../wailsjs/go/models";
-  import { onMount, tick } from "svelte";
-  import Messages from "./Messages.svelte";
-  import Welcome from "./Welcome.svelte";
+import { models } from '../../../wailsjs/go/models'
+import { onMount, tick } from 'svelte'
+import Messages from './Messages.svelte'
+import Welcome from './Welcome.svelte'
 
-  let channels = $state<models.Channel[]>([] as models.Channel[]);
-  let messages = $state<models.Message[]>([] as models.Message[]);
-  let threadMessages = $state<models.Message[]>([] as models.Message[]);
-  let selectedChannel = $state<models.Channel | null>(null);
-  let isLoadingMessages = $state(false);
-  let hasMoreMessages = $state(true);
-  let selectedThread = $state<string | undefined>(undefined);
+let channels = $state<models.Channel[]>([] as models.Channel[])
+let messages = $state<models.Message[]>([] as models.Message[])
+let threadMessages = $state<models.Message[]>([] as models.Message[])
+let selectedChannel = $state<models.Channel | null>(null)
+let isLoadingMessages = $state(false)
+let hasMoreMessages = $state(true)
+let selectedThread = $state<string | undefined>(undefined)
 
-  // State and refs for scroll management
-  // svelte-ignore non_reactive_update
-  let messagesContainer: HTMLDivElement;
-  let threadContainer: HTMLDivElement;
+// State and refs for scroll management
+// svelte-ignore non_reactive_update
+let messagesContainer: HTMLDivElement
+let threadContainer: HTMLDivElement
 
-  let isInitialLoad = $state(true);
+let isInitialLoad = $state(true)
 
-  $effect(() => {
-    // This runs after messages are rendered. If it was the first load, scroll down.
-    if (messages.length > 0 && isInitialLoad && messagesContainer) {
-      tick().then(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        isInitialLoad = false;
-      });
-    }
-  });
-
-  $effect(() => {
-    console.log("Effect is running!", {
-      thread: selectedThread,
-      channel: selectedChannel,
-    });
-    if (selectedThread && selectedChannel) {
-      const loadThread = async () => {
-        threadMessages = await GetThreadByTs(
-          selectedThread,
-          selectedChannel.id,
-        );
-        await tick();
-        threadContainer.scrollTop = threadContainer.scrollHeight;
-      };
-      loadThread();
-    }
-  });
-
-  // Sidebar resizing logic
-  onMount(async () => {
-    channels = await GetChannels();
-  });
-
-  async function selectChannel(channel: models.Channel) {
-    if (selectedChannel?.id === channel.id) return;
-
-    selectedChannel = channel;
-    messages = [];
-    hasMoreMessages = true;
-    isInitialLoad = true;
-    selectedThread = undefined;
-    await loadMoreMessages();
+$effect(() => {
+  // This runs after messages are rendered. If it was the first load, scroll down.
+  if (messages.length > 0 && isInitialLoad && messagesContainer) {
+    tick().then(() => {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight
+      isInitialLoad = false
+    })
   }
+})
 
-  async function loadMoreMessages() {
-    if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return;
+$effect(() => {
+  console.log('Effect is running!', {
+    thread: selectedThread,
+    channel: selectedChannel,
+  })
+  if (selectedThread && selectedChannel) {
+    const loadThread = async () => {
+      threadMessages = await GetThreadByTs(selectedThread, selectedChannel.id)
+      await tick()
+      threadContainer.scrollTop = threadContainer.scrollHeight
+    }
+    loadThread()
+  }
+})
 
-    isLoadingMessages = true;
-    try {
-      const cursor = messages[0]?.ts || "";
-      const oldScrollHeight = messagesContainer?.scrollHeight || 0;
+// Sidebar resizing logic
+onMount(async () => {
+  channels = await GetChannels()
+})
 
-      // The backend returns messages newest-to-oldest
-      const newMessages: models.Message[] = await GetMessages(
-        selectedChannel.id,
-        cursor,
-      );
+async function selectChannel(channel: models.Channel) {
+  if (selectedChannel?.id === channel.id) return
 
-      if (newMessages?.length > 0) {
-        // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
-        messages = [...newMessages.reverse(), ...messages];
+  selectedChannel = channel
+  messages = []
+  hasMoreMessages = true
+  isInitialLoad = true
+  selectedThread = undefined
+  await loadMoreMessages()
+}
 
-        // If this was NOT the initial load, preserve scroll position
-        if (!isInitialLoad && messagesContainer) {
-          await tick(); // Wait for DOM to update
-          messagesContainer.scrollTop =
-            messagesContainer.scrollHeight - oldScrollHeight;
-        }
-      } else {
-        hasMoreMessages = false;
+async function loadMoreMessages() {
+  if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
+
+  isLoadingMessages = true
+  try {
+    const cursor = messages[0]?.ts || ''
+    const oldScrollHeight = messagesContainer?.scrollHeight || 0
+
+    // The backend returns messages newest-to-oldest
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor)
+
+    if (newMessages?.length > 0) {
+      // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
+      messages = [...newMessages.reverse(), ...messages]
+
+      // If this was NOT the initial load, preserve scroll position
+      if (!isInitialLoad && messagesContainer) {
+        await tick() // Wait for DOM to update
+        messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight
       }
-    } catch (error) {
-      console.error(
-        `Failed to get messages for channel ${selectedChannel.id}:`,
-        error,
-      );
-    } finally {
-      isLoadingMessages = false;
+    } else {
+      hasMoreMessages = false
+    }
+  } catch (error) {
+    console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
+  } finally {
+    isLoadingMessages = false
+  }
+}
+
+function handleScroll(event: Event) {
+  const element = event.currentTarget as HTMLDivElement
+
+  if (element.scrollTop === 0) {
+    // Figure out WHICH element is scrolling and call the correct loader
+    if (element.id === 'messages-container' && hasMoreMessages && !isLoadingMessages) {
+      loadMoreMessages()
     }
   }
-
-  function handleScroll(event: Event) {
-    const element = event.currentTarget as HTMLDivElement;
-
-    if (element.scrollTop === 0) {
-      // Figure out WHICH element is scrolling and call the correct loader
-      if (
-        element.id === "messages-container" &&
-        hasMoreMessages &&
-        !isLoadingMessages
-      ) {
-        loadMoreMessages();
-      }
-    }
-  }
+}
 </script>
 
 <main class="slack-clone">

@@ -1,34 +1,34 @@
 <script lang="ts">
-  // This part remains the same.
-  // NOTE: I'm assuming 'msg.reply_user_avatars' is an array of avatar URLs for the users in the thread.
-  // You will need to make sure your data structure provides this.
-  import { GetUserAvatar } from "../../../wailsjs/go/app/App";
-  import { models } from "../../../wailsjs/go/models";
+// This part remains the same.
+// NOTE: I'm assuming 'msg.reply_user_avatars' is an array of avatar URLs for the users in the thread.
+// You will need to make sure your data structure provides this.
+import { GetUserAvatar } from '../../../wailsjs/go/app/App'
+import { models } from '../../../wailsjs/go/models'
 
-  type Props = {
-    messages: models.Message[];
-    isLoadingMessages: boolean;
-    hasMoreMessages: boolean;
-    selectedThread: string | undefined;
-  };
-  let { messages, isLoadingMessages, hasMoreMessages, selectedThread = $bindable() }: Props = $props();
-  const cache = $state(new Map<string, string>());
+type Props = {
+  messages: models.Message[]
+  isLoadingMessages: boolean
+  hasMoreMessages: boolean
+  selectedThread: string | undefined
+}
+let { messages, isLoadingMessages, hasMoreMessages, selectedThread = $bindable() }: Props = $props()
+const cache = $state(new Map<string, string>())
 
-  async function getUser(userId: string): Promise<string> {
-    if (cache.has(userId)) {
-      return cache.get(userId)!;
-    }
-
-    try {
-      const url = await GetUserAvatar(userId);
-      cache.set(userId, url);
-
-      return url;
-    } catch (error) {
-      console.error(`Failed to get user info for ${userId}:`, error);
-      return "";
-    }
+async function getUser(userId: string): Promise<string> {
+  if (cache.has(userId)) {
+    return cache.get(userId)!
   }
+
+  try {
+    const url = await GetUserAvatar(userId)
+    cache.set(userId, url)
+
+    return url
+  } catch (error) {
+    console.error(`Failed to get user info for ${userId}:`, error)
+    return ''
+  }
+}
 </script>
 
 {#if hasMoreMessages}
