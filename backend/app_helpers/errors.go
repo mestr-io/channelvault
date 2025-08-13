@@ -6,20 +6,19 @@ import (
 	"runtime"
 )
 
-// Error formats an error message with the file and line number where it was called.
-func Error(format string, v ...any) (err error) {
-	where := getLineAndNo(3)
-	s := fmt.Sprintf(format, v...)
-	err = fmt.Errorf("%s %s", where, s)
-
-	return
-}
-
 // Finally executes a function and captures any error, returning it along with the previous error.
 func Finally(f func() error, previous error) (err error) {
 	e := f()
 
-	err = errors.Join(previous, Error("%s", e.Error()))
+	err = errors.Join(previous, createError("%s", e.Error()))
+	return
+}
+
+func createError(format string, v ...any) (err error) {
+	where := getLineAndNo(3)
+	s := fmt.Sprintf(format, v...)
+	err = fmt.Errorf("%s %s", where, s)
+
 	return
 }
 
