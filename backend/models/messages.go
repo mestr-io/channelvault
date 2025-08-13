@@ -30,26 +30,29 @@ const (
 
 // Message represents a single object in the JSON array.
 type Message struct {
-	Subtype        MessageSubtype `json:"subtype,omitempty"`
-	UserId         string         `json:"user,omitempty"`
-	Text           string         `json:"text,omitempty"`
-	Inviter        string         `json:"inviter,omitempty"`
-	Type           EventType      `json:"type,omitempty"`
-	Ts             string         `json:"ts"`
-	ClientMsgID    string         `json:"client_msg_id,omitempty"`
-	Team           string         `json:"team,omitempty"`
-	UserProfile    *UserProfile   `json:"user_profile,omitempty"` // Pointer for optional object
-	Blocks         []Block        `json:"blocks,omitempty"`
-	Reactions      []Reaction     `json:"reactions,omitempty"`
-	ThreadTs       string         `json:"thread_ts,omitempty"`
-	ParentUserID   string         `json:"parent_user_id,omitempty"`
-	ReplyCount     int            `json:"reply_count,omitempty"`
-	Replies        []Reply        `json:"replies,omitempty"`
-	Edited         *Edited        `json:"edited,omitempty"` // Pointer for optional object
-	Files          []File         `json:"files,omitempty"`
-	Attachments    []Attachment   `json:"attachments,omitempty"`
-	UserName       string         `json:"user_name,omitempty"`
-	UserProfileUrl string         `json:"avatar_url,omitempty"`
+	Subtype         MessageSubtype `json:"subtype,omitempty"`
+	UserId          string         `json:"user,omitempty"`
+	Text            string         `json:"text,omitempty"`
+	Inviter         string         `json:"inviter,omitempty"`
+	Type            EventType      `json:"type,omitempty"`
+	Ts              string         `json:"ts"`
+	ClientMsgID     string         `json:"client_msg_id,omitempty"`
+	Team            string         `json:"team,omitempty"`
+	UserProfile     *UserProfile   `json:"user_profile,omitempty"` // Pointer for optional object
+	Blocks          []Block        `json:"blocks,omitempty"`
+	Reactions       []Reaction     `json:"reactions,omitempty"`
+	ThreadTs        string         `json:"thread_ts,omitempty"`
+	ParentUserID    string         `json:"parent_user_id,omitempty"`
+	ReplyCount      int            `json:"reply_count,omitempty"`
+	Replies         []Reply        `json:"replies,omitempty"`
+	Edited          *Edited        `json:"edited,omitempty"` // Pointer for optional object
+	Files           []File         `json:"files,omitempty"`
+	Attachments     []Attachment   `json:"attachments,omitempty"`
+	UserName        string         `json:"user_name,omitempty"`
+	UserProfileUrl  string         `json:"avatar_url,omitempty"`
+	LatestReply     string         `json:"latest_reply,omitempty"`
+	ReplyUsersCount int            `json:"reply_users_count,omitempty"`
+	ReplyUsers      []string       `json:"reply_users,omitempty"`
 }
 
 // UserProfile contains information about the message author.

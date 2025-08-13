@@ -38,7 +38,15 @@ func New(repository *repository.Repository) *App {
 }
 
 func (a *App) GetViewState() string {
-	return string(ViewStateDashboard)
+	ready, err := a.repository.NoFinishedImports(a.ctx)
+	if err != nil {
+		Fatalf("FATAL: cannot get current imports: %v", err)
+	}
+	if ready {
+		return string(ViewStateDashboard)
+	} else {
+		return string(ViewStateSetup)
+	}
 }
 
 func (a *App) setViewState(state ViewState) {
@@ -57,7 +65,7 @@ func (a *App) Startup(ctx context.Context) {
 func (a *App) onFileDrop(x, y int, paths []string) {
 	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", paths, x, y)
 	if len(paths) != 1 {
-		Fatalf("FATAL: internal error. import part incorrect: %v", paths)
+		Fatalf("internal error. import part incorrect: %v", paths)
 	}
 
 	a.processImport(paths[0])
@@ -65,6 +73,12 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 
 func (a *App) processImport(path string) {
 	a.setViewState(VIewStateLoading)
+	record, err := a.repository.StoreImport(a.ctx, path)
+	if err != nil {
+		Errorf("Import failed: %v", err)
+		a.setViewState(ViewStateSetup) // Go back to setup on failure
+		return
+	}
 
 	progressChan := make(chan importer.Progress)
 	imp := importer.NewImporter(a.ctx, path, a.repository)
@@ -93,5 +107,7 @@ func (a *App) processImport(path string) {
 
 	Infof("Import completed successfully!")
 	runtime.EventsEmit(a.ctx, "importComplete")
+	a.repository.FinishedImport(a.ctx, record.ID)
+
 	a.setViewState(ViewStateDashboard) // Move to the dashboard
 }

@@ -2,9 +2,11 @@
 import { GetChannels, GetMessages } from '../../../wailsjs/go/app/App'
 import { models } from '../../../wailsjs/go/models'
 import { onMount, tick } from 'svelte'
+import Messages from './Messages.svelte'
+import Welcome from './Welcome.svelte'
 
-let channels = $state<models.Channel[]>([])
-let messages = $state<models.Message[]>([])
+let channels = $state<models.Channel[]>([] as models.Channel[])
+let messages = $state<models.Message[]>([] as models.Message[])
 let selectedChannel = $state<models.Channel | null>(null)
 let isLoadingMessages = $state(false)
 let hasMoreMessages = $state(true)
@@ -19,20 +21,6 @@ const initialDefaultWidth = 250
 let messagesContainer: HTMLDivElement
 let isInitialLoad = $state(true)
 
-// Fetch initial channel list
-$effect(() => {
-  ;(async () => {
-    try {
-      channels = await GetChannels()
-      if (channels.length > 0 && !selectedChannel) {
-        await selectChannel(channels[0])
-      }
-    } catch (error) {
-      console.error('Failed to get channels:', error)
-    }
-  })()
-})
-
 $effect(() => {
   // This runs after messages are rendered. If it was the first load, scroll down.
   if (messages.length > 0 && isInitialLoad && messagesContainer) {
@@ -43,9 +31,8 @@ $effect(() => {
   }
 })
 
-// TODO: move this to a component!!! <SideBar> ... </>
 // Sidebar resizing logic
-onMount(() => {
+onMount(async () => {
   const separator = document.getElementById('separator')!
   const sidebar = document.getElementById('sidebar')!
   const mainContent = document.getElementById('main-content')!
@@ -66,17 +53,26 @@ onMount(() => {
 
   function drag(e: MouseEvent) {
     e.preventDefault()
+    separator.style.backgroundColor = '#1d9bd1' // Change color on drag
     const diffX = e.pageX - startX
     const newWidth = Math.max(200, startWidth + diffX)
     sidebar.style.width = newWidth + 'px'
     mainContent.style.width = `calc(100% - ${newWidth}px)`
+    // TODO: store that in BE
     localStorage.setItem('sidebarWidth', newWidth.toString())
   }
 
   function stopDrag() {
+    // restore color
+    separator.style.backgroundColor = '#5b6065'
     document.removeEventListener('mousemove', drag)
     document.removeEventListener('mouseup', stopDrag)
   }
+  channels = await GetChannels()
+  // commented, just to test if we can add a splash screen
+  // if (channels.length > 0 && !selectedChannel) {
+  //   await selectChannel(channels[0]);
+  // }
 })
 
 async function selectChannel(channel: models.Channel) {
@@ -125,20 +121,17 @@ function handleScroll() {
   }
 }
 </script>
-
 <main class="slack-clone">
   <div class="sidebar" id="sidebar">
     <h4>Channels</h4>
-    <ul class="channels-list">
-      {#each channels as channel (channel.id)}
-        <li
-          onclick={() => selectChannel(channel)}
+    {#each channels as channel (channel.id)}
+      <div class="channel-item">
+        <button
           class:active={channel.id === selectedChannel?.id}
+          onclick={() => selectChannel(channel)}># {channel.name}</button
         >
-          # {channel.name}
-        </li>
-      {/each}
-    </ul>
+      </div>
+    {/each}
   </div>
 
   <div class="separator" id="separator"></div>
@@ -153,115 +146,72 @@ function handleScroll() {
         bind:this={messagesContainer}
         onscroll={handleScroll}
       >
-        {#if hasMoreMessages}
-          <div class="loader">
-            {#if isLoadingMessages}<span>Loading history...</span>{/if}
-          </div>
-        {/if}
-
-        <ul>
-          {#each messages as msg (msg.ts)}
-            <li class="message">
-              <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
-              <div class="message-content">
-                <div class="message-header">
-                  <strong>{msg.user_name}</strong>
-                  <span class="timestamp">
-                    {new Date(parseFloat(msg.ts) * 1000).toLocaleString()}
-                  </span>
-                </div>
-                <p>{msg.text}</p>
-                {#if msg.thread_ts}
-                <p>{msg.reply_count} replies <button>View thread</button></p>
-                {/if}
-              </div>
-            </li>
-          {/each}
-        </ul>
+        <Messages {messages} {isLoadingMessages} {hasMoreMessages} />
       </div>
     {:else}
-      <div class="welcome-screen">
-        <h2>Welcome!</h2>
-        <p>Select a channel to view messages.</p>
-      </div>
+      <Welcome />
     {/if}
   </div>
 </main>
 
 <style>
-  /* --- MODIFIED: Updated color variables for a Slack-like dark theme --- */
-  :root {
-    --slack-sidebar-bg: #19171d; /* Slack's dark purple/eggplant */
-    --slack-main-bg: #1d1c1d; /* A slightly lighter dark gray for content */
-    --slack-main-text: #d1d2d3; /* Light gray text for readability on dark BG */
-    --slack-sidebar-text: #d1d2d3;
-    --slack-sidebar-hover-bg: #272a2e;
-    --slack-sidebar-active-bg: #1164a3; /* Keep the highlight blue */
-    --slack-border-color: #3b3d40;
-    --font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-      Helvetica, Arial, sans-serif;
-  }
   .slack-clone {
     display: flex;
     height: 100vh;
-    font-family: var(--font-family);
-    background-color: var(--slack-main-bg);
-    color: var(--slack-main-text); /* MODIFIED: Set global text color */
   }
   .sidebar {
     flex-shrink: 0;
     overflow-y: auto;
-    background-color: var(--slack-sidebar-bg);
-    color: var(--slack-sidebar-text);
+    overflow-x: hidden;
+    background-color: #552958;
   }
+
   .sidebar h4 {
     padding: 1rem 1.25rem 0.5rem;
-    font-size: 0.85rem;
+    font-size: 1.2rem;
   }
-  .channels-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .channels-list li {
-    padding: 0.4rem 1.25rem;
-    cursor: pointer;
+
+  .channel-item button {
+    background: none;
     border-radius: 4px;
+    border: none;
+    color: #dbc9e0;
+    cursor: pointer;
     margin: 0 0.5rem;
+    padding: 0.5rem 1.25rem;
+    text-align: left;
     white-space: nowrap;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 500;
   }
-  .channels-list li:hover {
-    background-color: var(--slack-sidebar-hover-bg);
+
+  .channel-item button:hover {
+    background-color: #663867;
   }
-  .channels-list li.active {
-    background-color: var(--slack-sidebar-active-bg);
-    color: white;
+
+  .channel-item button.active {
+    background-color: #f9edff;
+    color: #39063a;
   }
   .separator {
     width: 5px;
     cursor: ew-resize;
-    background-color: var(
-      --slack-border-color
-    ); /* MODIFIED: Darker separator */
+    background-color: #5b6065;
     border: none;
     flex-shrink: 0;
   }
+
   .main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     height: 100vh;
   }
-  .welcome-screen {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-  }
+
   .channel-header {
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--slack-border-color); /* MODIFIED: Darker border */
+    border-bottom: 1px solid #3b3d40;
     flex-shrink: 0;
   }
   .channel-header h2 {
@@ -272,40 +222,5 @@ function handleScroll() {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-  }
-  .messages-container ul {
-    list-style: none;
-    padding: 1rem;
-    margin: 0;
-    margin-top: auto;
-  }
-  .loader {
-    text-align: center;
-    padding: 1rem;
-    min-height: 40px;
-  }
-  .message {
-    display: flex;
-    padding: 0.75rem 0;
-  }
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    margin-right: 1rem;
-    object-fit: cover;
-  }
-  .message-content p {
-    margin: 0;
-    line-height: 1.45;
-    white-space: pre-wrap; /* ADDED: This is the key to fixing text formatting */
-  }
-  .message-header strong {
-    font-weight: 900;
-  }
-  .timestamp {
-    color: #9e9ea6; /* MODIFIED: Lighter gray for timestamp */
-    font-size: 0.8rem;
-    margin-left: 0.5rem;
   }
 </style>

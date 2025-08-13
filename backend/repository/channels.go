@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -24,7 +25,7 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 		}
 	}()
 
-	stmt, err := tx.Prepare("INSERT OR REPLACE INTO channels (id, name) VALUES (?, ?)")
+	stmt, err := tx.Prepare("INSERT OR REPLACE INTO channels (id, name, topic, purpose, members_json, pins_json) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
@@ -33,7 +34,16 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 
 	insertCount := 0
 	for _, channel := range channels {
-		_, err := stmt.Exec(channel.ID, channel.Name)
+
+		membersJson, err := json.Marshal(channel.Members)
+		if err != nil {
+			return fmt.Errorf("failed to marshal members for channel %s: %v", channel.ID, err)
+		}
+		pinsJson, err := json.Marshal(channel.Pins)
+		if err != nil {
+			return fmt.Errorf("failed to marshal pins for channel %s: %v", channel.ID, err)
+		}
+		_, err = stmt.Exec(channel.ID, channel.Name, channel.Topic.Value, channel.Purpose.Value, membersJson, pinsJson)
 		if err != nil {
 			return fmt.Errorf("failed to insert channel %s: %w", channel.ID, err)
 		}

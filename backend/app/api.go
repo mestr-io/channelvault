@@ -9,3 +9,7 @@ func (a *App) GetChannels() ([]models.Channel, error) {
 func (a *App) GetMessages(channelID string, cursor string) ([]models.Message, error) {
 	return a.repository.GetMessages(a.ctx, channelID, cursor, 25)
 }
+
+func (a *App) GetUserAvatar(userId string) (string, error) {
+	return a.repository.GetUserAvatar(a.ctx, userId)
+}
