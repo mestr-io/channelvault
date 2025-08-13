@@ -1,4 +1,5 @@
 <script lang="ts">
+import { LogError, LogInfo } from '../../../wailsjs/runtime'
 import { GetUserAvatar } from '../../../wailsjs/go/app/App'
 
 const { replyUsers, replyCount } = $props()
@@ -7,6 +8,7 @@ let avatars: string[] = $state([])
 
 async function getUser(userId: string): Promise<string> {
   if (cache.has(userId)) {
+    LogInfo(`Cache hit for user ${userId}`)
     return cache.get(userId)!
   }
 
@@ -16,7 +18,7 @@ async function getUser(userId: string): Promise<string> {
 
     return url
   } catch (error) {
-    console.error(`Failed to get user info for ${userId}:`, error)
+    LogError(`Failed to get user info for ${userId}:`)
     return ''
   }
 }
