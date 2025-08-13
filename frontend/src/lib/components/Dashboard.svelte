@@ -121,6 +121,7 @@ function handleScroll() {
   }
 }
 </script>
+
 <main class="slack-clone">
   <div class="sidebar" id="sidebar">
     <h4>Channels</h4>
