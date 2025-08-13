@@ -93,7 +93,8 @@ $: formattedPercentage = percentageValue.toFixed(percentageValue >= 99.9 ? 0 : 1
     border-radius: 0.5rem;
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     padding: 1.5rem;
-    width: 100%;
+    flex-grow: 1;
+    height: 100vh;
     transition: all 0.3s ease;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   }

@@ -6,6 +6,8 @@ export function GetChannels():Promise<Array<models.Channel>>;
 
 export function GetMessages(arg1:string,arg2:string):Promise<Array<models.Message>>;
 
+export function GetThreadByTs(arg1:string,arg2:string):Promise<Array<models.Message>>;
+
 export function GetUserAvatar(arg1:string):Promise<string>;
 
 export function GetViewState():Promise<string>;

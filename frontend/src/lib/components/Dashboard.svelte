@@ -1,157 +1,191 @@
 <script lang="ts">
-import { GetChannels, GetMessages } from '../../../wailsjs/go/app/App'
-import { models } from '../../../wailsjs/go/models'
-import { onMount, tick } from 'svelte'
-import Messages from './Messages.svelte'
-import Welcome from './Welcome.svelte'
+  import {
+    GetChannels,
+    GetMessages,
+    GetThreadByTs,
+  } from "../../../wailsjs/go/app/App";
+  import { Pane, Splitpanes } from "svelte-splitpanes";
 
-let channels = $state<models.Channel[]>([] as models.Channel[])
-let messages = $state<models.Message[]>([] as models.Message[])
-let selectedChannel = $state<models.Channel | null>(null)
-let isLoadingMessages = $state(false)
-let hasMoreMessages = $state(true)
+  import { models } from "../../../wailsjs/go/models";
+  import { onMount, tick } from "svelte";
+  import Messages from "./Messages.svelte";
+  import Welcome from "./Welcome.svelte";
 
-// State for sidebar resizing
-let startX: number
-let startWidth: number
-const initialDefaultWidth = 250
+  let channels = $state<models.Channel[]>([] as models.Channel[]);
+  let messages = $state<models.Message[]>([] as models.Message[]);
+  let threadMessages = $state<models.Message[]>([] as models.Message[]);
+  let selectedChannel = $state<models.Channel | null>(null);
+  let isLoadingMessages = $state(false);
+  let hasMoreMessages = $state(true);
+  let selectedThread = $state<string | undefined>(undefined);
 
-// State and refs for scroll management
-// svelte-ignore non_reactive_update
-let messagesContainer: HTMLDivElement
-let isInitialLoad = $state(true)
+  // State and refs for scroll management
+  // svelte-ignore non_reactive_update
+  let messagesContainer: HTMLDivElement;
+  let threadContainer: HTMLDivElement;
 
-$effect(() => {
-  // This runs after messages are rendered. If it was the first load, scroll down.
-  if (messages.length > 0 && isInitialLoad && messagesContainer) {
-    tick().then(() => {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight
-      isInitialLoad = false
-    })
-  }
-})
+  let isInitialLoad = $state(true);
 
-// Sidebar resizing logic
-onMount(async () => {
-  const separator = document.getElementById('separator')!
-  const sidebar = document.getElementById('sidebar')!
-  const mainContent = document.getElementById('main-content')!
-  const savedWidth = localStorage.getItem('sidebarWidth')
-  const initialWidth = savedWidth ? parseInt(savedWidth, 10) : initialDefaultWidth
-
-  sidebar.style.width = `${initialWidth}px`
-  mainContent.style.width = `calc(100% - ${initialWidth}px)`
-
-  separator.addEventListener('mousedown', startDrag)
-
-  function startDrag(e: MouseEvent) {
-    startX = e.pageX
-    startWidth = sidebar.offsetWidth
-    document.addEventListener('mousemove', drag)
-    document.addEventListener('mouseup', stopDrag)
-  }
-
-  function drag(e: MouseEvent) {
-    e.preventDefault()
-    separator.style.backgroundColor = '#1d9bd1' // Change color on drag
-    const diffX = e.pageX - startX
-    const newWidth = Math.max(200, startWidth + diffX)
-    sidebar.style.width = newWidth + 'px'
-    mainContent.style.width = `calc(100% - ${newWidth}px)`
-    // TODO: store that in BE
-    localStorage.setItem('sidebarWidth', newWidth.toString())
-  }
-
-  function stopDrag() {
-    // restore color
-    separator.style.backgroundColor = '#5b6065'
-    document.removeEventListener('mousemove', drag)
-    document.removeEventListener('mouseup', stopDrag)
-  }
-  channels = await GetChannels()
-  // commented, just to test if we can add a splash screen
-  // if (channels.length > 0 && !selectedChannel) {
-  //   await selectChannel(channels[0]);
-  // }
-})
-
-async function selectChannel(channel: models.Channel) {
-  if (selectedChannel?.id === channel.id) return
-
-  selectedChannel = channel
-  messages = []
-  hasMoreMessages = true
-  isInitialLoad = true
-  await loadMoreMessages()
-}
-
-async function loadMoreMessages() {
-  if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
-
-  isLoadingMessages = true
-  try {
-    const cursor = messages[0]?.ts || ''
-    const oldScrollHeight = messagesContainer?.scrollHeight || 0
-
-    // The backend returns messages newest-to-oldest
-    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor)
-
-    if (newMessages?.length > 0) {
-      // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
-      messages = [...newMessages.reverse(), ...messages]
-
-      // If this was NOT the initial load, preserve scroll position
-      if (!isInitialLoad && messagesContainer) {
-        await tick() // Wait for DOM to update
-        messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight
-      }
-    } else {
-      hasMoreMessages = false
+  $effect(() => {
+    // This runs after messages are rendered. If it was the first load, scroll down.
+    if (messages.length > 0 && isInitialLoad && messagesContainer) {
+      tick().then(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        isInitialLoad = false;
+      });
     }
-  } catch (error) {
-    console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
-  } finally {
-    isLoadingMessages = false
-  }
-}
+  });
 
-function handleScroll() {
-  if (messagesContainer.scrollTop === 0 && hasMoreMessages && !isLoadingMessages) {
-    loadMoreMessages()
+  $effect(() => {
+    console.log("Effect is running!", {
+      thread: selectedThread,
+      channel: selectedChannel,
+    });
+    if (selectedThread && selectedChannel) {
+      const loadThread = async () => {
+        threadMessages = await GetThreadByTs(
+          selectedThread,
+          selectedChannel.id,
+        );
+        await tick();
+        threadContainer.scrollTop = threadContainer.scrollHeight;
+      };
+      loadThread();
+    }
+  });
+
+  // Sidebar resizing logic
+  onMount(async () => {
+    channels = await GetChannels();
+  });
+
+  async function selectChannel(channel: models.Channel) {
+    if (selectedChannel?.id === channel.id) return;
+
+    selectedChannel = channel;
+    messages = [];
+    hasMoreMessages = true;
+    isInitialLoad = true;
+    selectedThread = undefined;
+    await loadMoreMessages();
   }
-}
+
+  async function loadMoreMessages() {
+    if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return;
+
+    isLoadingMessages = true;
+    try {
+      const cursor = messages[0]?.ts || "";
+      const oldScrollHeight = messagesContainer?.scrollHeight || 0;
+
+      // The backend returns messages newest-to-oldest
+      const newMessages: models.Message[] = await GetMessages(
+        selectedChannel.id,
+        cursor,
+      );
+
+      if (newMessages?.length > 0) {
+        // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
+        messages = [...newMessages.reverse(), ...messages];
+
+        // If this was NOT the initial load, preserve scroll position
+        if (!isInitialLoad && messagesContainer) {
+          await tick(); // Wait for DOM to update
+          messagesContainer.scrollTop =
+            messagesContainer.scrollHeight - oldScrollHeight;
+        }
+      } else {
+        hasMoreMessages = false;
+      }
+    } catch (error) {
+      console.error(
+        `Failed to get messages for channel ${selectedChannel.id}:`,
+        error,
+      );
+    } finally {
+      isLoadingMessages = false;
+    }
+  }
+
+  function handleScroll(event: Event) {
+    const element = event.currentTarget as HTMLDivElement;
+
+    if (element.scrollTop === 0) {
+      // Figure out WHICH element is scrolling and call the correct loader
+      if (
+        element.id === "messages-container" &&
+        hasMoreMessages &&
+        !isLoadingMessages
+      ) {
+        loadMoreMessages();
+      }
+    }
+  }
 </script>
+
 <main class="slack-clone">
-  <div class="sidebar" id="sidebar">
-    <h4>Channels</h4>
-    {#each channels as channel (channel.id)}
-      <div class="channel-item">
-        <button
-          class:active={channel.id === selectedChannel?.id}
-          onclick={() => selectChannel(channel)}># {channel.name}</button
-        >
+  <Splitpanes>
+    <Pane minSize={10} maxSize={30}>
+      <div class="sidebar">
+        <h4>Channels</h4>
+        {#each channels as channel (channel.id)}
+          <div class="channel-item">
+            <button
+              class:active={channel.id === selectedChannel?.id}
+              onclick={() => selectChannel(channel)}># {channel.name}</button
+            >
+          </div>
+        {/each}
       </div>
-    {/each}
-  </div>
-
-  <div class="separator" id="separator"></div>
-
-  <div class="main-content" id="main-content">
-    {#if selectedChannel}
-      <header class="channel-header">
-        <h2># {selectedChannel.name}</h2>
-      </header>
-      <div
-        class="messages-container"
-        bind:this={messagesContainer}
-        onscroll={handleScroll}
-      >
-        <Messages {messages} {isLoadingMessages} {hasMoreMessages} />
+    </Pane>
+    <Pane>
+      <div class="main-content" id="main-content">
+        {#if selectedChannel}
+          <header class="channel-header">
+            <h2># {selectedChannel.name}</h2>
+          </header>
+          <div
+            class="messages-container"
+            id="messages-container"
+            bind:this={messagesContainer}
+            onscroll={handleScroll}
+          >
+            <Messages
+              {messages}
+              {isLoadingMessages}
+              {hasMoreMessages}
+              bind:selectedThread
+            />
+          </div>
+        {:else}
+          <Welcome />
+        {/if}
       </div>
-    {:else}
-      <Welcome />
+    </Pane>
+
+    {#if selectedThread != undefined}
+      <Pane>
+        <div class="main-content">
+          <header class="channel-header">
+            <h2>Thread</h2>
+            <a href="#" onclick={() => (selectedThread = undefined)}>X</a>
+          </header>
+          <div
+            class="thread-container"
+            id="thread-container"
+            bind:this={threadContainer}
+          >
+            <Messages
+              messages={threadMessages}
+              isLoadingMessages={false}
+              hasMoreMessages={false}
+              bind:selectedThread
+            />
+          </div>
+        </div>
+      </Pane>
     {/if}
-  </div>
+  </Splitpanes>
 </main>
 
 <style>
@@ -162,6 +196,7 @@ function handleScroll() {
   .sidebar {
     flex-shrink: 0;
     overflow-y: auto;
+    height: 100%;
     overflow-x: hidden;
     background-color: #552958;
   }
@@ -194,13 +229,6 @@ function handleScroll() {
     background-color: #f9edff;
     color: #39063a;
   }
-  .separator {
-    width: 5px;
-    cursor: ew-resize;
-    background-color: #5b6065;
-    border: none;
-    flex-shrink: 0;
-  }
 
   .main-content {
     flex-grow: 1;
@@ -220,6 +248,13 @@ function handleScroll() {
   .messages-container {
     flex-grow: 1;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .thread-container {
+    flex-grow: 1; /* Key property */
+    overflow-y: auto; /* Key property */
     display: flex;
     flex-direction: column;
   }

@@ -18,5 +18,8 @@
     "tslib": "^2.6.3",
     "typescript": "^5.5.2",
     "vite": "^5.3.1"
+  },
+  "dependencies": {
+    "svelte-splitpanes": "^8.0.9"
   }
 }
