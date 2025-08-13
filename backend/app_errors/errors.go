@@ -19,6 +19,7 @@ func Error(format string, v ...any) (err error) {
 	where := getLineAndNo()
 	s := fmt.Sprintf(format, v...)
 	err = fmt.Errorf("%s %s", where, s)
+
 	return 
 }
 
@@ -47,5 +48,6 @@ func getLineAndNo() string {
 		file = "unknown"
 		line = 0
 	}
+	
 	return fmt.Sprintf("%s:%d", file, line)
 }

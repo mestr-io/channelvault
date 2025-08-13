@@ -65,5 +65,6 @@ func (r *Repository) GetChannels() (channels []models.Channel, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)
 	}
+	
 	return channels, nil
 }
