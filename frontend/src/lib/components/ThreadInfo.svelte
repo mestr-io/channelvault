@@ -11,14 +11,12 @@ const cache: Map<string, string> = getContext('cache')
 
 async function getUser(userId: string): Promise<string> {
   if (cache.has(userId)) {
-    LogInfo(`Cache hit for user ${userId}`)
     return cache.get(userId)!
   }
-
+  
   try {
     const url = await GetUserAvatar(userId)
     cache.set(userId, url)
-
     return url
   } catch (error) {
     LogError(`Failed to get user info for ${userId}:`)
