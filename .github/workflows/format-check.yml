@@ -28,7 +28,7 @@ jobs:
         run: npx @biomejs/biome format
 
   generate-binaries:
-    name: Generate binaries
+    name: Generate binaries and run unit tests
     runs-on: ubuntu-latest
 
     steps:
@@ -53,10 +53,6 @@ jobs:
 
       - name: Build wails go app
         run: make build
-
-  run-unit-tests:
-    name: Run unit tests
-    runs-on: ubuntu-latest
-    steps:
+        
       - name: Run go tests
         run: make test
