@@ -30,7 +30,7 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
 
-	defer func() { err = Finally(stmt.Close, err) }()
+	defer func() { err = JoinAndAddFileNoToErr(stmt.Close(), err) }()
 
 	insertCount := 0
 	for _, channel := range channels {
@@ -60,7 +60,7 @@ func (r *Repository) GetChannels() (channels []models.Channel, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)
 	}
-	defer func() { err = Finally(rows.Close, err) }()
+	defer func() { err = JoinAndAddFileNoToErr(rows.Close(), err) }()
 
 	for rows.Next() {
 		var channel models.Channel

@@ -6,10 +6,9 @@ import (
 	"runtime"
 )
 
-// Finally executes a function and captures any error, returning it along with the previous error.
-func Finally(f func() error, previous error) (err error) {
-	e := f()
-
+// JoinAndAddFileNoToErr joins the provided error with the previous error and adds the file and line number of the caller to the error message.
+func JoinAndAddFileNoToErr(e error, previous error) (err error) {
+	
 	err = errors.Join(previous, AddFileAndLineNoToErr(e))
 
 	return
