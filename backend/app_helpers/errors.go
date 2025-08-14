@@ -23,9 +23,6 @@ func createError(format string, v ...any) (err error) {
 }
 
 func getLineAndNo(caller int) string {
-	if caller == 0 {
-		caller = 2 // Default to the caller of the caller of this function
-	}
 	_, file, line, ok := runtime.Caller(caller)
 	if !ok {
 		file = "unknown"

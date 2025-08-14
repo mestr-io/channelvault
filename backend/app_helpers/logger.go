@@ -30,14 +30,6 @@ var slogLevelToWailsLoggerLevel = map[slog.Level]logger.LogLevel{
 	slog.LevelError: logger.ERROR,
 }
 
-type Logging interface {
-	Fatalf(format string, v ...any)
-	Infof(format string, v ...any)
-	Warningf(format string, v ...any)
-	Errorf(format string, v ...any)
-	Debugf(format string, v ...any)
-}
-
 // appLogger is a non-exported singleton instance of the AppLogger
 // It is initialized with the context of the application and provides methods for logging errors and messages.
 var appLogger *AppLogger
