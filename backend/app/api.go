@@ -13,3 +13,7 @@ func (a *App) GetMessages(channelID string, cursor string) ([]models.Message, er
 func (a *App) GetUserAvatar(userId string) (string, error) {
 	return a.repository.GetUserAvatar(a.ctx, userId)
 }
+
+func (a *App) GetThreadByTs(threadTs string, channelID string) ([]models.Message, error) {
+	return a.repository.GetThreadByTs(a.ctx, threadTs, channelID)
+}

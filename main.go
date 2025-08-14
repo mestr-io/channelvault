@@ -31,6 +31,7 @@ func getSqliteDatabasePath(appName string) (string, error) {
 	// xdg.DataFile will create a path like: <OS_DATA_DIR>/<AppName>/<filename>
 	// This is the most reliable and recommended method.
 	dbPath, err := xdg.DataFile(filepath.Join(appName, "data.db"))
+	log.Printf("Using database path: %s", dbPath)
 	if err != nil {
 		return "", fmt.Errorf("could not resolve XDG data path: %w", err)
 	}
