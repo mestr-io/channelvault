@@ -5,13 +5,12 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
 	"regexp"
-	"errors"
 
-	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 )
@@ -62,7 +61,7 @@ func (i *Importer) processChannels(zf *zip.File) error {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
 	}
 
-	defer func() {	err = errors.Join(f.Close(), err)	}()
+	defer func() { err = errors.Join(f.Close(), err) }()
 
 	data, err := io.ReadAll(f)
 	if err != nil {
@@ -115,7 +114,7 @@ func (i *Importer) Import(c chan Progress) error {
 		return fmt.Errorf("fail to open the zip export file: %w", err)
 	}
 
-	defer func() {	err = errors.Join(r.Close(), err) }()
+	defer func() { err = errors.Join(r.Close(), err) }()
 
 	totalFiles := len(r.File)
 
@@ -164,4 +163,3 @@ func (i *Importer) Import(c chan Progress) error {
 	}
 	return nil
 }
-
