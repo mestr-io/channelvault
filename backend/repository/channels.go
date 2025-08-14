@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
+	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
@@ -50,7 +50,7 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 		insertCount++
 	}
 
-	Infof("Successfully prepared %d channels for insertion.", insertCount)
+	ah.Infof("Successfully prepared %d channels for insertion.", insertCount)
 
 	return tx.Commit()
 }
