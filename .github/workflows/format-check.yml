@@ -27,6 +27,8 @@ jobs:
         working-directory: ./frontend
         run: npx @biomejs/biome format
 
+  generate-binaries:
+    steps:
       - name: Build wails
         uses: dAppServer/wails-build-action@main
         with:
@@ -37,5 +39,7 @@ jobs:
       - name: Build wails go app
         run: make build
 
+  run-unit-tests:
+    steps:
       - name: Run go tests
         run: make test
