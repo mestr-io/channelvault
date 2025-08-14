@@ -18,7 +18,7 @@ GOPROXY ?= ""
 # Inject the version in a global variable
 LDFLAGS  := "-X 'main.version=$(VERSION)-$(RELEASE)'"
 
-.PHONY: help build dev compile goversion fmt check-fmt test
+.PHONY: help build dev compile goversion fmt check-fmt test clean
 
 all: help
 
@@ -52,6 +52,12 @@ test: goversion ##                         Launch app tests
 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
+
+clean: ##                       Clean build
+	rm -Rf $(TOP)/build/bin
+	rm -Rf $(TOP)/frontend/dist
+	rm -Rf $(TOP)/frontend/node_modules
+
 fmt:
 	$(info) ">>> Format JS/TS code $(VERSION)-$(RELEASE) ..."
 	cd $(TOP)/frontend && \
