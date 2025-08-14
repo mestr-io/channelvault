@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -145,16 +146,19 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		var usersJson []byte
+		var usersJson sql.NullString
 		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %w", err)
 		}
-		err = json.Unmarshal(usersJson, &msg.ReplyUsers)
-		if err != nil {
-			return nil, fmt.Errorf("could not deserialize reply users: %w", err)
 
+		if usersJson.Valid {
+			err = json.Unmarshal([]byte(usersJson.String), &msg.ReplyUsers)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+			}
 		}
+
 		messages = append(messages, msg)
 	}
 
@@ -199,15 +203,16 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		var usersJson []byte
+		var usersJson sql.NullString
 		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %w", err)
 		}
-		err = json.Unmarshal(usersJson, &msg.ReplyUsers)
-		if err != nil {
-			return nil, fmt.Errorf("could not deserialize reply users: %w", err)
-
+		if usersJson.Valid {
+			err = json.Unmarshal([]byte(usersJson.String), &msg.ReplyUsers)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+			}
 		}
 		messages = append(messages, msg)
 	}
