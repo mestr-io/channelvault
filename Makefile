@@ -48,7 +48,7 @@ dev: goversion ##                        Dev launch
 
 test: goversion ##                        Launch app tests
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
-	go test -v ./...
+	go test -count=1 -v ./...
 
 fmt:
 	$(info) ">>> Format JS/TS code $(VERSION)-$(RELEASE) ..."
