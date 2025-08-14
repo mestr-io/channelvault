@@ -28,6 +28,9 @@ jobs:
         run: npx @biomejs/biome format
 
   generate-binaries:
+    name: Generate binaries
+    runs-on: ubuntu-latest
+
     steps:
       - name: Build wails
         uses: dAppServer/wails-build-action@main
@@ -40,6 +43,8 @@ jobs:
         run: make build
 
   run-unit-tests:
+    name: Run unit tests
+    runs-on: ubuntu-latest
     steps:
       - name: Run go tests
         run: make test
