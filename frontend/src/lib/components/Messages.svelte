@@ -1,7 +1,4 @@
 <script lang="ts">
-// This part remains the same.
-// NOTE: I'm assuming 'msg.reply_user_avatars' is an array of avatar URLs for the users in the thread.
-// You will need to make sure your data structure provides this.
 import { models } from '../../../wailsjs/go/models'
 
 import ThreadInfo from './ThreadInfo.svelte'

@@ -41,6 +41,7 @@ onMount(async () => {
   <footer></footer>
 </main>
 
+
 <style>
   /* Inter font from Google Fonts (or similar system font for local development) */
   :global(body) {
@@ -64,4 +65,5 @@ onMount(async () => {
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
   }
+  
 </style>
