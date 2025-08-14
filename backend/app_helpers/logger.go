@@ -109,7 +109,7 @@ func (al *WailsAppLogger) coreLogf(
 
 // Fatalf logs a fatal error message and exits the application.
 func Fatalf(format string, v ...any) {
-	coreLogf(fatalLabel, appLogger.Infof, log.Fatalf, format, v...)
+	coreLogf(fatalLabel, appLogger.Fatalf, log.Fatalf, format, v...)
 }
 
 // Infof logs an informational message.
