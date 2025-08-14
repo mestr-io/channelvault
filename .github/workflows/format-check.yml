@@ -28,7 +28,7 @@ jobs:
         run: npx @biomejs/biome format
 
       - name: Build wails
-        uses: dAppServer/wails-build-action@v2
+        uses: dAppServer/wails-build-action@v3
         with:
           build-name: wailsApp
           build-platform: linux/amd64
