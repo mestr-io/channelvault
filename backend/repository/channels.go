@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 
+	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
@@ -29,7 +29,8 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer stmt.Close()
+
+	defer func() { err = JoinAndAddFileNoToErr(stmt.Close(), err) }()
 
 	insertCount := 0
 	for _, channel := range channels {
@@ -49,7 +50,7 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 		insertCount++
 	}
 
-	log.Printf("Successfully prepared %d channels for insertion.", insertCount)
+	Infof("Successfully prepared %d channels for insertion.", insertCount)
 
 	return tx.Commit()
 }
@@ -57,21 +58,22 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 func (r *Repository) GetChannels() (channels []models.Channel, err error) {
 	rows, err := r.db.Query("select id, name from channels")
 	if err != nil {
-		return nil, fmt.Errorf("FATAL: couldnt query channels: %v", err)
+		return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)
 	}
-	defer rows.Close()
+	defer func() { err = JoinAndAddFileNoToErr(rows.Close(), err) }()
 
 	for rows.Next() {
 		var channel models.Channel
 		err = rows.Scan(&channel.ID, &channel.Name)
 		if err != nil {
-			return nil, fmt.Errorf("FATAL: couldnt query channels: %v", err)
+			return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)
 		}
 		channels = append(channels, channel)
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, fmt.Errorf("FATAL: couldnt query channels: %v", err)
+		return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)
 	}
+
 	return channels, nil
 }

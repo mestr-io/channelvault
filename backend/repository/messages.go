@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"errors"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
+
 )
 
 // TODO: add context to stop it if needed
@@ -17,8 +19,8 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 	}
 	// Defer a rollback in case of an error. The rollback will be ignored if the transaction is committed.
 	defer func() {
-		if err != nil {
-			tx.Rollback()
+		if err != nil {	
+			err = errors.Join(tx.Rollback(), err)	
 		}
 	}()
 
@@ -38,7 +40,7 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func(){err = errors.Join(stmt.Close(), err)}()
 
 	// Loop through each message in the slice
 	for _, msg := range messages {
@@ -139,7 +141,7 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 	if err != nil {
 		return nil, fmt.Errorf("could not query messages for channel %s: %w", channelID, err)
 	}
-	defer rows.Close()
+	defer func(){err = errors.Join(rows.Close(), err)}()
 
 	var messages []models.Message
 	for rows.Next() {

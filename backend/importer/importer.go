@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -31,12 +32,15 @@ func NewImporter(ctx context.Context, path string, repository *repository.Reposi
 	return &Importer{ctx: ctx, path: path, repository: repository}
 }
 
-func (i *Importer) processUsers(zf *zip.File) error {
+func (i *Importer) processUsers(zf *zip.File) (err error) {
 	f, err := zf.Open()
 	if err != nil {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		err = errors.Join(f.Close(), err)
+	}()
+
 	data, err := io.ReadAll(f)
 	if err != nil {
 		return fmt.Errorf("fail to read 'users.json' file: %w", err)
@@ -56,7 +60,9 @@ func (i *Importer) processChannels(zf *zip.File) error {
 	if err != nil {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
 	}
-	defer f.Close()
+
+	defer func() { err = errors.Join(f.Close(), err) }()
+
 	data, err := io.ReadAll(f)
 	if err != nil {
 		return fmt.Errorf("fail to read 'channels.json' file: %w", err)
@@ -107,7 +113,8 @@ func (i *Importer) Import(c chan Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to open the zip export file: %w", err)
 	}
-	defer r.Close()
+
+	defer func() { err = errors.Join(r.Close(), err) }()
 
 	totalFiles := len(r.File)
 
@@ -116,15 +123,20 @@ func (i *Importer) Import(c chan Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to open unzip users.json file: %w", err)
 	}
-	i.processUsers(f)
 
+	err = i.processUsers(f)
+	if err != nil {
+		return fmt.Errorf("fail to process users: %w", err)
+	}
 	// channels.json
 	f, err = findFile("channels.json", r.File)
 	if err != nil {
 		return fmt.Errorf("fail to open unzip channels.json file: %w", err)
 	}
-	i.processChannels(f)
-
+	err = i.processChannels(f)
+	if err != nil {
+		return fmt.Errorf("fail to process channels: %w", err)
+	}
 	// messages & threads
 	for idx, f := range r.File {
 		select {
@@ -142,9 +154,11 @@ func (i *Importer) Import(c chan Progress) error {
 					TotalFiles:  totalFiles,
 					CurrentFile: idx + 1,
 				}
-				i.processMessages(channelID, f)
+				err = i.processMessages(channelID, f)
+				if err != nil {
+					return fmt.Errorf("fail to process messages for channel %s: %w", channelID, err)
+				}
 			}
-
 		}
 	}
 	return nil

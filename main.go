@@ -6,7 +6,6 @@ import (
 
 	"embed" // For embedding frontend assets
 	"fmt"
-	"log"
 	"path/filepath"
 
 	// For formatting output, like in LogPrintf
@@ -15,6 +14,7 @@ import (
 	_ "github.com/marcboeker/go-duckdb"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mestr-io/slack-export-viewer/backend/app"
+	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
@@ -40,13 +40,14 @@ func getSqliteDatabasePath(appName string) (string, error) {
 
 func main() {
 	dbPath, err := getSqliteDatabasePath(AppName)
+
 	if err != nil {
-		log.Panicf("FATAL: Could not determine database path: %v", err)
+		Fatalf("Could not determine database path: %v", err)
 	}
 
 	r, err := repository.New(dbPath)
 	if err != nil {
-		log.Panicf("FATAL: Could not setup sqlite DB: %v", err)
+		Fatalf("Could not setup sqlite DB: %v", err)
 	}
 	app := app.New(r)
 
@@ -75,6 +76,6 @@ func main() {
 	})
 
 	if err != nil {
-		println("Error starting Wails app:", err.Error())
+		Fatalf("Error starting Wails app: %s", err.Error())
 	}
 }

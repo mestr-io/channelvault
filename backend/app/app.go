@@ -4,11 +4,12 @@ import (
 	"context" // For the context.Context type
 	// For embedding frontend assets
 	// For formatting output, like in LogPrintf
-	"log"
+	"log/slog"
 	"time"
 
 	_ "github.com/marcboeker/go-duckdb"
 	_ "github.com/mattn/go-sqlite3" // For checking the build mode
+	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 
@@ -39,7 +40,7 @@ func New(repository *repository.Repository) *App {
 func (a *App) GetViewState() string {
 	ready, err := a.repository.NoFinishedImports(a.ctx)
 	if err != nil {
-		log.Panicf("FATAL: cannot get current imports: %v", err)
+		Fatalf("FATAL: cannot get current imports: %v", err)
 	}
 	if ready {
 		return string(ViewStateDashboard)
@@ -56,15 +57,15 @@ func (a *App) setViewState(state ViewState) {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
-	runtime.OnFileDrop(ctx, a.onFileDrop)
-
-	runtime.LogPrint(ctx, "Wails application started successfully!")
+	runtime.OnFileDrop(ctx, a.onFileDrop)	
+	InitWailsLog(ctx, slog.LevelInfo)	
+	Infof("Wails application started successfully!")
 }
 
 func (a *App) onFileDrop(x, y int, paths []string) {
 	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", paths, x, y)
 	if len(paths) != 1 {
-		log.Panicf("FATAL: internal error. import part incorrect: %v", paths)
+		Fatalf("internal error. import part incorrect: %v", paths)
 	}
 
 	a.processImport(paths[0])
@@ -74,7 +75,7 @@ func (a *App) processImport(path string) {
 	a.setViewState(VIewStateLoading)
 	record, err := a.repository.StoreImport(a.ctx, path)
 	if err != nil {
-		log.Printf("ERROR: Import failed: %v", err)
+		Errorf("Import failed: %v", err)
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
 		return
 	}
@@ -94,17 +95,17 @@ func (a *App) processImport(path string) {
 			runtime.EventsEmit(a.ctx, "importProgress", p)
 			lastUpdateTime = time.Now()
 		}
-		log.Printf("processed: %v\n", p)
+		Infof("processed: %v\n", p)
 	}
 
 	if importErr != nil {
-		log.Printf("ERROR: Import failed: %v", importErr)
+		Errorf("Import failed: %v", importErr)
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
 		return
 	}
 
-	runtime.LogPrint(a.ctx, "Import completed successfully!")
+	Infof("Import completed successfully!")
 	runtime.EventsEmit(a.ctx, "importComplete")
 	a.repository.FinishedImport(a.ctx, record.ID)
 
