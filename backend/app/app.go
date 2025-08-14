@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 	_ "github.com/mattn/go-sqlite3" // For checking the build mode
-	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
+	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 
@@ -40,7 +40,7 @@ func New(repository *repository.Repository) *App {
 func (a *App) GetViewState() string {
 	ready, err := a.repository.NoFinishedImports(a.ctx)
 	if err != nil {
-		Fatalf("FATAL: cannot get current imports: %v", err)
+		ah.Fatalf("FATAL: cannot get current imports: %v", err)
 	}
 	if ready {
 		return string(ViewStateDashboard)
@@ -58,14 +58,14 @@ func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
 	runtime.OnFileDrop(ctx, a.onFileDrop)	
-	InitWailsLog(ctx, slog.LevelInfo)	
-	Infof("Wails application started successfully!")
+	ah.InitWailsLog(ctx, slog.LevelInfo)	
+	ah.Infof("Wails application started successfully!")
 }
 
 func (a *App) onFileDrop(x, y int, paths []string) {
 	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", paths, x, y)
 	if len(paths) != 1 {
-		Fatalf("internal error. import part incorrect: %v", paths)
+		ah.Fatalf("internal error. import part incorrect: %v", paths)
 	}
 
 	a.processImport(paths[0])
@@ -75,7 +75,7 @@ func (a *App) processImport(path string) {
 	a.setViewState(VIewStateLoading)
 	record, err := a.repository.StoreImport(a.ctx, path)
 	if err != nil {
-		Errorf("Import failed: %v", err)
+		ah.Errorf("Import failed: %v", err)
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
 		return
 	}
@@ -95,17 +95,17 @@ func (a *App) processImport(path string) {
 			runtime.EventsEmit(a.ctx, "importProgress", p)
 			lastUpdateTime = time.Now()
 		}
-		Infof("processed: %v\n", p)
+		ah.Infof("processed: %v\n", p)
 	}
 
 	if importErr != nil {
-		Errorf("Import failed: %v", importErr)
+		ah.Errorf("Import failed: %v", importErr)
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
 		return
 	}
 
-	Infof("Import completed successfully!")
+	ah.Infof("Import completed successfully!")
 	runtime.EventsEmit(a.ctx, "importComplete")
 	a.repository.FinishedImport(a.ctx, record.ID)
 

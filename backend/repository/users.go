@@ -4,7 +4,7 @@ import (
 	"context"	
 	"fmt"
 	"errors"	
-	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
+	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
@@ -36,7 +36,7 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 		insertCount++
 	}
 
-	Infof("Successfully prepared %d users for insertion.", insertCount)
+	ah.Infof("Successfully prepared %d users for insertion.", insertCount)
 
 	return tx.Commit()
 }
