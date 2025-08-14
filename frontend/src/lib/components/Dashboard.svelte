@@ -6,6 +6,7 @@ import { models } from '../../../wailsjs/go/models'
 import { onMount, tick } from 'svelte'
 import Messages from './Messages.svelte'
 import Welcome from './Welcome.svelte'
+import { setContext } from 'svelte'
 
 let channels = $state<models.Channel[]>([] as models.Channel[])
 let messages = $state<models.Message[]>([] as models.Message[])
@@ -23,6 +24,9 @@ let messagesContainer: HTMLDivElement
 let threadContainer: HTMLDivElement
 
 let isInitialLoad = $state(true)
+
+// init the cache
+setContext('cache', new Map<string, string>())
 
 $effect(() => {
   // This runs after messages are rendered. If it was the first load, scroll down.
