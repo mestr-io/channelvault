@@ -1,53 +1,53 @@
 <script lang="ts">
-  import { models } from '../../../wailsjs/go/models'
-  import ThreadInfo from './ThreadInfo.svelte'
+import { models } from '../../../wailsjs/go/models'
+import ThreadInfo from './ThreadInfo.svelte'
 
-  type Props = {
-    messages: models.Message[]
-    isLoadingMessages: boolean
-    hasMoreMessages: boolean
-    selectedThread: string | null
-  }
-  let { messages, isLoadingMessages, hasMoreMessages, selectedThread = $bindable(null) }: Props = $props()
+type Props = {
+  messages: models.Message[]
+  isLoadingMessages: boolean
+  hasMoreMessages: boolean
+  selectedThread: string | null
+}
+let { messages, isLoadingMessages, hasMoreMessages, selectedThread = $bindable(null) }: Props = $props()
 
-  /**
-   * Helper function to check if the day pill should be displayed.
-   * It returns true for the first message or when the day is different from the previous message.
-   */
-  const shouldShowDayPill = (currentMsg: models.Message, previousMsg: models.Message | undefined): boolean => {
-    if (!previousMsg) {
-      return true // Always show for the very first message
-    }
-    const currentDate = new Date(parseFloat(currentMsg.ts) * 1000)
-    const previousDate = new Date(parseFloat(previousMsg.ts) * 1000)
-    
-    return currentDate.toDateString() !== previousDate.toDateString()
+/**
+ * Helper function to check if the day pill should be displayed.
+ * It returns true for the first message or when the day is different from the previous message.
+ */
+const shouldShowDayPill = (currentMsg: models.Message, previousMsg: models.Message | undefined): boolean => {
+  if (!previousMsg) {
+    return true // Always show for the very first message
   }
+  const currentDate = new Date(parseFloat(currentMsg.ts) * 1000)
+  const previousDate = new Date(parseFloat(previousMsg.ts) * 1000)
 
-  /**
-   * Formats the timestamp for the day pill (e.g., "Friday, August 8").
-   */
-  const formatDayPillDate = (ts: string): string => {
-    const date = new Date(parseFloat(ts) * 1000)
-    // Using 'en-US' locale for consistent formatting like "Friday, August 8"
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
+  return currentDate.toDateString() !== previousDate.toDateString()
+}
 
-  /**
-   * Formats the message timestamp to show only the time (e.g., "2:03 PM").
-   */
-  const formatMessageTime = (ts: string): string => {
-    const date = new Date(parseFloat(ts) * 1000)
-    // Using 'en-US' locale to get AM/PM format
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-    })
-  }
+/**
+ * Formats the timestamp for the day pill (e.g., "Friday, August 8").
+ */
+const formatDayPillDate = (ts: string): string => {
+  const date = new Date(parseFloat(ts) * 1000)
+  // Using 'en-US' locale for consistent formatting like "Friday, August 8"
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+/**
+ * Formats the message timestamp to show only the time (e.g., "2:03 PM").
+ */
+const formatMessageTime = (ts: string): string => {
+  const date = new Date(parseFloat(ts) * 1000)
+  // Using 'en-US' locale to get AM/PM format
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
 </script>
 
 {#if hasMoreMessages}
