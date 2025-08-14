@@ -13,7 +13,9 @@ let threadMessages = $state<models.Message[]>([] as models.Message[])
 let selectedChannel = $state<models.Channel | null>(null)
 let isLoadingMessages = $state(false)
 let hasMoreMessages = $state(true)
-let selectedThread = $state<string | undefined>(undefined)
+
+let showThread = $state(false)
+let selectedThread = $state<string | null>(null)
 
 // svelte-ignore non_reactive_update
 let messagesContainer: HTMLDivElement
@@ -31,12 +33,13 @@ $effect(() => {
     })
   }
 })
+$effect(() => {
+  if (!showThread) {
+    selectedThread = null
+  }
+})
 
 $effect(() => {
-  console.log('Effect is running!', {
-    thread: selectedThread,
-    channel: selectedChannel,
-  })
   if (selectedThread && selectedChannel) {
     const loadThread = async () => {
       threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
@@ -44,6 +47,7 @@ $effect(() => {
       threadContainer.scrollTop = threadContainer.scrollHeight
     }
     loadThread()
+    showThread = true
   }
 })
 
@@ -59,7 +63,7 @@ async function selectChannel(channel: models.Channel) {
   messages = []
   hasMoreMessages = true
   isInitialLoad = true
-  selectedThread = undefined
+  showThread = false
   await loadMoreMessages()
 }
 
@@ -107,7 +111,7 @@ function handleScroll(event: Event) {
 
 <main class="slack-clone">
   <Splitpanes>
-    <Pane minSize={10} maxSize={30}>
+    <Pane minSize={10} maxSize={30} size={25}>
       <div class="sidebar">
         <h4>Channels</h4>
         {#each channels as channel (channel.id)}
@@ -145,15 +149,15 @@ function handleScroll(event: Event) {
       </div>
     </Pane>
 
-    {#if selectedThread != undefined}
-      <Pane>
+    {#if showThread }
+      <Pane size={30}>
         <div class="main-content">
           <header class="channel-header">
             <h2>Thread</h2>
             <button
               class="close-thread-btn"
               aria-label="Close thread"
-              onclick={() => (selectedThread = undefined)}
+              onclick={() => (showThread = false)}
             >
               <svg
                 viewBox="0 0 20 20"
@@ -180,7 +184,6 @@ function handleScroll(event: Event) {
               messages={threadMessages}
               isLoadingMessages={false}
               hasMoreMessages={false}
-              bind:selectedThread
             />
           </div>
         </div>
