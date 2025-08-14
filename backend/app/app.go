@@ -57,8 +57,8 @@ func (a *App) setViewState(state ViewState) {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
-	runtime.OnFileDrop(ctx, a.onFileDrop)	
-	ah.InitWailsLog(ctx, slog.LevelInfo)	
+	runtime.OnFileDrop(ctx, a.onFileDrop)
+	ah.InitWailsLog(ctx, slog.LevelInfo)
 	ah.Infof("Wails application started successfully!")
 }
 
@@ -105,7 +105,7 @@ func (a *App) processImport(path string) {
 		return
 	}
 
-	ah.Infof("Import completed successfully!")
+	ah.Infof("Import completed successfully!!")
 	runtime.EventsEmit(a.ctx, "importComplete")
 	a.repository.FinishedImport(a.ctx, record.ID)
 
