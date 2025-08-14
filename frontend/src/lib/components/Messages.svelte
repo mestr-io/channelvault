@@ -10,9 +10,9 @@ type Props = {
   messages: models.Message[]
   isLoadingMessages: boolean
   hasMoreMessages: boolean
-  selectedThread: string | undefined
+  selectedThread: string | null
 }
-let { messages, isLoadingMessages, hasMoreMessages, selectedThread = $bindable() }: Props = $props()
+let { messages, isLoadingMessages, hasMoreMessages, selectedThread = $bindable(null) }: Props = $props()
 </script>
 
 {#if hasMoreMessages}
