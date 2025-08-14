@@ -43,7 +43,7 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 		if err != nil {
 			return fmt.Errorf("failed to marshal pins for channel %s: %v", channel.ID, err)
 		}
-		_, err = stmt.Exec(channel.ID, channel.Name, channel.Topic.Value, channel.Purpose.Value, membersJson, pinsJson)
+		_, err = stmt.Exec(channel.ID, channel.Name, channel.Topic.Value, channel.Purpose.Value, toNullString(membersJson), toNullString(pinsJson))
 		if err != nil {
 			return fmt.Errorf("failed to insert channel %s: %w", channel.ID, err)
 		}
