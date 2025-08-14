@@ -29,10 +29,10 @@ jobs:
 
       - name: Build wails
         uses: dAppServer/wails-build-action@v2
-         with:
-           build-name: wailsApp
-           build-platform: linux/amd64
-           package: false
+        with:
+          build-name: wailsApp
+          build-platform: linux/amd64
+          package: false
 
       - name: Build wails go app
         run: make build
