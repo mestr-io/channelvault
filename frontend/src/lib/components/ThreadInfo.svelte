@@ -1,5 +1,5 @@
 <script lang="ts">
-import { LogError, LogInfo } from '../../../wailsjs/runtime/runtime'
+import { LogError } from '../../../wailsjs/runtime/runtime'
 import { GetUserAvatar } from '../../../wailsjs/go/app/App'
 import { getContext } from 'svelte'
 
@@ -13,7 +13,7 @@ async function getUser(userId: string): Promise<string> {
   if (cache.has(userId)) {
     return cache.get(userId)!
   }
-  
+
   try {
     const url = await GetUserAvatar(userId)
     cache.set(userId, url)

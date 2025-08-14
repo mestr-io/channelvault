@@ -1,6 +1,7 @@
 <script lang="ts">
 import { GetChannels, GetMessages, GetThreadByTs } from '../../../wailsjs/go/app/App'
 import { Pane, Splitpanes } from 'svelte-splitpanes'
+import { onDestroy } from 'svelte'
 
 import { models } from '../../../wailsjs/go/models'
 import { onMount, tick } from 'svelte'
@@ -25,6 +26,22 @@ let threadContainer: HTMLDivElement
 
 let isInitialLoad = $state(true)
 
+const startResize = () => {
+  // Add a class to the main document body
+  document.body.classList.add('is-resizing-panes')
+}
+
+// 2. A function to run when resizing ends
+const endResize = () => {
+  // Remove the class from the main document body
+  document.body.classList.remove('is-resizing-panes')
+}
+
+// 3. (Good Practice) Clean up if the component is ever destroyed
+// This prevents the class from getting stuck on the body.
+onDestroy(() => {
+  document.body.classList.remove('is-resizing-panes')
+})
 // init the cache
 setContext('cache', new Map<string, string>())
 
@@ -114,7 +131,7 @@ function handleScroll(event: Event) {
 </script>
 
 <main class="slack-clone">
-  <Splitpanes>
+  <Splitpanes on:resize={startResize} on:resized={endResize}>
     <Pane minSize={10} maxSize={30} size={25}>
       <div class="sidebar">
         <h4>Channels</h4>
@@ -153,7 +170,7 @@ function handleScroll(event: Event) {
       </div>
     </Pane>
 
-    {#if showThread }
+    {#if showThread}
       <Pane size={30}>
         <div class="main-content">
           <header class="channel-header">
@@ -197,6 +214,13 @@ function handleScroll(event: Event) {
 </main>
 
 <style>
+  :global(body.is-resizing-panes) {
+    cursor: col-resize !important; /* Force the cursor */
+    user-select: none !important; /* Force disable selection */
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
   .slack-clone {
     display: flex;
     height: 100vh;
