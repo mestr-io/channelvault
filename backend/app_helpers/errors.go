@@ -10,19 +10,24 @@ import (
 func Finally(f func() error, previous error) (err error) {
 	e := f()
 
-	err = errors.Join(previous, createError("%s", e.Error()))
-	return
-}
-
-func createError(format string, v ...any) (err error) {
-	where := getLineAndNo(3)
-	s := fmt.Sprintf(format, v...)
-	err = fmt.Errorf("%s %s", where, s)
+	err = errors.Join(previous, AddFileAndLineNoToErr(e))
 
 	return
 }
 
-func getLineAndNo(caller int) string {
+// AddFileAndLineNoToErr adds the file and line number of the caller to the error message.
+// It retrieves the file and line number from the call stack and prepends it into the error message
+// as "file:line".
+func AddFileAndLineNoToErr(e error) (err error) {
+	where := GetLineAndNo(3)
+	err = fmt.Errorf("%s %w", where, e)
+
+	return
+}
+
+// GetLineAndNo retrieves the file name and line number of the caller at a specified depth.
+// returns a string formatted as "file:line".
+func GetLineAndNo(caller int) string {
 	_, file, line, ok := runtime.Caller(caller)
 	if !ok {
 		file = "unknown"

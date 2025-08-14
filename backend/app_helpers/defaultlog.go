@@ -8,12 +8,15 @@ import (
 	"sync"
 )
 
+// CustomTextHandler is a custom slog handler that modifies standard slog output to
+// format it like Wails default logger.
 type CustomTextHandler struct {
 	h   slog.Handler
 	mu  *sync.Mutex
 	out io.Writer
 }
 
+// NewCustomTextHandler creates a new CustomTextHandler with the specified output writer and options.
 func NewCustomTextHandler(o io.Writer, opts *slog.HandlerOptions) *CustomTextHandler {
 	if opts == nil {
 		opts = &slog.HandlerOptions{}
@@ -29,18 +32,22 @@ func NewCustomTextHandler(o io.Writer, opts *slog.HandlerOptions) *CustomTextHan
 	}
 }
 
+// Enabled checks if the handler is enabled for the given context and level.
 func (h *CustomTextHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return h.h.Enabled(ctx, level)
 }
 
+// WithAttrs returns a new handler with the specified attributes.
 func (h *CustomTextHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &CustomTextHandler{h: h.h.WithAttrs(attrs), out: h.out, mu: h.mu}
 }
 
+// WithGroup returns a new handler with the specified group name.
 func (h *CustomTextHandler) WithGroup(name string) slog.Handler {
 	return &CustomTextHandler{h: h.h.WithGroup(name), out: h.out, mu: h.mu}
 }
 
+// Handle processes a slog record and writes it to the output.
 func (h *CustomTextHandler) Handle(ctx context.Context, r slog.Record) error {
 	//add message to values
 	strs := []string{r.Message+"\n"}

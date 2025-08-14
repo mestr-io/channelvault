@@ -57,8 +57,8 @@ func (a *App) setViewState(state ViewState) {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
-	runtime.OnFileDrop(ctx, a.onFileDrop)
-	InitLog(ctx, slog.LevelInfo)
+	runtime.OnFileDrop(ctx, a.onFileDrop)	
+	InitWailsLog(ctx, slog.LevelInfo)	
 	Infof("Wails application started successfully!")
 }
 
