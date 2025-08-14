@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	. "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
+	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
@@ -30,7 +30,7 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
 
-	defer func() { err = JoinAndAddFileNoToErr(stmt.Close(), err) }()
+	defer func() { err = errors.Join(stmt.Close(), err) }()
 
 	insertCount := 0
 	for _, channel := range channels {
@@ -50,7 +50,7 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 		insertCount++
 	}
 
-	Infof("Successfully prepared %d channels for insertion.", insertCount)
+	ah.Infof("Successfully prepared %d channels for insertion.", insertCount)
 
 	return tx.Commit()
 }
@@ -60,7 +60,9 @@ func (r *Repository) GetChannels() (channels []models.Channel, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)
 	}
-	defer func() { err = JoinAndAddFileNoToErr(rows.Close(), err) }()
+	defer func() {
+		err = errors.Join(rows.Close(), err)
+	}()
 
 	for rows.Next() {
 		var channel models.Channel

@@ -166,3 +166,57 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 
 	return messages, nil
 }
+
+func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
+	query := `
+        SELECT 
+			ts, text, 
+			user_id, 
+			u.real_name as author, 
+			u.profile_image_url as profile_url,
+			'' as thread_ts,
+			reply_count,
+			latest_reply,
+			reply_users_json,
+			reply_users_count
+        FROM messages 
+		JOIN users AS u ON u.id = user_id
+		JOIN channels AS c ON c.name = channel_id
+        WHERE c.id = $1 AND thread_ts = $2 
+    `
+	args := []interface{}{channelID, threadTs}
+
+	// Always order by timestamp to ensure consistent pagination, and limit the result size.
+	query += " ORDER BY ts DESC"
+
+	// Execute the query using the context for cancellation safety.
+	// Pass query parameters as arguments to prevent SQL injection.
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("could not query messages for channel %s: %w", channelID, err)
+	}
+	defer rows.Close()
+
+	var messages []models.Message
+	for rows.Next() {
+		var msg models.Message
+		var usersJson []byte
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount); err != nil {
+			// Error during row scanning is a server-side issue.
+			return nil, fmt.Errorf("could not scan message row: %w", err)
+		}
+		err = json.Unmarshal(usersJson, &msg.ReplyUsers)
+		if err != nil {
+			return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+
+		}
+		messages = append(messages, msg)
+	}
+
+	// Check for any errors that occurred during iteration.
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating message rows: %w", err)
+	}
+
+	return messages, nil
+}
