@@ -7,7 +7,7 @@ import (
 
 // JoinAndAddFileNoToErr joins the provided error with the previous error and adds the file and line number of the caller to the error message.
 func JoinAndAddFileNoToErr(e error, previous error) (err error) {
-	
+
 	err = errors.Join(previous, AddFileAndLineNoToErr(e))
 
 	return
@@ -17,8 +17,12 @@ func JoinAndAddFileNoToErr(e error, previous error) (err error) {
 // It retrieves the file and line number from the call stack and prepends it into the error message
 // as "file:line".
 func AddFileAndLineNoToErr(e error) (err error) {
-	where := GetLineAndNo(3)
-	err = fmt.Errorf("%s %w", where, e)
+
+	if e != nil {
+		where := GetLineAndNo(3)
+		err = fmt.Errorf("%s %w", where, e)
+
+	}
 
 	return
 }
