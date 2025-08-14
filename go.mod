@@ -8,12 +8,14 @@ require (
 	github.com/adrg/xdg v0.5.3
 	github.com/marcboeker/go-duckdb v1.8.5
 	github.com/mattn/go-sqlite3 v1.14.30
+	github.com/stretchr/testify v1.10.0
 	github.com/wailsapp/wails/v2 v2.10.2
 )
 
 require (
 	github.com/apache/arrow-go/v18 v18.4.0 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
@@ -36,7 +38,9 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.8 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -53,6 +57,7 @@ require (
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/tools v0.36.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 // replace github.com/wailsapp/wails/v2 v2.10.1 => /Users/dmanchon/go/pkg/mod
