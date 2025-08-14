@@ -46,6 +46,10 @@ dev: goversion ##                        Dev launch
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
 	@wails dev -tags webkit2_41
 
+test: goversion ##                        Launch app tests
+	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
+	go test -count=1 -v ./...
+
 fmt:
 	$(info) ">>> Format JS/TS code $(VERSION)-$(RELEASE) ..."
 	cd $(TOP)/frontend && \
