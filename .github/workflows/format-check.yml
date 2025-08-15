@@ -1,4 +1,4 @@
-name: Format Check
+name: Format Check & Build
 
 on:
   pull_request:
@@ -9,7 +9,6 @@ jobs:
   format-check:
     name: Run Biome Formatter
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,6 +17,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ./frontend
@@ -39,10 +39,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ./frontend
         run: npm ci
+
+      - name: Cache APT Packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: apt-cache-${{ runner.os }}-apt
+          restore-keys: |
+            apt-cache-${{ runner.os }}-apt
 
       - name: Build wails
         uses: dAppServer/wails-build-action@main
