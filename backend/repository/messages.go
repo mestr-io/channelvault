@@ -254,3 +254,25 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 
 	return messages, nil
 }
+
+func (r *Repository) GetFileById(ctx context.Context, fileId string) (*models.File, error) {
+	query := `
+        SELECT 
+			id,
+			name,
+			title,
+			mimetype,
+			url_private,
+			user
+        FROM files 
+        WHERE id = ?; 
+    `
+	args := []interface{}{fileId}
+
+	file := models.File{}
+	err := r.db.QueryRowContext(ctx, query, args...).Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.User)
+	if err != nil {
+		return nil, fmt.Errorf("could not query file with id %s: %w", fileId, err)
+	}
+	return &file, nil
+}

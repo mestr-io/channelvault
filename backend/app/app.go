@@ -26,14 +26,16 @@ const (
 )
 
 type App struct {
-	ctx        context.Context
-	repository *repository.Repository
-	state      ViewState
+	ctx         context.Context
+	repository  *repository.Repository
+	state       ViewState
+	filesFolder string
 }
 
-func New(repository *repository.Repository) *App {
+func New(repository *repository.Repository, filesFolder string) *App {
 	return &App{
-		repository: repository,
+		repository:  repository,
+		filesFolder: filesFolder,
 	}
 }
 
@@ -57,8 +59,8 @@ func (a *App) setViewState(state ViewState) {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
-	runtime.OnFileDrop(ctx, a.onFileDrop)	
-	ah.InitWailsLog(ctx, slog.LevelInfo)	
+	runtime.OnFileDrop(ctx, a.onFileDrop)
+	ah.InitWailsLog(ctx, slog.LevelInfo)
 	ah.Infof("Wails application started successfully!")
 }
 

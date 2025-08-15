@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { GetBase64Image } from '../../../wailsjs/go/app/App';
 import { models } from '../../../wailsjs/go/models'
 import ThreadInfo from './ThreadInfo.svelte'
 
@@ -82,14 +83,16 @@ const formatMessageTime = (ts: string): string => {
             {#each msg.files as f}
               {#if f.mimetype.startsWith('image/')}
                 <a href={f.url_private} target="_blank" rel="noopener noreferrer" class="file-preview image-preview">
-                  <img src={f.url_private} alt={f.title || f.name} />
+                  {#await GetBase64Image(f.id) then image}
+                    <img src={image} alt={f.title || f.name} />
+                  {/await}
                 </a>
               {:else}
                 <a href={f.url_private} target="_blank" rel="noopener noreferrer" download={f.name} class="file-preview generic-file">
                   <div class="file-icon">
                     </div>
                   <div class="file-info">
-                    <div class="file-name">{f.name}</div>
+                    <div class="file-name">{f.name || "file_not_found"}</div>
                     <div class="file-title">{f.title}</div>
                   </div>
                 </a>
