@@ -1,6 +1,7 @@
 <script lang="ts">
 import { models } from '../../../wailsjs/go/models'
 import ThreadInfo from './ThreadInfo.svelte'
+import DayDivider from './DayDivider.svelte'
 
 type Props = {
   messages: models.Message[]
@@ -9,33 +10,6 @@ type Props = {
   selectedThread: string | null
 }
 let { messages, isLoadingMessages, hasMoreMessages, selectedThread = $bindable(null) }: Props = $props()
-
-/**
- * Helper function to check if the day pill should be displayed.
- * It returns true for the first message or when the day is different from the previous message.
- */
-const shouldShowDayPill = (currentMsg: models.Message, previousMsg: models.Message | undefined): boolean => {
-  if (!previousMsg) {
-    return true // Always show for the very first message
-  }
-  const currentDate = new Date(parseFloat(currentMsg.ts) * 1000)
-  const previousDate = new Date(parseFloat(previousMsg.ts) * 1000)
-
-  return currentDate.toDateString() !== previousDate.toDateString()
-}
-
-/**
- * Formats the timestamp for the day pill (e.g., "Friday, August 8").
- */
-const formatDayPillDate = (ts: string): string => {
-  const date = new Date(parseFloat(ts) * 1000)
-  // Using 'en-US' locale for consistent formatting like "Friday, August 8"
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  })
-}
 
 /**
  * Formats the message timestamp to show only the time (e.g., "2:03 PM").
@@ -58,14 +32,7 @@ const formatMessageTime = (ts: string): string => {
 
 <div class="messages-container" id="messages-container">
   {#each messages as msg, i}
-    {#if shouldShowDayPill(msg, messages[i - 1])}
-      <div class="day-divider">
-        <hr />
-        <span>{formatDayPillDate(msg.ts)}</span>
-        <hr />
-      </div>
-    {/if}
-
+    <DayDivider current={msg} previous={messages[i - 1]} />
     <div class="message">
       <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
       <div class="message-content">
@@ -131,31 +98,5 @@ const formatMessageTime = (ts: string): string => {
     color: #9e9ea6;
     font-size: 0.8rem;
     margin-left: 0.5rem;
-  }
-  
-  /* STYLES FOR THE DAY PILL */
-  .day-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    color: #555;
-    padding: 1rem 0;
-    font-size: 0.8rem;
-  }
-
-  .day-divider hr {
-    flex-grow: 1;
-    border: none;
-    border-top: 1px solid #ddd;
-    margin: 0;
-  }
-
-  .day-divider span {
-    padding: 0.25rem 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 24px;
-    background-color: white;
-    font-weight: bold;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
 </style>
