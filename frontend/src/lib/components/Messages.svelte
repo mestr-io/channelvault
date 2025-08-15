@@ -66,7 +66,7 @@ const formatMessageTime = (ts: string): string => {
       </div>
     {/if}
 
-    <div class="message">
+    <div class="message" data-ts={msg.ts}>
       <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
       <div class="message-content">
         <div class="message-header">
@@ -76,7 +76,27 @@ const formatMessageTime = (ts: string): string => {
           </span>
         </div>
         <p>{msg.text}</p>
-
+        
+        {#if msg.files}
+          <div class="files-container">
+            {#each msg.files as f}
+              {#if f.mimetype.startsWith('image/')}
+                <a href={f.url_private} target="_blank" rel="noopener noreferrer" class="file-preview image-preview">
+                  <img src={f.url_private} alt={f.title || f.name} />
+                </a>
+              {:else}
+                <a href={f.url_private} target="_blank" rel="noopener noreferrer" download={f.name} class="file-preview generic-file">
+                  <div class="file-icon">
+                    </div>
+                  <div class="file-info">
+                    <div class="file-name">{f.name}</div>
+                    <div class="file-title">{f.title}</div>
+                  </div>
+                </a>
+              {/if}
+            {/each}
+          </div>
+        {/if}
         {#if msg.thread_ts}
           <ThreadInfo
             replyUsers={msg.reply_users}
@@ -158,4 +178,71 @@ const formatMessageTime = (ts: string): string => {
     font-weight: bold;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
+
+  /* START: New Styles for File Attachments */
+  .files-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .file-preview {
+    text-decoration: none;
+    color: inherit;
+    display: inline-flex;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 360px;
+  }
+  
+  .file-preview:hover {
+    border-color: #999;
+  }
+
+  .image-preview img {
+    max-width: 100%;
+    max-height: 250px;
+    display: block;
+    object-fit: cover;
+  }
+
+  .generic-file {
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f8f8;
+  }
+
+  .file-icon {
+    width: 32px;
+    height: 32px;
+    background-color: #e8e8e8; /* Placeholder for a real icon */
+    border-radius: 6px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    /* In a real app, you'd set a background-image with an SVG icon */
+  }
+
+  .file-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevents long file names from breaking layout */
+  }
+
+  .file-name {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-title {
+    font-size: 0.85rem;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* END: New Styles for File Attachments */
 </style>
