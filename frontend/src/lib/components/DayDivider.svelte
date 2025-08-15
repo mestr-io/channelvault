@@ -35,6 +35,7 @@ const formatDayPillDate = (ts: string): string => {
     .day-divider {
         display: flex;
         align-items: center;
+        flex-direction: row;
         text-align: center;
         color: #555;
         padding: 1rem 0;
