@@ -1,10 +1,7 @@
 <script lang="ts">
 import { models } from '../../../wailsjs/go/models'
 import ThreadInfo from './ThreadInfo.svelte'
-<<<<<<< HEAD
-=======
 import LazyImage from './LazyImage.svelte'
->>>>>>> 943c327 (squash)
 import DayDivider from './DayDivider.svelte'
 
 type Props = {
