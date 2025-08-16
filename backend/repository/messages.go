@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 )
 
 // TODO: add context to stop it if needed
-func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Message) (err error) {
+func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error) {
 	// Start a new transaction
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -23,10 +24,7 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 		}
 	}()
 
-	// The SQL statement for insertion. Using 'INSERT OR IGNORE' will prevent errors
-	// if you try to insert a message with a (ts, channel_id) that already exists.
-	// Use 'INSERT OR REPLACE' if you want to update existing messages instead.
-	sqlStmt := `
+	sqlStmtMsg := `
         INSERT OR IGNORE INTO messages (
             ts, channel_id, user_id, text, thread_ts, event_type, event_subtype,
             reactions_json, reply_users_json, replies_json, files_json,
@@ -35,11 +33,24 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
     `
 
 	// Prepare the statement. This is compiled once and reused for every message.
-	stmt, err := tx.Prepare(sqlStmt)
+	stmt1, err := tx.Prepare(sqlStmtMsg)
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer func() { err = errors.Join(stmt.Close(), err) }()
+	defer func() { err = errors.Join(stmt1.Close(), err) }()
+
+	sqlStmtFiles := `
+        INSERT OR IGNORE INTO files (
+            ts, channel_id, user, url_private, mimetype, id, name, title
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    `
+
+	// Prepare the statement. This is compiled once and reused for every message.
+	stmt2, err := tx.Prepare(sqlStmtFiles)
+	if err != nil {
+		return fmt.Errorf("failed to prepare statement: %w", err)
+	}
+	defer func() { err = errors.Join(stmt2.Close(), err) }()
 
 	// Loop through each message in the slice
 	for _, msg := range messages {
@@ -69,6 +80,13 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 		if err != nil {
 			return fmt.Errorf("failed to marshal files for ts %s: %w", msg.Ts, err)
 		}
+		filesNullable := toNullString(filesJSON)
+		if filesNullable.Valid {
+			// insert into files table
+			for _, file := range msg.Files {
+				stmt2.ExecContext(ctx, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
+			}
+		}
 
 		attachmentsJSON, err := json.Marshal(msg.Attachments)
 		if err != nil {
@@ -76,7 +94,7 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 		}
 
 		// Execute the prepared statement with the data for the current message.
-		_, err = stmt.Exec(
+		_, err = stmt1.Exec(
 			msg.Ts,
 			ChannelID, // Make sure this value is set in your Message struct before calling this function.
 			msg.UserId,
@@ -87,7 +105,7 @@ func (r *Repository) BulkInserMessages(ChannelID string, messages []models.Messa
 			toNullString(reactionsJSON),
 			toNullString(replyUsersJSON),
 			toNullString(repliesJSON),
-			toNullString(filesJSON),
+			filesNullable,
 			toNullString(attachmentsJSON),
 			msg.ReplyCount,
 			msg.LatestReply,
@@ -115,7 +133,8 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 			reply_count,
 			latest_reply,
 			reply_users_json,
-			reply_users_count
+			reply_users_count,
+			files_json
         FROM messages 
 		JOIN users AS u ON u.id = user_id
 		JOIN channels AS c ON c.name = channel_id
@@ -145,16 +164,27 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		var usersJson []byte
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount); err != nil {
+		var usersJson sql.NullString
+		var filesJson sql.NullString
+
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %w", err)
 		}
-		err = json.Unmarshal(usersJson, &msg.ReplyUsers)
-		if err != nil {
-			return nil, fmt.Errorf("could not deserialize reply users: %w", err)
 
+		if usersJson.Valid {
+			err = json.Unmarshal([]byte(usersJson.String), &msg.ReplyUsers)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+			}
 		}
+		if filesJson.Valid {
+			err = json.Unmarshal([]byte(filesJson.String), &msg.Files)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize files: %w", err)
+			}
+		}
+
 		messages = append(messages, msg)
 	}
 
@@ -164,6 +194,10 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 	}
 
 	return messages, nil
+}
+
+func (r *Repository) ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error) {
+	panic("not implemented")
 }
 
 func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
@@ -186,7 +220,7 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 	args := []interface{}{channelID, threadTs}
 
 	// Always order by timestamp to ensure consistent pagination, and limit the result size.
-	query += " ORDER BY ts DESC"
+	query += " ORDER BY ts ASC"
 
 	// Execute the query using the context for cancellation safety.
 	// Pass query parameters as arguments to prevent SQL injection.
@@ -199,15 +233,16 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		var usersJson []byte
+		var usersJson sql.NullString
 		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %w", err)
 		}
-		err = json.Unmarshal(usersJson, &msg.ReplyUsers)
-		if err != nil {
-			return nil, fmt.Errorf("could not deserialize reply users: %w", err)
-
+		if usersJson.Valid {
+			err = json.Unmarshal([]byte(usersJson.String), &msg.ReplyUsers)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+			}
 		}
 		messages = append(messages, msg)
 	}
@@ -218,4 +253,26 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 	}
 
 	return messages, nil
+}
+
+func (r *Repository) GetFileById(ctx context.Context, fileId string) (*models.File, error) {
+	query := `
+        SELECT 
+			id,
+			name,
+			title,
+			mimetype,
+			url_private,
+			user
+        FROM files 
+        WHERE id = ?; 
+    `
+	args := []interface{}{fileId}
+
+	file := models.File{}
+	err := r.db.QueryRowContext(ctx, query, args...).Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.User)
+	if err != nil {
+		return nil, fmt.Errorf("could not query file with id %s: %w", fileId, err)
+	}
+	return &file, nil
 }

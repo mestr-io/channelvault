@@ -26,14 +26,16 @@ const (
 )
 
 type App struct {
-	ctx        context.Context
-	repository *repository.Repository
-	state      ViewState
+	ctx         context.Context
+	repository  *repository.Repository
+	state       ViewState
+	filesFolder string
 }
 
-func New(repository *repository.Repository) *App {
+func New(repository *repository.Repository, filesFolder string) *App {
 	return &App{
-		repository: repository,
+		repository:  repository,
+		filesFolder: filesFolder,
 	}
 }
 

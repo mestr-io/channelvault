@@ -14,7 +14,16 @@ func (r *Repository) SetupSchemas() error {
 			finished DATETIME,
 			num_messages INTEGER DEFAULT 0
 		);
-
+		CREATE TABLE IF NOT EXISTS files (
+			id TEXT PRIMARY KEY,
+			name TEXT,
+			title TEXT,
+			mimetype TEXT,
+			user TEXT,
+			url_private TEXT,
+			ts TEXT,
+			channel_id TEXT
+		);
 		CREATE TABLE IF NOT EXISTS messages (
 			ts TEXT NOT NULL,
 			channel_id TEXT NOT NULL,
