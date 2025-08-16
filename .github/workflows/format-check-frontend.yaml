@@ -1,9 +1,12 @@
-name: Format Check
+name: Frontend Format Check
 
 on:
   pull_request:
     branches:
       - "*"
+    paths:
+      - "frontend/**"
+      - ".github/workflows/format-check-frontend"
 
 jobs:
   format-check:
