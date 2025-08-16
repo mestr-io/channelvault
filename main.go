@@ -7,6 +7,7 @@ import (
 	"embed" // For embedding frontend assets
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 
 	// For formatting output, like in LogPrintf
@@ -50,8 +51,20 @@ func main() {
 	if err != nil {
 		helpers.Fatalf("Could not setup sqlite DB: %v", err)
 	}
-	app := app.New(r)
 
+	filesFolder, err := xdg.DataFile(filepath.Join(AppName, "files"))
+	if err != nil {
+		helpers.Fatalf("Could not find xdg location: %v", err)
+	}
+	// Make sure the folder exists
+	if _, err := os.Stat(filesFolder); err != nil {
+		err = os.Mkdir(filesFolder, 0755)
+		if err != nil {
+			helpers.Fatalf("Could not create files folder: %v", err)
+		}
+	}
+
+	app := app.New(r, filesFolder)
 	err = wails.Run(&options.App{
 		Title:  "slack-viewer", // Use your application's title
 		Width:  1024,

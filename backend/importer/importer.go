@@ -93,7 +93,7 @@ func (i *Importer) processMessages(ChannelID string, f *zip.File) error {
 		return fmt.Errorf("fail to deserialize 'users.json': %v", err)
 	}
 
-	return i.repository.BulkInserMessages(ChannelID, result)
+	return i.repository.BulkInserMessages(i.ctx, ChannelID, result)
 }
 
 func findFile(filename string, files []*zip.File) (*zip.File, error) {
