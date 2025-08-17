@@ -51,6 +51,7 @@ $effect(() => {
     href="#"
     class="reply-link"
     onclick={() => {
+      console.log("thread", threadTs)
       selectedThread = threadTs;
     }}
   >
