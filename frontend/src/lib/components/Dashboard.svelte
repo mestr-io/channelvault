@@ -23,6 +23,7 @@ let isInitialLoad = $state(true)
 
 // svelte-ignore non_reactive_update
 let vlist_messages: VListHandle
+// svelte-ignore non_reactive_update
 let vlist_thread: VListHandle
 
 const startResize = () => {
