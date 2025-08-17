@@ -1,116 +1,115 @@
 <script lang="ts">
-  import {
-    GetChannels,
-    GetMessages,
-    GetThreadByTs,
-  } from "../../../wailsjs/go/app/App";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { onDestroy } from "svelte";
-  import { VList } from "virtua/svelte";
-  import DayDivider from "./DayDivider.svelte";
-  import Message from "./Message.svelte";
-  import { models } from "../../../wailsjs/go/models";
-  import { onMount, tick } from "svelte";
-  import Welcome from "./Welcome.svelte";
-  import { setContext } from "svelte";
+import { GetChannels, GetMessages, GetThreadByTs } from '../../../wailsjs/go/app/App'
+import { Pane, Splitpanes } from 'svelte-splitpanes'
+import { onDestroy } from 'svelte'
+import { VList, type VListHandle } from 'virtua/svelte'
+import DayDivider from './DayDivider.svelte'
+import Message from './Message.svelte'
+import { models } from '../../../wailsjs/go/models'
+import { onMount, tick } from 'svelte'
+import Welcome from './Welcome.svelte'
+import { setContext } from 'svelte'
 
-  let channels = $state<models.Channel[]>([] as models.Channel[]);
-  let messages = $state<models.Message[]>([] as models.Message[]);
-  let threadMessages = $state<models.Message[]>([] as models.Message[]);
-  let selectedChannel = $state<models.Channel | null>(null);
-  let isLoadingMessages = $state(false);
-  let hasMoreMessages = $state(true);
+let channels = $state<models.Channel[]>([] as models.Channel[])
+let messages = $state<models.Message[]>([] as models.Message[])
+let threadMessages = $state<models.Message[]>([] as models.Message[])
+let selectedChannel = $state<models.Channel | null>(null)
+let isLoadingMessages = $state(false)
+let hasMoreMessages = $state(true)
 
-  let showThread = $state(false);
-  let selectedThread = $state<string | null>(null);
-  let isInitialLoad = $state(true);
+let showThread = $state(false)
+let selectedThread = $state<string | null>(null)
+let isInitialLoad = $state(true)
 
-  const startResize = () => {
-    document.body.classList.add("is-resizing-panes");
-  };
+// svelte-ignore non_reactive_update
+let vlist_messages: VListHandle
+let vlist_thread: VListHandle
 
-  const endResize = () => {
-    document.body.classList.remove("is-resizing-panes");
-  };
+const startResize = () => {
+  document.body.classList.add('is-resizing-panes')
+}
 
-  onDestroy(() => {
-    document.body.classList.remove("is-resizing-panes");
-  });
+const endResize = () => {
+  document.body.classList.remove('is-resizing-panes')
+}
 
+onDestroy(() => {
+  document.body.classList.remove('is-resizing-panes')
+})
 
-  // init the cache
-  setContext("cache", new Map<string, string>());
+// init the cache
+setContext('cache', new Map<string, string>())
 
- 
-  $effect(() => {
-    if (!showThread) {
-      selectedThread = null;
-    }
-  });
-
-  $effect(() => {
-    if (selectedThread && selectedChannel) {
-      const loadThread = async () => {
-        threadMessages = await GetThreadByTs(
-          selectedThread!,
-          selectedChannel!.id!,
-        );
-      };
-      loadThread();
-      showThread = true;
-    }
-  });
-
-  // Sidebar resizing logic
-  onMount(async () => {
-    channels = await GetChannels();
-  });
-
-  async function selectChannel(channel: models.Channel) {
-    if (selectedChannel?.id === channel.id) return;
-
-    selectedChannel = channel;
-    messages = [];
-    hasMoreMessages = true;
-    isInitialLoad = true;
-    showThread = false;
-    await loadMoreMessages();
+$effect(() => {
+  if (!showThread) {
+    selectedThread = null
   }
+})
 
-  async function loadMoreMessages() {
-    if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return;
-
-    isLoadingMessages = true;
-    try {
-      const cursor = messages[0]?.ts || "";
-
-      // The backend returns messages newest-to-oldest
-      const newMessages: models.Message[] = await GetMessages(
-        selectedChannel.id,
-        cursor,
-      );
-
-      if (newMessages?.length > 0) {
-        // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
-        messages = [...newMessages.reverse(), ...messages];
-      } else {
-        hasMoreMessages = false;
+$effect(() => {
+  if (selectedThread && selectedChannel) {
+    const loadThread = async () => {
+      threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
+      if (vlist_thread && threadMessages.length > 0) {
+        await tick()
+        vlist_thread.scrollToIndex(threadMessages.length - 1, {
+          align: 'end',
+        })
       }
-    } catch (error) {
-      console.error(
-        `Failed to get messages for channel ${selectedChannel.id}:`,
-        error,
-      );
-    } finally {
-      isLoadingMessages = false;
     }
+    loadThread()
+    showThread = true
   }
+})
 
-  function handleScroll(offset: number) {
-    if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
-      loadMoreMessages();
-    }
+// Sidebar resizing logic
+onMount(async () => {
+  channels = await GetChannels()
+})
+
+async function selectChannel(channel: models.Channel) {
+  if (selectedChannel?.id === channel.id) return
+
+  selectedChannel = channel
+  messages = []
+  hasMoreMessages = true
+  isInitialLoad = true
+  showThread = false
+  await loadMoreMessages()
+  if (vlist_messages && messages.length > 0) {
+    await tick()
+    vlist_messages.scrollToIndex(messages.length - 1, { align: 'end' })
   }
+}
+
+async function loadMoreMessages() {
+  if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
+
+  isLoadingMessages = true
+  try {
+    const cursor = messages[0]?.ts || ''
+
+    // The backend returns messages newest-to-oldest
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor)
+
+    if (newMessages?.length > 0) {
+      // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
+      messages = [...newMessages.reverse(), ...messages]
+    } else {
+      hasMoreMessages = false
+    }
+  } catch (error) {
+    console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
+  } finally {
+    isLoadingMessages = false
+  }
+}
+
+function handleScroll(offset: number) {
+  if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
+    loadMoreMessages()
+  }
+}
 </script>
 
 <main class="slack-clone">
@@ -136,6 +135,7 @@
           </header>
 
           <VList
+            bind:this={vlist_messages}
             data={messages}
             getKey={(msg: models.Message, _) => msg.ts}
             overscan={10}
@@ -180,10 +180,11 @@
             </button>
           </header>
           <VList
+            bind:this={vlist_thread}
             data={threadMessages}
             getKey={(msg: models.Message, _) => msg.ts}
             overscan={10}
-            shift={false}
+            shift={true}
             onscroll={handleScroll}
           >
             {#snippet children(msg, i)}
