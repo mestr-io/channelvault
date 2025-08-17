@@ -1,28 +1,36 @@
 <script lang="ts">
-import { models } from '../../../wailsjs/go/models'
-import ThreadInfo from './ThreadInfo.svelte'
-import LazyImage from './LazyImage.svelte'
-import DayDivider from './DayDivider.svelte'
+  import { models } from "../../../wailsjs/go/models";
+  import ThreadInfo from "./ThreadInfo.svelte";
+  import LazyImage from "./LazyImage.svelte";
+  import DayDivider from "./DayDivider.svelte";
+  import Message from "./Message.svelte";
 
-type Props = {
-  messages: models.Message[]
-  isLoadingMessages: boolean
-  hasMoreMessages: boolean
-  selectedThread: string | null
-}
-let { messages, isLoadingMessages, hasMoreMessages, selectedThread = $bindable(null) }: Props = $props()
+  import { VList } from "virtua/svelte";
 
-/**
- * Formats the message timestamp to show only the time (e.g., "2:03 PM").
- */
-const formatMessageTime = (ts: string): string => {
-  const date = new Date(parseFloat(ts) * 1000)
-  // Using 'en-US' locale to get AM/PM format
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-}
+  type Props = {
+    messages: models.Message[];
+    isLoadingMessages: boolean;
+    hasMoreMessages: boolean;
+    selectedThread: string | null;
+  };
+  let {
+    messages,
+    isLoadingMessages,
+    hasMoreMessages,
+    selectedThread = $bindable(null),
+  }: Props = $props();
+
+  /**
+   * Formats the message timestamp to show only the time (e.g., "2:03 PM").
+   */
+  const formatMessageTime = (ts: string): string => {
+    const date = new Date(parseFloat(ts) * 1000);
+    // Using 'en-US' locale to get AM/PM format
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
 </script>
 
 {#if hasMoreMessages}
@@ -31,65 +39,13 @@ const formatMessageTime = (ts: string): string => {
   </div>
 {/if}
 
-<div class="messages-container" id="messages-container">
-  {#each messages as msg, i}
-   <DayDivider current={msg} previous={messages[i - 1]}/>
+<VList data={messages} getKey={(msg, _) => msg.ts}>
+  {#snippet children(msg, i)}
+    <DayDivider current={msg} previous={messages[i - 1]} />
+    <Message {msg} {selectedThread} />  
+  {/snippet}
+</VList>
 
-    <div class="message" data-ts={msg.ts}>
-      <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
-      <div class="message-content">
-        <div class="message-header">
-          <strong>{msg.user_name}</strong>
-          <span class="timestamp">
-            {formatMessageTime(msg.ts)}
-          </span>
-        </div>
-        <p>{msg.text}</p>
-
-        {#if msg.files}
-          <div class="files-container">
-            {#each msg.files as f}
-              {#if f.mimetype.startsWith("image/")}
-                <a
-                  href={f.url_private}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <LazyImage
-                    file_id={f.id}
-                    alt={f.title || f.name}
-                  />
-                </a>
-              {:else}
-                <a
-                  href={f.url_private}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download={f.name}
-                  class="file-preview generic-file"
-                >
-                  <div class="file-icon"></div>
-                  <div class="file-info">
-                    <div class="file-name">{f.name || "file_not_found"}</div>
-                    <div class="file-title">{f.title}</div>
-                  </div>
-                </a>
-              {/if}
-            {/each}
-          </div>
-        {/if}
-        {#if msg.thread_ts}
-          <ThreadInfo
-            replyUsers={msg.reply_users}
-            replyCount={msg.reply_count}
-            threadTs={msg.thread_ts}
-            bind:selectedThread
-          />
-        {/if}
-      </div>
-    </div>
-  {/each}
-</div>
 
 <style>
   .loader {
@@ -133,7 +89,6 @@ const formatMessageTime = (ts: string): string => {
     font-size: 0.8rem;
     margin-left: 0.5rem;
   }
-
 
   /* START: New Styles for File Attachments */
   .files-container {
