@@ -34,6 +34,16 @@ var slogLevelToWailsLoggerLevel = map[slog.Level]logger.LogLevel{
 	slog.LevelError: logger.ERROR,
 }
 
+// SlogLogLevelToWailsLogLevel translates log level constants from slog library to wails log
+// library. If no mapping is found logger.DEBUG is returned.
+func SlogLogLevelToWailsLogLevel(in slog.Level) (out logger.LogLevel) {
+	out, ok := slogLevelToWailsLoggerLevel[in]
+	if !ok {
+		return logger.DEBUG
+	}
+	return out
+}
+
 // appLogger is a non-exported singleton instance of the AppLogger
 // It is initialized with the context of the application and provides methods for logging errors and messages.
 var appLogger *WailsAppLogger
@@ -50,14 +60,14 @@ func init() {
 }
 
 // InitWailsLog initializes the Wails logger with the provided context and log level.
-func InitWailsLog(ctx context.Context, level slog.Level) {
+func InitWailsLog(ctx context.Context) {
 	if appLogger == nil {
 		appLogger = &WailsAppLogger{ctx: ctx}
-		l, ok := slogLevelToWailsLoggerLevel[level]
-		if !ok {
-			log.Fatalf("Invalid slog log level: %v", level)
-		}
-		wruntime.LogSetLogLevel(ctx, l)
+
+		//NOTE: LogSetLogLevel is called by CreateApp with the level
+		//according to the build type, to override with "level" (type slog.Level):
+		//	SlogLogLevelToWailsLogLevel(level)
+		//	wruntime.LogSetLogLevel(ctx, l)
 	}
 }
 
@@ -88,7 +98,7 @@ func (al *WailsAppLogger) Debugf(format string, v ...any) {
 
 // coreLogf is a helper function that formats the log message with file and line number information
 func (al *WailsAppLogger) coreLogf(
-	wf func(ctx context.Context, message string),
+	wailsLogFun func(ctx context.Context, message string),
 	format string,
 	v ...any) {
 	where := GetLineAndNo(5)
@@ -99,7 +109,7 @@ func (al *WailsAppLogger) coreLogf(
 	}
 
 	ss := fmt.Sprintf("%s: %s", where, s)
-	wf(al.ctx, ss)
+	wailsLogFun(al.ctx, ss)
 }
 
 /*
@@ -133,14 +143,14 @@ func Debugf(format string, v ...any) {
 }
 
 // coreLogf is a helper function that formats the log message with file and line number information
-func coreLogf(label string, wf func(string, ...any), lf func(format string, v ...any), format string, v ...any) {
+func coreLogf(label string, wailsLogFun func(string, ...any), nonWailsLogFun func(format string, v ...any), format string, v ...any) {
 	if appLogger == nil {
 		where := GetLineAndNo(3)
 		s := fmt.Sprintf(format, v...)
 		ss := fmt.Sprintf("%s | %s: %s", label, where, s)
-		lf(ss)
+		nonWailsLogFun(ss)
 
 		return
 	}
-	wf(format, v...)
+	wailsLogFun(format, v...)
 }
