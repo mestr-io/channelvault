@@ -48,7 +48,7 @@ dev: goversion ##                          Dev launch
 
 test: goversion ##                         Launch app tests
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
-	go test -count=1 -v ./...
+	go test -cover -count=1 -v ./...
 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
