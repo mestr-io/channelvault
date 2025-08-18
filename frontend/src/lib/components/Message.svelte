@@ -2,6 +2,7 @@
 import { models } from '../../../wailsjs/go/models'
 import ThreadInfo from './ThreadInfo.svelte'
 import LazyImage from './LazyImage.svelte'
+import Reactions from './Reactions.svelte'
 
 type Props = {
   msg: models.Message
@@ -72,14 +73,20 @@ const formatMessageTime = (ts: string): string => {
                 bind:selectedThread
             />
         {/if}
+        <Reactions
+            reactions={msg.reactions}
+        />
     </div>
 </div>
 
 <style>
-
     .message {
         display: flex;
         padding: 0.75rem 0;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        /* Optimize compositing */
+        contain: layout style paint;
     }
     .avatar {
         width: 40px;

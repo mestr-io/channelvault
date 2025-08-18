@@ -211,7 +211,8 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 			reply_count,
 			latest_reply,
 			reply_users_json,
-			reply_users_count
+			reply_users_count,
+			reactions_json
         FROM messages 
 		JOIN users AS u ON u.id = user_id
 		JOIN channels AS c ON c.name = channel_id
@@ -234,7 +235,9 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 	for rows.Next() {
 		var msg models.Message
 		var usersJson sql.NullString
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount); err != nil {
+		var reactionsJson sql.NullString
+
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &reactionsJson); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %w", err)
 		}
@@ -242,6 +245,12 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 			err = json.Unmarshal([]byte(usersJson.String), &msg.ReplyUsers)
 			if err != nil {
 				return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+			}
+		}
+		if reactionsJson.Valid {
+			err = json.Unmarshal([]byte(reactionsJson.String), &msg.Reactions)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize reactions: %w", err)
 			}
 		}
 		messages = append(messages, msg)
