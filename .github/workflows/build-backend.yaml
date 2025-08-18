@@ -1,32 +1,14 @@
-name: Format Check
+name: Build & Test Wails App
 
 on:
   pull_request:
     branches:
       - "*"
+    paths:
+      - "backend/**"
+      - ".github/workflows/build-backend.yaml"
 
 jobs:
-  format-check:
-    name: Run Biome Formatter
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci
-
-      - name: Run Biome Formatter Check
-        working-directory: ./frontend
-        run: npx @biomejs/biome format
-
   generate-binaries:
     name: Generate binaries and run unit tests
     runs-on: ubuntu-latest
