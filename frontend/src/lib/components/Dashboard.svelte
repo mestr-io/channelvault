@@ -91,7 +91,7 @@ async function loadMoreMessages() {
     const cursor = messages[0]?.ts || ''
 
     // The backend returns messages newest-to-oldest
-    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor)
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 200)
 
     if (newMessages?.length > 0) {
       // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
@@ -134,7 +134,6 @@ function handleScroll(offset: number) {
           <header class="channel-header">
             <h2># {selectedChannel.name}</h2>
           </header>
-
           <VList
             bind:this={vlist_messages}
             data={messages}
