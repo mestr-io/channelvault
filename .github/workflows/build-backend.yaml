@@ -1,4 +1,4 @@
-name: Frontend Format Check
+name: Build & Test Wails App
 
 on:
   pull_request:
