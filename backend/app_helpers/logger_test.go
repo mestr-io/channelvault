@@ -1,8 +1,6 @@
 package app_helpers
 
 import (
-	//"context"
-	//"log/slog"
 	"testing"
 	//"embed"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +14,36 @@ func TestAppLoggerIsNilBeforeInitLog(t *testing.T) {
 	var nilPtr *WailsAppLogger
 	assert.EqualValues(appLogger, nilPtr)
 }
+
+func TestCoreLogfCallsRightFunction(t *testing.T) {
+	assert := assert.New(t)
+	var nilPtr *WailsAppLogger
+	assert.EqualValues(appLogger, nilPtr)
+	called := false
+
+	wailsFun := func(string, ...any) {
+		t.Fatal("Wails log shouldn't be called before InitWailsLog is called")
+	
+	}
+	nonWailsFun := func(f string, v...any) {
+		called = true
+	}
+
+    coreLogf(infoLabel, wailsFun, nonWailsFun, "test message")    
+	assert.True(called)
+}
+
+/*
+func TestInitWailsLog_InitializesLogger(t *testing.T) {
+    ctx := context.Background()
+    InitWailsLog(ctx, slog.LevelInfo)
+    if appLogger == nil {
+        t.Error("appLogger should be initialized")
+    }
+    if appLogger.ctx != ctx {
+        t.Error("appLogger context should match input context")
+    }
+}*/
 
 /* WIP
 func TestAppLoggerIsNotNilAfterInitLog(t *testing.T) {
