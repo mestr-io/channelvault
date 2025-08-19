@@ -3,12 +3,16 @@ import { models } from '../../../wailsjs/go/models'
 import ThreadInfo from './ThreadInfo.svelte'
 import LazyImage from './LazyImage.svelte'
 import Reactions from './Reactions.svelte'
+import { Carta, Markdown } from 'carta-md';
+import { getContext } from 'svelte'
 
 type Props = {
   msg: models.Message
   selectedThread: string | null
 }
 let { msg, selectedThread = $bindable() }: Props = $props()
+
+const carta: Carta = getContext('carta')
 
 /**
  * Formats the message timestamp to show only the time (e.g., "2:03 PM").
@@ -32,7 +36,7 @@ const formatMessageTime = (ts: string): string => {
                 {formatMessageTime(msg.ts)}
             </span>
         </div>
-        <p>{msg.text}</p>
+        <p><Markdown {carta} value={msg.text!} /></p>
 
         {#if msg.files}
             <div class="files-container">
