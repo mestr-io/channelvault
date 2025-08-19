@@ -13,7 +13,7 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 
 	// Ensure this is imported for assetserver.Options
-	"github.com/wailsapp/wails/v2/pkg/runtime"	
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type ViewState string
