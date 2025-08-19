@@ -1,24 +1,25 @@
-<!-- Reactions.svelte -->
 <script lang="ts">
 import { models } from '../../../wailsjs/go/models'
-import EmojiConvertor from 'emoji-js';
+import EmojiConvertor from 'emoji-js'
+
 type Props = {
   reactions: models.Reaction[]
 }
 
 let { reactions }: Props = $props()
-let converter: EmojiConvertor = new EmojiConvertor()
 
-// local mutable state (Svelte 5 rune)
-let state = $state({ reactions })
+const converter = new EmojiConvertor()
 const labelFor = (r: models.Reaction) => `:${r.name}: ${r.count} ${r.count === 1 ? 'reaction' : 'reactions'}`
 
+function emojify(txt: string) {
+  return converter.replace_colons(txt)
+}
 </script>
 
 <div class="reactions">
-    {#each state.reactions as r (r.name)}
+    {#each reactions as r (r.name)}
         <button class="reaction" title={labelFor(r)}>
-            {@html converter.replace_colons(r.name)}
+            {@html emojify(':' + r.name + ':')}
             <span class="count">{r.count}</span>
         </button>
     {/each}
@@ -49,10 +50,6 @@ const labelFor = (r: models.Reaction) => `:${r.name}: ${r.count} ${r.count === 1
     .reaction:hover {
         background: #f1f1f1;
         border-color: #aaa;
-    }
-    .emoji-text {
-        font-size: 1rem;
-        line-height: 1;
     }
     .count {
         font-size: 0.78rem;
