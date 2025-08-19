@@ -1,25 +1,31 @@
 <script lang="ts">
-import { models } from '../../../wailsjs/go/models'
-import ThreadInfo from './ThreadInfo.svelte'
-import Attachments from './Attachments.svelte'
+    import { models } from "../../../wailsjs/go/models";
+    import ThreadInfo from "./ThreadInfo.svelte";
+    import Attachments from "./Attachments.svelte";
+    import Reactions from "./Reactions.svelte";
+    import { Carta, Markdown } from "carta-md";
+    import { getContext } from "svelte";
 
-type Props = {
-  msg: models.Message
-  selectedThread: string | null
-}
-let { msg, selectedThread = $bindable() }: Props = $props()
+    type Props = {
+        msg: models.Message;
+        selectedThread: string | null;
+    };
 
-/**
- * Formats the message timestamp to show only the time (e.g., "2:03 PM").
- */
-const formatMessageTime = (ts: string): string => {
-  const date = new Date(parseFloat(ts) * 1000)
-  // Using 'en-US' locale to get AM/PM format
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-}
+    let { msg, selectedThread = $bindable() }: Props = $props();
+
+    const carta: Carta = getContext("carta");
+
+    /**
+     * Formats the message timestamp to show only the time (e.g., "2:03 PM").
+     */
+    const formatMessageTime = (ts: string): string => {
+        const date = new Date(parseFloat(ts) * 1000);
+        // Using 'en-US' locale to get AM/PM format
+        return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+        });
+    };
 </script>
 
 <div class="message" data-ts={msg.ts}>
@@ -31,8 +37,9 @@ const formatMessageTime = (ts: string): string => {
                 {formatMessageTime(msg.ts)}
             </span>
         </div>
-        <p>{msg.text}</p>
+        <Markdown {carta} value={msg.text!} />
         <Attachments files={msg.files} />
+
         {#if msg.thread_ts}
             <ThreadInfo
                 replyUsers={msg.reply_users}
@@ -41,13 +48,21 @@ const formatMessageTime = (ts: string): string => {
                 bind:selectedThread
             />
         {/if}
+        <Reactions reactions={msg.reactions} />
     </div>
 </div>
 
 <style>
+    :global(.carta-viewer > :first-child) {
+        margin-top: 2px;
+    }
     .message {
         display: flex;
         padding: 0.75rem 0;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        /* Optimize compositing */
+        contain: layout style paint;
     }
     .avatar {
         width: 40px;
@@ -60,6 +75,7 @@ const formatMessageTime = (ts: string): string => {
         flex: 1;
         max-width: calc(100% - 50px);
     }
+
     .message-content p {
         margin: 0;
         line-height: 1.45;
