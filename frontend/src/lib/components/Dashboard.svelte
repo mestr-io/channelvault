@@ -125,7 +125,7 @@ function handleScroll(offset: number) {
   <Splitpanes on:resize={startResize} on:resized={endResize}>
     <Pane minSize={10} maxSize={30} size={25}>
       <div class="sidebar">
-        <h4>Channels</h4>
+        <h4 class="title">Channels</h4>
         {#each channels as channel (channel.id)}
           <div class="channel-item">
             <button
@@ -231,7 +231,9 @@ function handleScroll(offset: number) {
     font-size: 1.2rem;
   }
 
-
+  h4.title {
+    color: #dbc9e0;
+  }
   .channel-header {
     /* Add these properties */
     display: flex;
