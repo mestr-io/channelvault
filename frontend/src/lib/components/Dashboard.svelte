@@ -9,8 +9,8 @@ import { models } from '../../../wailsjs/go/models'
 import { onMount, tick } from 'svelte'
 import Welcome from './Welcome.svelte'
 import { setContext } from 'svelte'
-import { Carta } from 'carta-md';
-import { emoji } from '@cartamd/plugin-emoji';
+import { Carta } from 'carta-md'
+import { emoji } from '@cartamd/plugin-emoji'
 
 let channels = $state<models.Channel[]>([] as models.Channel[])
 let messages = $state<models.Message[]>([] as models.Message[])
@@ -40,10 +40,9 @@ onDestroy(() => {
   document.body.classList.remove('is-resizing-panes')
 })
 
-
 const carta = new Carta({
-  extensions: [emoji()]
-});
+  extensions: [emoji()],
+})
 
 setContext('carta', carta)
 
