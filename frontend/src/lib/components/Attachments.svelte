@@ -1,7 +1,7 @@
 <script lang="ts">
-    const { files } = $props();
+const { files } = $props()
 
-    import LazyImage from "./LazyImage.svelte";
+import LazyImage from './LazyImage.svelte'
 </script>
 
 {#if files}
