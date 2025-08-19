@@ -1,25 +1,25 @@
 <script lang="ts">
-import { models } from '../../../wailsjs/go/models'
-import ThreadInfo from './ThreadInfo.svelte'
-import LazyImage from './LazyImage.svelte'
+    import { models } from "../../../wailsjs/go/models";
+    import ThreadInfo from "./ThreadInfo.svelte";
+    import Attachments from "./Attachments.svelte";
 
-type Props = {
-  msg: models.Message
-  selectedThread: string | null
-}
-let { msg, selectedThread = $bindable() }: Props = $props()
+    type Props = {
+        msg: models.Message;
+        selectedThread: string | null;
+    };
+    let { msg, selectedThread = $bindable() }: Props = $props();
 
-/**
- * Formats the message timestamp to show only the time (e.g., "2:03 PM").
- */
-const formatMessageTime = (ts: string): string => {
-  const date = new Date(parseFloat(ts) * 1000)
-  // Using 'en-US' locale to get AM/PM format
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-}
+    /**
+     * Formats the message timestamp to show only the time (e.g., "2:03 PM").
+     */
+    const formatMessageTime = (ts: string): string => {
+        const date = new Date(parseFloat(ts) * 1000);
+        // Using 'en-US' locale to get AM/PM format
+        return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+        });
+    };
 </script>
 
 <div class="message" data-ts={msg.ts}>
@@ -32,38 +32,7 @@ const formatMessageTime = (ts: string): string => {
             </span>
         </div>
         <p>{msg.text}</p>
-
-        {#if msg.files}
-            <div class="files-container">
-                {#each msg.files as f}
-                    {#if f.mimetype.startsWith("image/")}
-                        <a
-                            href={f.url_private}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <LazyImage file_id={f.id} alt={f.title || f.name} />
-                        </a>
-                    {:else}
-                        <a
-                            href={f.url_private}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download={f.name}
-                            class="file-preview generic-file"
-                        >
-                            <div class="file-icon"></div>
-                            <div class="file-info">
-                                <div class="file-name">
-                                    {f.name || "file_not_found"}
-                                </div>
-                                <div class="file-title">{f.title}</div>
-                            </div>
-                        </a>
-                    {/if}
-                {/each}
-            </div>
-        {/if}
+        <Attachments files={msg.files} />
         {#if msg.thread_ts}
             <ThreadInfo
                 replyUsers={msg.reply_users}
@@ -76,7 +45,6 @@ const formatMessageTime = (ts: string): string => {
 </div>
 
 <style>
-
     .message {
         display: flex;
         padding: 0.75rem 0;
