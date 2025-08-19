@@ -8,16 +8,11 @@
     <div class="files-container">
         {#each files as file}
             {#if file.mimetype.startsWith("image/")}
-                <a
-                    href={file.url_private}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <LazyImage
-                        file_id={file.id}
-                        alt={file.title || file.name}
-                    />
-                </a>
+                <LazyImage
+                    url={file.url_private}
+                    fileId={file.id}
+                    alt={file.title || file.name}
+                />
             {:else}
                 <a
                     href={file.url_private}

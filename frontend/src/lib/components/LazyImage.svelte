@@ -1,7 +1,7 @@
 <script lang="ts">
   import { GetBase64Image } from "../../../wailsjs/go/app/App";
   import { onMount } from "svelte";
-  let { file_id, alt } = $props();
+  let { fileId, alt, url } = $props();
 
   let shouldLoad = $state(false);
   let container: HTMLDivElement;
@@ -55,15 +55,17 @@
   });
 </script>
 
-<div bind:this={container} class="wrapper">
-  <div class="placeholder">
-    {#if shouldLoad}
-      {#await GetBase64Image(file_id) then src}
-        <img {src} {alt} />
-      {/await}
-    {/if}
+<a href={url} target="_blank" rel="noopener noreferrer">
+  <div bind:this={container} class="wrapper">
+    <div class="placeholder">
+      {#if shouldLoad}
+        {#await GetBase64Image(fileId) then src}
+          <img {src} {alt} />
+        {/await}
+      {/if}
+    </div>
   </div>
-</div>
+</a>
 
 <style>
   /* The wrapper must be a layout element for the observer to see it. */
