@@ -1,42 +1,38 @@
 <script lang="ts">
 const { files } = $props()
 
-import LazyImage from './LazyImage.svelte'
+import LazyImage from './AttachmentLazyImage.svelte'
+import AttachmentFile from './AttachmentFile.svelte'
+
+function detectFileType(file) {
+  if (file.mimetype.startsWith('image/')) {
+    return 'image'
+  } else if (file.mimetype.startsWith('video/')) {
+    return 'video'
+  } else if (file.mimetype.startsWith('audio/')) {
+    return 'audio'
+  } else {
+    return 'generic'
+  }
+}
 </script>
 
 {#if files}
-    <div class="files-container">
+    <div>
         {#each files as file}
-            {#if file.mimetype.startsWith("image/")}
+            {@const filetype = detectFileType(file)}
+            {#if filetype === "image"}
                 <LazyImage
                     url={file.url_private}
                     fileId={file.id}
                     alt={file.title || file.name}
                 />
-            {:else}
-                <a
-                    href={file.url_private}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={file.name}
-                    class="file-preview generic-file"
-                >
-                    <div class="file-icon"></div>
-                    <div class="file-info">
-                        <div class="file-name">
-                            {file.name || "file_not_found"}
-                        </div>
-                        <div class="file-title">{file.title}</div>
-                    </div>
-                </a>
+            {:else if filetype === "generic"}
+                <AttachmentFile {file} />
             {/if}
         {/each}
     </div>
 {/if}
 
 <style>
-    .attachments {
-        border-top: 1px solid #eee;
-        padding: 1rem 0;
-    }
 </style>
