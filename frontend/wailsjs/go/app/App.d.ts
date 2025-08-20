@@ -13,3 +13,5 @@ export function GetThreadByTs(arg1:string,arg2:string):Promise<Array<models.Mess
 export function GetUserAvatar(arg1:string):Promise<string>;
 
 export function GetViewState():Promise<string>;
+
+export function ListImports():Promise<Array<models.Import>>;

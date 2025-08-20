@@ -2,12 +2,14 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) StoreImport(ctx context.Context, path string) (*models.Import, error) {
+func (r *Repository) CreateImport(ctx context.Context, path string) (*models.Import, error) {
 	sql := `INSERT INTO imports (path) VALUES (?);`
 	result, err := r.db.ExecContext(ctx, sql, path)
 	if err != nil {
@@ -31,12 +33,37 @@ func (r *Repository) FinishedImport(ctx context.Context, ID int64) error {
 }
 
 func (r *Repository) NoFinishedImports(ctx context.Context) (bool, error) {
-	sql := `SELECT count(*) FROM imports WHERE finished IS NOT NULL;`
+	sql := `SELECT count(*) > 0 FROM imports WHERE finished IS NOT NULL;`
 	rows := r.db.QueryRowContext(ctx, sql)
-	var count int
-	err := rows.Scan(&count)
+	var any bool
+	err := rows.Scan(&any)
 	if err != nil {
 		return false, err
 	}
-	return count > 0, nil
+	return any, nil
+}
+
+func (r *Repository) ListImports(ctx context.Context) (imports []models.Import, err error) {
+	sql := `SELECT id, created, finished, num_messages, path FROM imports;`
+	rows, err := r.db.Query(sql)
+	if err != nil {
+		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
+	}
+	defer func() {
+		err = errors.Join(rows.Close(), err)
+	}()
+
+	for rows.Next() {
+		var imp models.Import
+		err = rows.Scan(&imp.ID, &imp.Created, &imp.Finished, &imp.NumMessages, &imp.Path)
+		if err != nil {
+			return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
+		}
+		imports = append(imports, imp)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
+	}
+	return imports, nil
 }

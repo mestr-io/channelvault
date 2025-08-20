@@ -3,7 +3,7 @@ package app
 import (
 	"context" // For the context.Context type
 	// For embedding frontend assets
-	// For formatting output, like in LogPrintf	
+	// For formatting output, like in LogPrintf
 	"time"
 
 	_ "github.com/marcboeker/go-duckdb"
@@ -74,7 +74,7 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 
 func (a *App) processImport(path string) {
 	a.setViewState(VIewStateLoading)
-	record, err := a.repository.StoreImport(a.ctx, path)
+	record, err := a.repository.CreateImport(a.ctx, path)
 	if err != nil {
 		ah.Errorf("Import failed: %v", err)
 		a.setViewState(ViewStateSetup) // Go back to setup on failure

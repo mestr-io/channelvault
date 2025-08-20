@@ -8,4 +8,6 @@ type Import struct {
 	Created     time.Time
 	Finished    time.Time
 	NumMessages int64
+	Name        string
+	Error       string
 }

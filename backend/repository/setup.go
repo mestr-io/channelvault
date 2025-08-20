@@ -9,10 +9,12 @@ func (r *Repository) SetupSchemas() error {
 		PRAGMA foreign_keys = ON;
 		CREATE TABLE IF NOT EXISTS imports (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT,
 			path TEXT,
 			created DATETIME DEFAULT CURRENT_TIMESTAMP,
 			finished DATETIME,
-			num_messages INTEGER DEFAULT 0
+			num_messages INTEGER DEFAULT 0,
+			error TEXT
 		);
 		CREATE TABLE IF NOT EXISTS files (
 			id TEXT PRIMARY KEY,

@@ -67,3 +67,7 @@ func (a *App) GetBase64Image(fileId string) (string, error) {
 	encodedData := base64.StdEncoding.EncodeToString(data)
 	return fmt.Sprintf("data:%s;base64,%s", file.Mimetype, encodedData), nil
 }
+
+func (a *App) ListImports() ([]models.Import, error) {
+	return a.repository.ListImports(a.ctx)
+}

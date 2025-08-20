@@ -9,6 +9,7 @@ import { models } from '../../../wailsjs/go/models'
 import { onMount, tick } from 'svelte'
 import Welcome from './Welcome.svelte'
 import { setContext } from 'svelte'
+import Imports from './Imports.svelte'
 
 let channels = $state<models.Channel[]>([] as models.Channel[])
 let messages = $state<models.Message[]>([] as models.Message[])
@@ -126,6 +127,9 @@ function handleScroll(offset: number) {
             >
           </div>
         {/each}
+        <div class="imports">
+          <Imports />
+        </div>
       </div>
     </Pane>
     <Pane>
@@ -216,14 +220,21 @@ function handleScroll(offset: number) {
     height: 100%;
     overflow-x: hidden;
     background-color: #552958;
+
+    display: flex;
+    flex-direction: column; /* make children stack vertically */
   }
 
+  .sidebar .imports {
+    margin-top: auto; /* push this element to the bottom */
+    padding: 1rem;
+  }
   .sidebar h4 {
     padding: 1rem 1.25rem 0.5rem;
     font-size: 1.2rem;
     color: #dbc9e0;
   }
-  
+
   .channel-header {
     /* Add these properties */
     display: flex;

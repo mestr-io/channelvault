@@ -25,3 +25,7 @@ export function GetUserAvatar(arg1) {
 export function GetViewState() {
   return window['go']['app']['App']['GetViewState']();
 }
+
+export function ListImports() {
+  return window['go']['app']['App']['ListImports']();
+}
