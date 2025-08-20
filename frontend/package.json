@@ -20,6 +20,10 @@
     "vite": "^5.3.1"
   },
   "dependencies": {
-    "svelte-splitpanes": "^8.0.9"
+    "@cartamd/plugin-emoji": "^4.3.0",
+    "carta-md": "^4.11.1",
+    "emoji-js": "^3.8.1",
+    "svelte-splitpanes": "^8.0.9",
+    "virtua": "^0.41.5"
   }
 }

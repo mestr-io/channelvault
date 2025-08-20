@@ -2,12 +2,15 @@
 import { GetChannels, GetMessages, GetThreadByTs } from '../../../wailsjs/go/app/App'
 import { Pane, Splitpanes } from 'svelte-splitpanes'
 import { onDestroy } from 'svelte'
-
+import { VList, type VListHandle } from 'virtua/svelte'
+import DayDivider from './DayDivider.svelte'
+import Message from './Message.svelte'
 import { models } from '../../../wailsjs/go/models'
 import { onMount, tick } from 'svelte'
-import Messages from './Messages.svelte'
 import Welcome from './Welcome.svelte'
 import { setContext } from 'svelte'
+import { Carta } from 'carta-md'
+import { emoji } from '@cartamd/plugin-emoji'
 
 let channels = $state<models.Channel[]>([] as models.Channel[])
 let messages = $state<models.Message[]>([] as models.Message[])
@@ -18,42 +21,34 @@ let hasMoreMessages = $state(true)
 
 let showThread = $state(false)
 let selectedThread = $state<string | null>(null)
-
-// svelte-ignore non_reactive_update
-let messagesContainer: HTMLDivElement
-// svelte-ignore non_reactive_update
-let threadContainer: HTMLDivElement
-
 let isInitialLoad = $state(true)
 
+// svelte-ignore non_reactive_update
+let vlist_messages: VListHandle
+// svelte-ignore non_reactive_update
+let vlist_thread: VListHandle
+
 const startResize = () => {
-  // Add a class to the main document body
   document.body.classList.add('is-resizing-panes')
 }
 
-// 2. A function to run when resizing ends
 const endResize = () => {
-  // Remove the class from the main document body
   document.body.classList.remove('is-resizing-panes')
 }
 
-// 3. (Good Practice) Clean up if the component is ever destroyed
-// This prevents the class from getting stuck on the body.
 onDestroy(() => {
   document.body.classList.remove('is-resizing-panes')
 })
+
+const carta = new Carta({
+  extensions: [emoji()],
+})
+
+setContext('carta', carta)
+
 // init the cache
 setContext('cache', new Map<string, string>())
 
-$effect(() => {
-  // This runs after messages are rendered. If it was the first load, scroll down.
-  if (messages.length > 0 && isInitialLoad && messagesContainer) {
-    tick().then(() => {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight
-      isInitialLoad = false
-    })
-  }
-})
 $effect(() => {
   if (!showThread) {
     selectedThread = null
@@ -64,8 +59,12 @@ $effect(() => {
   if (selectedThread && selectedChannel) {
     const loadThread = async () => {
       threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
-      await tick()
-      threadContainer.scrollTop = threadContainer.scrollHeight
+      if (vlist_thread && threadMessages.length > 0) {
+        await tick()
+        vlist_thread.scrollToIndex(threadMessages.length - 1, {
+          align: 'end',
+        })
+      }
     }
     loadThread()
     showThread = true
@@ -86,6 +85,10 @@ async function selectChannel(channel: models.Channel) {
   isInitialLoad = true
   showThread = false
   await loadMoreMessages()
+  if (vlist_messages && messages.length > 0) {
+    await tick()
+    vlist_messages.scrollToIndex(messages.length - 1, { align: 'end' })
+  }
 }
 
 async function loadMoreMessages() {
@@ -94,20 +97,13 @@ async function loadMoreMessages() {
   isLoadingMessages = true
   try {
     const cursor = messages[0]?.ts || ''
-    const oldScrollHeight = messagesContainer?.scrollHeight || 0
 
     // The backend returns messages newest-to-oldest
-    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor)
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 200)
 
     if (newMessages?.length > 0) {
       // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
       messages = [...newMessages.reverse(), ...messages]
-
-      // If this was NOT the initial load, preserve scroll position
-      if (!isInitialLoad && messagesContainer) {
-        await tick() // Wait for DOM to update
-        messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight
-      }
     } else {
       hasMoreMessages = false
     }
@@ -118,14 +114,9 @@ async function loadMoreMessages() {
   }
 }
 
-function handleScroll(event: Event) {
-  const element = event.currentTarget as HTMLDivElement
-
-  if (element.scrollTop === 0) {
-    // Figure out WHICH element is scrolling and call the correct loader
-    if (element.id === 'messages-container' && hasMoreMessages && !isLoadingMessages) {
-      loadMoreMessages()
-    }
+function handleScroll(offset: number) {
+  if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
+    loadMoreMessages()
   }
 }
 </script>
@@ -151,19 +142,19 @@ function handleScroll(event: Event) {
           <header class="channel-header">
             <h2># {selectedChannel.name}</h2>
           </header>
-          <div
-            class="messages-container"
-            id="messages-container"
-            bind:this={messagesContainer}
+          <VList
+            bind:this={vlist_messages}
+            data={messages}
+            getKey={(msg: models.Message, _) => msg.ts}
+            overscan={10}
+            shift={true}
             onscroll={handleScroll}
           >
-            <Messages
-              {messages}
-              {isLoadingMessages}
-              {hasMoreMessages}
-              bind:selectedThread
-            />
-          </div>
+            {#snippet children(msg, i)}
+              <DayDivider current={msg} previous={messages[i - 1]} />
+              <Message {msg} bind:selectedThread />
+            {/snippet}
+          </VList>
         {:else}
           <Welcome />
         {/if}
@@ -196,17 +187,19 @@ function handleScroll(event: Event) {
               </svg>
             </button>
           </header>
-          <div
-            class="thread-container"
-            id="thread-container"
-            bind:this={threadContainer}
+          <VList
+            bind:this={vlist_thread}
+            data={threadMessages}
+            getKey={(msg: models.Message, _) => msg.ts}
+            overscan={10}
+            shift={true}
+            onscroll={handleScroll}
           >
-            <Messages
-              messages={threadMessages}
-              isLoadingMessages={false}
-              hasMoreMessages={false}
-            />
-          </div>
+            {#snippet children(msg, i)}
+              <DayDivider current={msg} previous={threadMessages[i - 1]} />
+              <Message {msg} bind:selectedThread />
+            {/snippet}
+          </VList>
         </div>
       </Pane>
     {/if}
@@ -236,8 +229,9 @@ function handleScroll(event: Event) {
   .sidebar h4 {
     padding: 1rem 1.25rem 0.5rem;
     font-size: 1.2rem;
+    color: #dbc9e0;
   }
-
+  
   .channel-header {
     /* Add these properties */
     display: flex;
