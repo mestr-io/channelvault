@@ -3,9 +3,13 @@ import { models } from '../../../wailsjs/go/models'
 import ThreadInfo from './ThreadInfo.svelte'
 import Attachments from './Attachments.svelte'
 import Reactions from './Reactions.svelte'
-import { Carta, Markdown } from 'carta-md'
-import { getContext } from 'svelte'
+import { Carta, Markdown, type Options } from 'carta-md'
+import DOMPurify from 'isomorphic-dompurify'
 
+import { emoji } from '@cartamd/plugin-emoji'
+import { component } from '@cartamd/plugin-component'
+import { svelte, initializeComponents } from '@cartamd/plugin-component/svelte'
+import Link from './Link.svelte'
 type Props = {
   msg: models.Message
   selectedThread: string | null
@@ -13,7 +17,13 @@ type Props = {
 
 let { msg, selectedThread = $bindable() }: Props = $props()
 
-const carta: Carta = getContext('carta')
+// Markdown
+const mapped = [svelte('a', Link)]
+const options: Options = {
+  extensions: [emoji(), component(mapped, initializeComponents)],
+  sanitizer: DOMPurify.sanitize,
+}
+export const carta = new Carta(options)
 
 /**
  * Formats the message timestamp to show only the time (e.g., "2:03 PM").
