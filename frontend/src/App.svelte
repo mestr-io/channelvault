@@ -1,34 +1,59 @@
 <script lang="ts">
-import FileUploader from './lib/components/FileUploader.svelte'
-import Dashboard from './lib/components/Dashboard.svelte'
-import Progress from './lib/components/Progress.svelte'
-import { onMount } from 'svelte'
-import { GetViewState } from '../wailsjs/go/app/App'
-import * as runtime from '../wailsjs/runtime'
+  import FileUploader from "./lib/components/FileUploader.svelte";
+  import Dashboard from "./lib/components/Dashboard.svelte";
+  import Progress from "./lib/components/Progress.svelte";
+  import { onMount } from "svelte";
+  import { GetViewState } from "../wailsjs/go/app/App";
+  import * as runtime from "../wailsjs/runtime";
 
-type ViewState = 'setup' | 'dashboard' | 'loading'
+  type ViewState = "setup" | "dashboard" | "loading";
 
-let viewState = $state<ViewState>('loading')
+  let viewState = $state<ViewState>("loading");
 
-// onMount is the perfect lifecycle hook to set up listeners.
-// It runs once after the component is first added to the DOM.
-onMount(async () => {
-  try {
-    viewState = (await GetViewState()) as ViewState
-    console.log(`Initial state set to: ${viewState}`)
+  let overlayElement: HTMLDivElement | null = null;
 
-    // We pass a function that directly reassigns the `viewState`.
-    runtime.EventsOn('backend:viewState', (newState: string) => {
-      console.log(`Received event from backend. New state: ${newState}`)
-      viewState = newState as ViewState
-    })
-  } catch (error) {
-    console.error('Failed to initialize view state or set up listener:', error)
-  }
-})
+  const closeOverlay = () => {
+    if (overlayElement) {
+      overlayElement.classList.remove("active");
+      overlayElement.style.opacity = "1";
+      overlayElement.querySelector("img")!.src = ""; // Clear the image source
+    }
+  };
+
+  // onMount is the perfect lifecycle hook to set up listeners.
+  // It runs once after the component is first added to the DOM.
+  onMount(async () => {
+    try {
+      viewState = (await GetViewState()) as ViewState;
+      console.log(`Initial state set to: ${viewState}`);
+
+      // We pass a function that directly reassigns the `viewState`.
+      runtime.EventsOn("backend:viewState", (newState: string) => {
+        console.log(`Received event from backend. New state: ${newState}`);
+        viewState = newState as ViewState;
+      });
+    } catch (error) {
+      console.error(
+        "Failed to initialize view state or set up listener:",
+        error,
+      );
+    }
+  });
 </script>
 
 <main class="app-main">
+  <!-- Overlay -->
+  <div
+    class="fullscreen-overlay"
+    bind:this={overlayElement}
+    tabindex="0"
+    onkeyup={(event) => {
+      if (event.key === "Escape") closeOverlay();
+    }}
+    onclick={closeOverlay}
+  >
+    <img alt="Fullscreen Image" />
+  </div>
   <header></header>
   <!-- Routing -->
   {#if viewState === "loading"}
@@ -40,7 +65,6 @@ onMount(async () => {
   {/if}
   <footer></footer>
 </main>
-
 
 <style>
   /* Inter font from Google Fonts (or similar system font for local development) */
@@ -65,5 +89,38 @@ onMount(async () => {
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
   }
-  
+
+  .fullscreen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(178, 171, 171, 0.9);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none; /* Ignore clicks when hidden */
+    transition: opacity 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: zoom-out;
+  }
+
+  .fullscreen-overlay .active {
+    opacity: 1;
+    pointer-events: auto; /* Accept clicks again */
+  }
+
+  .fullscreen-overlay img {
+    max-height: 90vh;
+    max-width: 90vw;
+    object-fit: contain;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+  }
+
+  .fullscreen-overlay.active img {
+    transform: scale(1);
+  }
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { GetBase64Image } from "../../../wailsjs/go/app/App";
+
   import { onMount } from "svelte";
   let { fileId, alt, url } = $props();
 
@@ -9,18 +10,17 @@
   const delay = 250;
   const threshold = 0.05; // Load when 5% of the image is visible
 
-  let overlayActive = $state(true);
-  let overlaySrc = $state("");
-
   const openOverlay = (src: string) => {
-    overlaySrc = src;
-    overlayActive = true;
-  };
+    const overlayElement = document.querySelector(
+      ".fullscreen-overlay",
+    ) as HTMLDivElement;
 
-  function closeOverlay() {
-    overlayActive = false;
-    overlaySrc = "";
-  }
+    console.log("Click");
+    if (overlayElement) {
+      overlayElement.classList.add("active");
+      overlayElement.querySelector("img")!.src = src; // Set the image source
+    }
+  };
 
   onMount(() => {
     // Ensure the container element is mounted before proceeding
@@ -77,7 +77,6 @@
             {src}
             {alt}
             onclick={() => {
-              console.log(overlayActive);
               openOverlay(src);
             }}
           />
@@ -85,18 +84,6 @@
       {/if}
     </div>
   </div>
-  {#if overlayActive}
-    <div
-      class="fullscreen-overlay"
-      tabindex="0"
-      onkeyup={(event) => {
-        if (event.key === "Escape") closeOverlay();
-      }}
-      onclick={closeOverlay}
-    >
-      <img src={overlaySrc} {alt} />
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -116,39 +103,5 @@
     max-width: 100%;
     height: 300px;
     object-fit: scale-down;
-  }
-
-  .fullscreen-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none; /* Ignore clicks when hidden */
-    transition: opacity 0.3s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: zoom-out;
-  }
-
-  .fullscreen-overlay.active {
-    opacity: 1;
-    pointer-events: auto; /* Accept clicks again */
-  }
-
-  .fullscreen-overlay img {
-    max-height: 90vh;
-    max-width: 90vw;
-    object-fit: contain;
-    transform: scale(0.95);
-    transition: transform 0.3s ease;
-  }
-
-  .fullscreen-overlay.active img {
-    transform: scale(1);
   }
 </style>

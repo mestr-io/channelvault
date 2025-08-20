@@ -1,31 +1,31 @@
 <script lang="ts">
-import { models } from '../../../wailsjs/go/models'
-import ThreadInfo from './ThreadInfo.svelte'
-import Attachments from './Attachments.svelte'
-import Reactions from './Reactions.svelte'
-import { Carta, Markdown } from 'carta-md'
-import { getContext } from 'svelte'
+    import { models } from "../../../wailsjs/go/models";
+    import ThreadInfo from "./ThreadInfo.svelte";
+    import Attachments from "./Attachments.svelte";
+    import Reactions from "./Reactions.svelte";
+    import { Carta, Markdown } from "carta-md";
+    import { getContext } from "svelte";
 
-type Props = {
-  msg: models.Message
-  selectedThread: string | null
-}
+    type Props = {
+        msg: models.Message;
+        selectedThread: string | null;
+    };
 
-let { msg, selectedThread = $bindable() }: Props = $props()
+    let { msg, selectedThread = $bindable() }: Props = $props();
 
-const carta: Carta = getContext('carta')
+    const carta: Carta = getContext("carta");
 
-/**
- * Formats the message timestamp to show only the time (e.g., "2:03 PM").
- */
-const formatMessageTime = (ts: string): string => {
-  const date = new Date(parseFloat(ts) * 1000)
-  // Using 'en-US' locale to get AM/PM format
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-}
+    /**
+     * Formats the message timestamp to show only the time (e.g., "2:03 PM").
+     */
+    const formatMessageTime = (ts: string): string => {
+        const date = new Date(parseFloat(ts) * 1000);
+        // Using 'en-US' locale to get AM/PM format
+        return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+        });
+    };
 </script>
 
 <div class="message" data-ts={msg.ts}>
@@ -37,7 +37,7 @@ const formatMessageTime = (ts: string): string => {
                 {formatMessageTime(msg.ts)}
             </span>
         </div>
-        <Markdown {carta} value={msg.text!} />
+        <Markdown {carta} value={msg.text || ""} />
         <Attachments files={msg.files} />
 
         {#if msg.thread_ts}
