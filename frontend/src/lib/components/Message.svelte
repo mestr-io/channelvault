@@ -38,7 +38,7 @@ const formatMessageTime = (ts: string): string => {
             </span>
         </div>
 
-        <Markdown {carta} value={msg.text! || ""} />
+        <Markdown {carta} value={msg.text || ""} />
         <Attachments files={msg.files} />
 
         {#if msg.thread_ts}
