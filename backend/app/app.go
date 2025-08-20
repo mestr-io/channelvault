@@ -3,8 +3,7 @@ package app
 import (
 	"context" // For the context.Context type
 	// For embedding frontend assets
-	// For formatting output, like in LogPrintf
-	"log/slog"
+	// For formatting output, like in LogPrintf	
 	"time"
 
 	_ "github.com/marcboeker/go-duckdb"
@@ -60,7 +59,7 @@ func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
 	runtime.OnFileDrop(ctx, a.onFileDrop)
-	ah.InitWailsLog(ctx, slog.LevelInfo)
+	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
 }
 

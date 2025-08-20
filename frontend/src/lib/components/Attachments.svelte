@@ -3,8 +3,9 @@ const { files } = $props()
 
 import LazyImage from './AttachmentLazyImage.svelte'
 import AttachmentFile from './AttachmentFile.svelte'
+import type { models } from '../../../wailsjs/go/models'
 
-function detectFileType(file) {
+function detectFileType(file: models.File) {
   if (file.mimetype.startsWith('image/')) {
     return 'image'
   } else if (file.mimetype.startsWith('video/')) {
