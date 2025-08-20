@@ -1,7 +1,7 @@
 <script lang="ts">
 import { models } from '../../../wailsjs/go/models'
 import ThreadInfo from './ThreadInfo.svelte'
-import LazyImage from './LazyImage.svelte'
+import Attachments from './Attachments.svelte'
 import Reactions from './Reactions.svelte'
 import { Carta, Markdown } from 'carta-md'
 import { getContext } from 'svelte'
@@ -10,6 +10,7 @@ type Props = {
   msg: models.Message
   selectedThread: string | null
 }
+
 let { msg, selectedThread = $bindable() }: Props = $props()
 
 const carta: Carta = getContext('carta')
@@ -37,37 +38,8 @@ const formatMessageTime = (ts: string): string => {
             </span>
         </div>
         <Markdown {carta} value={msg.text!} />
-        {#if msg.files}
-            <div class="files-container">
-                {#each msg.files as f}
-                    {#if f.mimetype.startsWith("image/")}
-                        <a
-                            href={f.url_private}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <LazyImage file_id={f.id} alt={f.title || f.name} />
-                        </a>
-                    {:else}
-                        <a
-                            href={f.url_private}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download={f.name}
-                            class="file-preview generic-file"
-                        >
-                            <div class="file-icon"></div>
-                            <div class="file-info">
-                                <div class="file-name">
-                                    {f.name || "file_not_found"}
-                                </div>
-                                <div class="file-title">{f.title}</div>
-                            </div>
-                        </a>
-                    {/if}
-                {/each}
-            </div>
-        {/if}
+        <Attachments files={msg.files} />
+
         {#if msg.thread_ts}
             <ThreadInfo
                 replyUsers={msg.reply_users}
@@ -76,9 +48,7 @@ const formatMessageTime = (ts: string): string => {
                 bind:selectedThread
             />
         {/if}
-        <Reactions
-            reactions={msg.reactions}
-        />
+        <Reactions reactions={msg.reactions} />
     </div>
 </div>
 
