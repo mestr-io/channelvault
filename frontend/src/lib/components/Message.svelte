@@ -38,7 +38,7 @@ const formatMessageTime = (ts: string): string => {
 }
 </script>
 
-<div class="message" data-ts={msg.ts}>
+<div class="message">
     <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
     <div class="message-content">
         <div class="message-header">
@@ -88,15 +88,6 @@ const formatMessageTime = (ts: string): string => {
         max-width: calc(100% - 50px);
     }
 
-    .message-content p {
-        margin: 0;
-        line-height: 1.45;
-        display: block;
-        max-width: 98%;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        white-space: normal;
-    }
     .message-header strong {
         font-weight: 900;
     }
@@ -105,64 +96,4 @@ const formatMessageTime = (ts: string): string => {
         font-size: 0.8rem;
         margin-left: 0.5rem;
     }
-
-    /* START: New Styles for File Attachments */
-    .files-container {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-top: 8px;
-    }
-
-    .file-preview {
-        text-decoration: none;
-        color: inherit;
-        display: inline-flex;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        overflow: hidden;
-        max-width: 360px;
-    }
-
-    .file-preview:hover {
-        border-color: #999;
-    }
-
-    .generic-file {
-        align-items: center;
-        padding: 10px;
-        background-color: #f8f8f8;
-    }
-
-    .file-icon {
-        width: 32px;
-        height: 32px;
-        background-color: #e8e8e8; /* Placeholder for a real icon */
-        border-radius: 6px;
-        margin-right: 12px;
-        flex-shrink: 0;
-        /* In a real app, you'd set a background-image with an SVG icon */
-    }
-
-    .file-info {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* Prevents long file names from breaking layout */
-    }
-
-    .file-name {
-        font-weight: 700;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .file-title {
-        font-size: 0.85rem;
-        color: #555;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    /* END: New Styles for File Attachments */
 </style>
