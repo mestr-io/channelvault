@@ -38,8 +38,8 @@ jobs:
 
       - name: Install Xvfb and dependencies
         run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb xauth
+        sudo apt update
+        sudo apt install -y xvfb xauth
 
       - name: Start Xvfb
         run: Xvfb :99 -screen 0 1024x768x24 &
