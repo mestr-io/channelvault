@@ -47,7 +47,7 @@ const formatMessageTime = (ts: string): string => {
                 {formatMessageTime(msg.ts)}
             </span>
         </div>
-        <Markdown {carta} value={msg.text!} />
+        <Markdown {carta} value={msg.text || ""} />
         <Attachments files={msg.files} />
 
         {#if msg.thread_ts}
@@ -58,7 +58,9 @@ const formatMessageTime = (ts: string): string => {
                 bind:selectedThread
             />
         {/if}
-        <Reactions reactions={msg.reactions} />
+        {#if msg.reactions}
+            <Reactions reactions={msg.reactions} />
+        {/if}
     </div>
 </div>
 
