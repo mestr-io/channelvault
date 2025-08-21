@@ -50,10 +50,14 @@ test: goversion ##                         Launch app tests
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
 	go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
 
+testh: goversion ##                        Launch headless app tests
+	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
+	xvfb-run -a go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
+
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
 
-clean: ##                       Clean build
+clean: ##                        Clean build
 	rm -Rf $(TOP)/build/bin
 	rm -Rf $(TOP)/frontend/dist
 	rm -Rf $(TOP)/frontend/node_modules

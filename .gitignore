@@ -4,3 +4,4 @@ frontend/dist
 .gemini/
 .env
 .DS_Store
+.vscode
