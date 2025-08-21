@@ -13,6 +13,9 @@ TMP := $(TOP)/tmp
 GOBIN  := $(TOP)/bin
 export GOBIN
 
+DISPLAY := :99
+export DISPLAY
+
 GOPATH ?= ${HOME}/go
 GOPROXY ?= ""
 # Inject the version in a global variable

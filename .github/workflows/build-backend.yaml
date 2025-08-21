@@ -39,12 +39,7 @@ jobs:
       - name: Install Xvfb and dependencies
         run: sudo apt update && sudo apt install -y xvfb xauth
 
-      - name: Start Xvfb
-        run: Xvfb :99 -screen 0 1024x768x24 &
-        env:
-          DISPLAY: :99
-
-      - name: Run go testsh
+      - name: Run go tests
         run: make testh
         env:
           DISPLAY: :99
