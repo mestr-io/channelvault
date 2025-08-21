@@ -47,11 +47,11 @@ dev: goversion ##                          Dev launch
 	@wails dev -tags webkit2_41
 
 test: goversion ##                         Launch app tests
-	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
+	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
 	go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
 
 testh: goversion ##                        Launch headless app tests
-	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
+	$(info) ">>> Launch headless testsfo app $(VERSION)-$(RELEASE) ..."
 	xvfb-run -a go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
 
 jsdeps: ##                       Refresh nodejs deps
