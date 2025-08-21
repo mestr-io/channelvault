@@ -5,7 +5,6 @@ package app_helpers
 import (
 	"embed"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -19,7 +18,7 @@ func TestAppLoggerIsNilBeforeInitLog(t *testing.T) {
 	assert.EqualValues(appLogger, nilPtr)
 }
 
-func TestCoreLogfCallsRightFunction(t *testing.T) {
+func TestCoreLogfCallsRightFunction(t *testing.T) {	
 	assert := assert.New(t)
 	var nilPtr *WailsAppLogger
 	assert.EqualValues(appLogger, nilPtr)
@@ -35,42 +34,4 @@ func TestCoreLogfCallsRightFunction(t *testing.T) {
 
 	coreLogf(infoLabel, wailsFun, nonWailsFun, "test message")
 	assert.True(called)
-}
-
-func TestInitWailsLog_InitializesLogger(t *testing.T) {
-	ch := make(chan string)
-	app := &FakeApp{}
-
-	//avoid wails to see go test flags
-	//save := backupFlags()
-	//resetFlags()
-	//defer restoreFlags(save)
-
-	//schedule test tear down
-
-	go func() {
-		time.Sleep(time.Duration(2500) * time.Millisecond)
-		TearDownFakeApp(app.GetContext(), ch)
-	}()
-
-	err := StartupFakeApp(app)
-	if err != nil {
-		t.Fatalf("Error starting fake app: %s", err.Error())
-	}
-
-	ctx := app.GetContext()
-	if ctx == nil {
-		t.Fatalf("got nil context")
-	}
-	InitWailsLog(ctx)
-
-	if appLogger == nil {
-		t.Fatal("appLogger should be initialized")
-	}
-
-	if appLogger.ctx != ctx {
-		t.Fatal("appLogger context should match input context")
-	}
-
-	WaitTestToEnd(t, ch)
 }

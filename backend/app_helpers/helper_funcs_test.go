@@ -50,6 +50,7 @@ func StartupFakeApp(app *FakeApp) error {
 		},
 		LogLevel:           logger.DEBUG,
 		LogLevelProduction: logger.DEBUG,
+		StartHidden: true,
 	})
 }
 func TearDownFakeApp(ctx context.Context, ch chan string) {	
