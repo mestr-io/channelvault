@@ -16,6 +16,14 @@ func (r *Repository) SetupSchemas() error {
 			num_messages INTEGER DEFAULT 0,
 			error TEXT
 		);
+		CREATE TABLE IF NOT EXISTS checkpoints (
+			import_id INTEGER,
+			path TEXT,
+			processed_at DATETIME,
+			error TEXT,
+			FOREIGN KEY(import_id) REFERENCES imports(id),
+			PRIMARY KEY(import_id, path)
+		);
 		CREATE TABLE IF NOT EXISTS files (
 			id TEXT PRIMARY KEY,
 			name TEXT,
@@ -24,7 +32,8 @@ func (r *Repository) SetupSchemas() error {
 			user TEXT,
 			url_private TEXT,
 			ts TEXT,
-			channel_id TEXT
+			channel_id TEXT,
+			downloaded INTEGER DEFAULT 0
 		);
 		CREATE TABLE IF NOT EXISTS messages (
 			ts TEXT NOT NULL,

@@ -9,7 +9,6 @@ import { models } from '../../../wailsjs/go/models'
 import { onMount, tick } from 'svelte'
 import Welcome from './Welcome.svelte'
 import { setContext } from 'svelte'
-import Imports from './Imports.svelte'
 
 let channels = $state<models.Channel[]>([] as models.Channel[])
 let messages = $state<models.Message[]>([] as models.Message[])

@@ -82,7 +82,7 @@ func (a *App) processImport(path string) {
 	}
 
 	progressChan := make(chan importer.Progress)
-	imp := importer.NewImporter(a.ctx, path, a.repository)
+	imp := importer.NewImporter(a.ctx, path, a.repository, record.ID)
 
 	var importErr error
 	go func() {
@@ -96,7 +96,7 @@ func (a *App) processImport(path string) {
 			runtime.EventsEmit(a.ctx, "importProgress", p)
 			lastUpdateTime = time.Now()
 		}
-		ah.Infof("processed: %v\n", p)
+		record.NumMessages++
 	}
 
 	if importErr != nil {
@@ -108,7 +108,9 @@ func (a *App) processImport(path string) {
 
 	ah.Infof("Import completed successfully!!")
 	runtime.EventsEmit(a.ctx, "importComplete")
-	a.repository.FinishedImport(a.ctx, record.ID)
+
+	// update the import
+	a.repository.FinishedImportUpdate(a.ctx, record)
 
 	a.setViewState(ViewStateDashboard) // Move to the dashboard
 }

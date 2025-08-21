@@ -26,10 +26,11 @@ type Importer struct {
 	ctx        context.Context
 	path       string
 	repository *repository.Repository
+	importID   int64
 }
 
-func NewImporter(ctx context.Context, path string, repository *repository.Repository) *Importer {
-	return &Importer{ctx: ctx, path: path, repository: repository}
+func NewImporter(ctx context.Context, path string, repository *repository.Repository, importID int64) *Importer {
+	return &Importer{ctx: ctx, path: path, repository: repository, importID: importID}
 }
 
 func (i *Importer) processUsers(zf *zip.File) (err error) {
@@ -117,6 +118,12 @@ func (i *Importer) Import(c chan Progress) error {
 	defer func() { err = errors.Join(r.Close(), err) }()
 
 	totalFiles := len(r.File)
+	// checkpoints
+	var files []string
+	for _, f := range r.File {
+		files = append(files, f.Name)
+	}
+	i.repository.CreateCheckpointPlaceHolders(i.ctx, i.importID, files)
 
 	// users.json
 	f, err := findFile("users.json", r.File)
@@ -128,6 +135,8 @@ func (i *Importer) Import(c chan Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to process users: %w", err)
 	}
+	i.repository.MarkCheckpointAsCompleted(i.ctx, i.importID, f.Name, "")
+
 	// channels.json
 	f, err = findFile("channels.json", r.File)
 	if err != nil {
@@ -137,6 +146,8 @@ func (i *Importer) Import(c chan Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to process channels: %w", err)
 	}
+	i.repository.MarkCheckpointAsCompleted(i.ctx, i.importID, f.Name, "")
+
 	// messages & threads
 	for idx, f := range r.File {
 		select {
@@ -156,9 +167,11 @@ func (i *Importer) Import(c chan Progress) error {
 				}
 				err = i.processMessages(channelID, f)
 				if err != nil {
+					i.repository.MarkCheckpointAsCompleted(i.ctx, i.importID, f.Name, fmt.Sprintf("%v", err))
 					return fmt.Errorf("fail to process messages for channel %s: %w", channelID, err)
 				}
 			}
+			i.repository.MarkCheckpointAsCompleted(i.ctx, i.importID, f.Name, "")
 		}
 	}
 	return nil
