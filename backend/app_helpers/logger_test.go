@@ -1,9 +1,10 @@
 //go:build dev
 package app_helpers
 
-import (
+import (	
 	"testing"	
 	"embed"
+	"time"
 	
 	"github.com/stretchr/testify/assert"
 )
@@ -36,7 +37,7 @@ func TestCoreLogfCallsRightFunction(t *testing.T) {
 }
 
 
-func TestInitWailsLog_InitializesLogger(t *testing.T) {	
+func TestInitWailsLog_InitializesLogger(t *testing.T) {		
 	ch := make(chan string)
 	app := &FakeApp{}	
 
@@ -46,8 +47,12 @@ func TestInitWailsLog_InitializesLogger(t *testing.T) {
 	//defer restoreFlags(save)
 	
 	//schedule test tear down		
-	go TearDownFakeApp(app, /*after*/ 1 /*seconds*/, ch)	
 	
+	go func() {
+		time.Sleep(time.Duration(1500) * time.Millisecond)
+		TearDownFakeApp(app.GetContext(), ch)
+	}()
+
 	err := StartupFakeApp(app)
 	if err != nil {
 		t.Fatalf("Error starting fake app: %s", err.Error())
@@ -57,8 +62,7 @@ func TestInitWailsLog_InitializesLogger(t *testing.T) {
 	if ctx == nil {
 		t.Fatalf("got nil context")
 	}
-
-    InitWailsLog(ctx)
+	InitWailsLog(ctx)	
 
     if appLogger == nil {
         t.Fatal("appLogger should be initialized")

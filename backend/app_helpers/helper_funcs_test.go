@@ -52,10 +52,9 @@ func StartupFakeApp(app *FakeApp) error {
 		LogLevelProduction: logger.DEBUG,
 	})
 }
-func TearDownFakeApp(app *FakeApp, afterSeconds int, ch chan string) {
-	time.Sleep(time.Duration(afterSeconds) * time.Second)
+func TearDownFakeApp(ctx context.Context, ch chan string) {	
 	//fmt.Printf("After %d second(s) ending test", afterSeconds)
-	runtime.Quit(app.GetContext())
+	runtime.Quit(ctx)
 	ch <- "test ends"
 }
 
