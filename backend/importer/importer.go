@@ -25,10 +25,10 @@ type Progress struct {
 type Importer struct {
 	ctx        context.Context
 	path       string
-	repository *repository.Repository
+	repository repository.Repository
 }
 
-func NewImporter(ctx context.Context, path string, repository *repository.Repository) *Importer {
+func NewImporter(ctx context.Context, path string, repository repository.Repository) *Importer {
 	return &Importer{ctx: ctx, path: path, repository: repository}
 }
 

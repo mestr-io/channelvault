@@ -1,14 +1,15 @@
 package repository
 
 import (
-	"context"	
+	"context"
+	"errors"
 	"fmt"
-	"errors"	
+
 	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
+func (r *RepositorySql) BulkInsertUsers(users []models.User) (err error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -24,7 +25,7 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer func(){err = errors.Join(stmt.Close(), err)}()
+	defer func() { err = errors.Join(stmt.Close(), err) }()
 
 	// 5. Iterate over users, filter, and execute the prepared statement.
 	insertCount := 0
@@ -41,7 +42,7 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 	return tx.Commit()
 }
 
-func (r *Repository) GetUserAvatar(ctx context.Context, userId string) (string, error) {
+func (r *RepositorySql) GetUserAvatar(ctx context.Context, userId string) (string, error) {
 	sql := `SELECT profile_image_url FROM users WHERE id = ?;`
 	rows := r.db.QueryRowContext(ctx, sql, userId)
 	var url string
