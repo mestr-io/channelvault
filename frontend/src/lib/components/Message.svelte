@@ -3,9 +3,13 @@ import { models } from '../../../wailsjs/go/models'
 import ThreadInfo from './ThreadInfo.svelte'
 import Attachments from './Attachments.svelte'
 import Reactions from './Reactions.svelte'
-import { Carta, Markdown } from 'carta-md'
-import { getContext } from 'svelte'
+import { Carta, Markdown, type Options } from 'carta-md'
+import DOMPurify from 'isomorphic-dompurify'
 
+import { emoji } from '@cartamd/plugin-emoji'
+import { component } from '@cartamd/plugin-component'
+import { svelte, initializeComponents } from '@cartamd/plugin-component/svelte'
+import Link from './Link.svelte'
 type Props = {
   msg: models.Message
   selectedThread: string | null
@@ -13,7 +17,13 @@ type Props = {
 
 let { msg, selectedThread = $bindable() }: Props = $props()
 
-const carta: Carta = getContext('carta')
+// Markdown
+const mapped = [svelte('a', Link)]
+const options: Options = {
+  extensions: [emoji(), component(mapped, initializeComponents)],
+  sanitizer: DOMPurify.sanitize,
+}
+export const carta = new Carta(options)
 
 /**
  * Formats the message timestamp to show only the time (e.g., "2:03 PM").
@@ -28,7 +38,7 @@ const formatMessageTime = (ts: string): string => {
 }
 </script>
 
-<div class="message" data-ts={msg.ts}>
+<div class="message">
     <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
     <div class="message-content">
         <div class="message-header">
@@ -37,7 +47,7 @@ const formatMessageTime = (ts: string): string => {
                 {formatMessageTime(msg.ts)}
             </span>
         </div>
-        <Markdown {carta} value={msg.text!} />
+        <Markdown {carta} value={msg.text || ""} />
         <Attachments files={msg.files} />
 
         {#if msg.thread_ts}
@@ -48,7 +58,9 @@ const formatMessageTime = (ts: string): string => {
                 bind:selectedThread
             />
         {/if}
-        <Reactions reactions={msg.reactions} />
+        {#if msg.reactions}
+            <Reactions reactions={msg.reactions} />
+        {/if}
     </div>
 </div>
 
@@ -76,15 +88,6 @@ const formatMessageTime = (ts: string): string => {
         max-width: calc(100% - 50px);
     }
 
-    .message-content p {
-        margin: 0;
-        line-height: 1.45;
-        display: block;
-        max-width: 98%;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        white-space: normal;
-    }
     .message-header strong {
         font-weight: 900;
     }
@@ -93,64 +96,4 @@ const formatMessageTime = (ts: string): string => {
         font-size: 0.8rem;
         margin-left: 0.5rem;
     }
-
-    /* START: New Styles for File Attachments */
-    .files-container {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-top: 8px;
-    }
-
-    .file-preview {
-        text-decoration: none;
-        color: inherit;
-        display: inline-flex;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        overflow: hidden;
-        max-width: 360px;
-    }
-
-    .file-preview:hover {
-        border-color: #999;
-    }
-
-    .generic-file {
-        align-items: center;
-        padding: 10px;
-        background-color: #f8f8f8;
-    }
-
-    .file-icon {
-        width: 32px;
-        height: 32px;
-        background-color: #e8e8e8; /* Placeholder for a real icon */
-        border-radius: 6px;
-        margin-right: 12px;
-        flex-shrink: 0;
-        /* In a real app, you'd set a background-image with an SVG icon */
-    }
-
-    .file-info {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* Prevents long file names from breaking layout */
-    }
-
-    .file-name {
-        font-weight: 700;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .file-title {
-        font-size: 0.85rem;
-        color: #555;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    /* END: New Styles for File Attachments */
 </style>
