@@ -44,7 +44,7 @@ jobs:
         env:
           DISPLAY: :99
 
-      - name: Run go tests
+      - name: Run go testsh
         run: make testh
         env:
           DISPLAY: :99
