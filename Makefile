@@ -18,7 +18,7 @@ GOPROXY ?= ""
 # Inject the version in a global variable
 LDFLAGS  := "-X 'main.version=$(VERSION)-$(RELEASE)'"
 
-.PHONY: help build dev compile goversion fmt check-fmt test clean
+.PHONY: help build dev compile goversion fmt check-fmt test clean testh
 
 all: help
 
