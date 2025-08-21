@@ -4,16 +4,17 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
-	//"errors"
+	"errors"
 	"os"
-	//"path/filepath"
-	//"sync"
+	"path/filepath"
+	"sync"
 	"testing"
-	//"time"
+	
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
-	//"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	//"github.com/mestr-io/slack-export-viewer/backend/repository"
 )
 
 // MockRepository is a mock implementation of the repository.Repository.
@@ -34,6 +35,47 @@ func (m *MockRepository) BulkInsertChannels(channels []models.Channel) error {
 func (m *MockRepository) BulkInserMessages(ctx context.Context, channelID string, messages []models.Message) error {
 	args := m.Called(ctx, channelID, messages)
 	return args.Error(0)
+}
+
+//channels	
+func (m *MockRepository) GetChannels() (channels []models.Channel, err error) {
+	panic("GetChannels not defined in mock")
+}
+
+//imports
+func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.Import, error) {
+	panic("StoreImport not defined in mock")	
+}
+func (m *MockRepository) FinishedImport(ctx context.Context, ID int64) error {
+	panic("FinishedImport not defined in mock")
+}
+func (m *MockRepository) NoFinishedImports(ctx context.Context) (bool, error) {
+	panic("NotFinishedImports not defined in mock")
+}
+
+//messages
+func (m *MockRepository) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
+	panic("GetMessages not defined in mock")
+}
+
+func (m *MockRepository) ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error) {
+	panic("ListChannelFiles not defined in mock")
+}
+func (m *MockRepository) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
+	panic("GetThreadByTs not defined in mock")
+}
+func (m *MockRepository) GetFileById(ctx context.Context, fileId string) (*models.File, error) {
+	panic("GetFileById not defined in mock")
+}
+
+//setup
+func (m *MockRepository) SetupSchemas() error {
+	panic("SetupSchemas not defined in mock")
+}
+
+//users	
+func (m *MockRepository) GetUserAvatar(ctx context.Context, userId string) (string, error) {
+	panic("GetUserAvatar nor defined in mock")
 }
 
 // Helper function to create a test zip file in memory.
@@ -74,8 +116,8 @@ func createTestZip(t *testing.T, files map[string]string) string {
 	return tmpFile.Name()
 }
 
-/*
-func TestImporter_Import(t *testing.T) {
+
+func TestImporter_Imports(t *testing.T) {
 	validUsersJSON := `[{"id": "U1", "name": "user1"}]`
 	validChannelsJSON := `[{"id": "C1", "name": "channel1"}]`
 	validMessagesJSON := `[{"user": "U1", "text": "hello", "ts": "1620000000.000000"}]`
@@ -205,11 +247,8 @@ func TestImporter_Import(t *testing.T) {
 					"C1/2022-01-01.json": validMessagesJSON,
 				})
 				ctx, cancel := context.WithCancel(context.Background())
-				// Cancel the context almost immediately
-				go func() {
-					time.Sleep(10 * time.Millisecond)
-					cancel()
-				}()
+				// Cancel the context immediately
+				cancel()
 				return zipPath, ctx
 			},
 			wantErr:       true,
@@ -225,7 +264,7 @@ func TestImporter_Import(t *testing.T) {
 				defer os.Remove(zipPath) // Clean up the temp file
 			}
 
-			importer := NewImporter(ctx, zipPath, &repository.Repository{Repository: mockRepo})
+			importer := NewImporter(ctx, zipPath, mockRepo)
 			progressChan := make(chan Progress, 10)
 
 			var wg sync.WaitGroup
@@ -270,6 +309,14 @@ func TestFindFile(t *testing.T) {
 		assert.Equal(t, "users.json", filepath.Base(f.Name))
 	})
 
+	t.Run("finds existing file in subdir", func(t *testing.T) {
+		f, err := findFile("messages.json", files)
+		assert.NoError(t, err)
+		assert.NotNil(t, f)
+		assert.Equal(t, "messages.json", filepath.Base(f.Name))
+	})
+
+
 	t.Run("returns error for non-existing file", func(t *testing.T) {
 		f, err := findFile("nonexistent.json", files)
 		assert.Error(t, err)
@@ -277,4 +324,3 @@ func TestFindFile(t *testing.T) {
 		assert.Equal(t, "FATAL: couldnt find file nonexistent.json", err.Error())
 	})
 }
-*/
