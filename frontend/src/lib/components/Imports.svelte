@@ -1,23 +1,23 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import {ListImports} from '../../../wailsjs/go/app/App'
-import {models} from '../../../wailsjs/go/models'
+import { ListImports } from '../../../wailsjs/go/app/App'
+import { models } from '../../../wailsjs/go/models'
 
 // svelte-ignore non_reactive_update
 enum Status {
   Ready = 'ready',
-  Processing = 'processing', 
-  Error = 'error'
+  Processing = 'processing',
+  Error = 'error',
 }
 
-let imports: models.Import[] = $state([])
+let imports: models.SlackImport[] = $state([])
 let isOpen = $state(false)
 
 onMount(async () => {
-    const fn = async () => {
-        imports = await ListImports()
-    }
-    fn()
+  const fn = async () => {
+    imports = await ListImports()
+  }
+  fn()
 })
 
 function removeImport(id: number) {
@@ -32,19 +32,32 @@ function toggleOpen() {
   isOpen = !isOpen
 }
 
-function getStatus(imp: models.Import): Status {
-    if (imp.Error) {
-        return Status.Error
-    } else if (imp.Finished) {
-        return Status.Ready
-    } else {
-        return Status.Processing
-    }
+function getStatus(imp: models.SlackImport): Status {
+  if (imp.Error) {
+    return Status.Error
+  } else if (imp.Finished) {
+    return Status.Ready
+  } else {
+    return Status.Processing
+  }
 }
 </script>
 
 <div class="imports">
   <button class="header" onclick={toggleOpen}>
+    <svg
+      class="w-5 h-5 mr-3"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      ><path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+      ></path></svg
+    >
     <span>Imports ({imports.length})</span>
     <svg
       class:rotated={!isOpen}
@@ -89,19 +102,43 @@ function getStatus(imp: models.Import): Status {
 
           <div class="actions">
             <!-- svelte-ignore a11y_consider_explicit_label -->
-            <button class="icon-btn" title="View" onclick={() => viewImport(imp.id)}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button
+              class="icon-btn"
+              title="View"
+              onclick={() => viewImport(imp.id)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
             <!-- svelte-ignore a11y_consider_explicit_label -->
-            <button class="icon-btn" title="Remove" onclick={() => removeImport(imp.id)}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button
+              class="icon-btn"
+              title="Remove"
+              onclick={() => removeImport(imp.id)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
                 <path d="M10 11v6"></path>

@@ -128,7 +128,21 @@ function handleScroll(offset: number) {
           </div>
         {/each}
         <div class="imports">
-          <Imports />
+          <span
+            ><svg
+              style="height: 1rem;"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              ><path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              ></path></svg
+            > Imports</span
+          >
         </div>
       </div>
     </Pane>
@@ -228,6 +242,7 @@ function handleScroll(offset: number) {
   .sidebar .imports {
     margin-top: auto; /* push this element to the bottom */
     padding: 1rem;
+    color: #dbc9e0;
   }
   .sidebar h4 {
     padding: 1rem 1.25rem 0.5rem;
@@ -301,18 +316,5 @@ function handleScroll(offset: number) {
   }
   .channel-header h2 {
     margin: 0;
-  }
-  .messages-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .thread-container {
-    flex-grow: 1; /* Key property */
-    overflow-y: auto; /* Key property */
-    display: flex;
-    flex-direction: column;
   }
 </style>

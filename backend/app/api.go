@@ -68,6 +68,6 @@ func (a *App) GetBase64Image(fileId string) (string, error) {
 	return fmt.Sprintf("data:%s;base64,%s", file.Mimetype, encodedData), nil
 }
 
-func (a *App) ListImports() ([]models.Import, error) {
+func (a *App) ListImports() ([]models.SlackImport, error) {
 	return a.repository.ListImports(a.ctx)
 }

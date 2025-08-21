@@ -1,12 +1,10 @@
 package models
 
-import "time"
-
-type Import struct {
+type SlackImport struct {
 	ID          int64
 	Path        string
-	Created     time.Time
-	Finished    time.Time
+	Created     string
+	Finished    string
 	NumMessages int64
 	Name        string
 	Error       string
