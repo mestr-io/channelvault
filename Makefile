@@ -48,11 +48,11 @@ dev: goversion ##                          Dev launch
 
 test: goversion ##                         Launch app tests
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
-	go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
+	@go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
 
 testh: goversion ##                        Launch headless app tests
 	$(info) ">>> Launch headless testsfo app $(VERSION)-$(RELEASE) ..."
-	xvfb-run -a go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
+	@xvfb-run -a go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
