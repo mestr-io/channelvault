@@ -50,10 +50,10 @@ func StartupFakeApp(app *FakeApp) error {
 		},
 		LogLevel:           logger.DEBUG,
 		LogLevelProduction: logger.DEBUG,
-		StartHidden: true,
+		StartHidden:        true,
 	})
 }
-func TearDownFakeApp(ctx context.Context, ch chan string) {	
+func TearDownFakeApp(ctx context.Context, ch chan string) {
 	//fmt.Printf("After %d second(s) ending test", afterSeconds)
 	runtime.Quit(ctx)
 	ch <- "test ends"
