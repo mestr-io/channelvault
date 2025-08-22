@@ -1,7 +1,7 @@
 <script lang="ts">
   import { GetBase64Image } from "../../../wailsjs/go/app/App";
 
-  import { onMount } from "svelte";
+  import { onMount, getContext } from "svelte";
   let { fileId, alt, url } = $props();
 
   let shouldLoad = $state(false);
@@ -9,18 +9,9 @@
 
   const delay = 250;
   const threshold = 0.05; // Load when 5% of the image is visible
-
-  const openOverlay = (src: string) => {
-    const overlayElement = document.querySelector(
-      ".fullscreen-overlay",
-    ) as HTMLDivElement;
-
-    console.log("Click");
-    if (overlayElement) {
-      overlayElement.classList.add("active");
-      overlayElement.querySelector("img")!.src = src; // Set the image source
-    }
-  };
+  const { openOverlay } = getContext<{ openOverlay: (src: string) => void }>(
+    "overlay",
+  );
 
   onMount(() => {
     // Ensure the container element is mounted before proceeding

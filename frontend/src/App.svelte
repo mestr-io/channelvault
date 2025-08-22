@@ -2,7 +2,7 @@
   import FileUploader from "./lib/components/FileUploader.svelte";
   import Dashboard from "./lib/components/Dashboard.svelte";
   import Progress from "./lib/components/Progress.svelte";
-  import { onMount } from "svelte";
+  import { onMount, setContext } from "svelte";
   import { GetViewState } from "../wailsjs/go/app/App";
   import * as runtime from "../wailsjs/runtime";
 
@@ -12,10 +12,19 @@
 
   let overlayElement: HTMLDivElement | null = null;
 
+  const openOverlay = (src: string) => {
+    console.log("Open");
+    console.log(overlayElement.classList);
+    if (overlayElement) {
+      overlayElement.classList.add("active");
+      overlayElement.querySelector("img")!.src = src; // Set the image source
+    }
+  };
+
   const closeOverlay = () => {
+    console.log("CLose");
     if (overlayElement) {
       overlayElement.classList.remove("active");
-      overlayElement.style.opacity = "1";
       overlayElement.querySelector("img")!.src = ""; // Clear the image source
     }
   };
@@ -39,21 +48,22 @@
       );
     }
   });
+  setContext("overlay", { openOverlay, closeOverlay });
 </script>
 
+<!-- Overlay -->
+<div
+  class="fullscreen-overlay"
+  bind:this={overlayElement}
+  tabindex="0"
+  onkeyup={(event) => {
+    if (event.key === "Escape") closeOverlay();
+  }}
+  onclick={closeOverlay}
+>
+  <img alt="Fullscreen Image" />
+</div>
 <main class="app-main">
-  <!-- Overlay -->
-  <div
-    class="fullscreen-overlay"
-    bind:this={overlayElement}
-    tabindex="0"
-    onkeyup={(event) => {
-      if (event.key === "Escape") closeOverlay();
-    }}
-    onclick={closeOverlay}
-  >
-    <img alt="Fullscreen Image" />
-  </div>
   <header></header>
   <!-- Routing -->
   {#if viewState === "loading"}
@@ -90,13 +100,13 @@
     overflow: hidden;
   }
 
-  .fullscreen-overlay {
+  :global(.fullscreen-overlay) {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(178, 171, 171, 0.9);
+    background-color: rgba(24, 22, 22, 0.9);
     z-index: 1000;
     opacity: 0;
     pointer-events: none; /* Ignore clicks when hidden */
@@ -107,12 +117,12 @@
     cursor: zoom-out;
   }
 
-  .fullscreen-overlay .active {
-    opacity: 1;
-    pointer-events: auto; /* Accept clicks again */
+  :global(.fullscreen-overlay.active) {
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 
-  .fullscreen-overlay img {
+  :global(.fullscreen-overlay img) {
     max-height: 90vh;
     max-width: 90vw;
     object-fit: contain;
@@ -120,7 +130,7 @@
     transition: transform 0.3s ease;
   }
 
-  .fullscreen-overlay.active img {
+  :global(.fullscreen-overlay.active img) {
     transform: scale(1);
   }
 </style>
