@@ -39,7 +39,7 @@ func StartupFakeApp(app *FakeApp) error {
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		OnStartup: app.Startup,
+		OnDomReady: app.Startup,
 		Bind: []any{
 			app,
 		},
