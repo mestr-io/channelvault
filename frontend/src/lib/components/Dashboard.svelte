@@ -10,6 +10,7 @@
   import Welcome from './Welcome.svelte'
   import { setContext } from 'svelte'
   import ImportManager from './ImportManager.svelte' // <-- 1. Import the new component
+    import FileUploader from './FileUploader.svelte';
 
   // --- State Variables ---
   let channels = $state<models.Channel[]>([] as models.Channel[])
@@ -165,7 +166,7 @@
             {/snippet}
           </VList>
         {:else if currentView === 'imports'}
-          <ImportManager />
+          <FileUploader />
         {:else}
           <Welcome />
         {/if}
