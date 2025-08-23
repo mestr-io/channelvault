@@ -7,7 +7,7 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) StoreImport(ctx context.Context, path string) (*models.Import, error) {
+func (r *RepositorySql) StoreImport(ctx context.Context, path string) (*models.Import, error) {
 	sql := `INSERT INTO imports (path) VALUES (?);`
 	result, err := r.db.ExecContext(ctx, sql, path)
 	if err != nil {
@@ -21,7 +21,7 @@ func (r *Repository) StoreImport(ctx context.Context, path string) (*models.Impo
 	return &i, nil
 }
 
-func (r *Repository) FinishedImport(ctx context.Context, ID int64) error {
+func (r *RepositorySql) FinishedImport(ctx context.Context, ID int64) error {
 	sql := `UPDATE imports SET finished = ?;`
 	_, err := r.db.ExecContext(ctx, sql, time.Now())
 	if err != nil {
@@ -30,7 +30,7 @@ func (r *Repository) FinishedImport(ctx context.Context, ID int64) error {
 	return nil
 }
 
-func (r *Repository) NoFinishedImports(ctx context.Context) (bool, error) {
+func (r *RepositorySql) NoFinishedImports(ctx context.Context) (bool, error) {
 	sql := `SELECT count(*) FROM imports WHERE finished IS NOT NULL;`
 	rows := r.db.QueryRowContext(ctx, sql)
 	var count int

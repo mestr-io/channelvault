@@ -3,7 +3,7 @@ package app
 import (
 	"context" // For the context.Context type
 	// For embedding frontend assets
-	// For formatting output, like in LogPrintf	
+	// For formatting output, like in LogPrintf
 	"time"
 
 	_ "github.com/marcboeker/go-duckdb"
@@ -26,12 +26,12 @@ const (
 
 type App struct {
 	ctx         context.Context
-	repository  *repository.Repository
+	repository  repository.Repository
 	state       ViewState
 	filesFolder string
 }
 
-func New(repository *repository.Repository, filesFolder string) *App {
+func New(repository repository.Repository, filesFolder string) *App {
 	return &App{
 		repository:  repository,
 		filesFolder: filesFolder,
