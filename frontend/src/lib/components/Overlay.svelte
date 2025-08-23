@@ -32,7 +32,6 @@ $effect(() => {
     onkeyup={(event) => {
         if (event.key === "Escape") closeOverlay();
     }}
-    role="button"
 >
     <img alt="Fullscreen Image" src={overlayImageSrc} />
 </div>
