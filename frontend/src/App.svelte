@@ -76,38 +76,4 @@ setContext('overlay', { openOverlay })
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
   }
-
-  :global(.fullscreen-overlay) {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(24, 22, 22, 0.9);
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none; /* Ignore clicks when hidden */
-    transition: opacity 0.3s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: zoom-out;
-  }
-
-  :global(.fullscreen-overlay.active) {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-  }
-
-  :global(.fullscreen-overlay img) {
-    max-height: 90vh;
-    max-width: 90vw;
-    object-fit: contain;
-    transform: scale(0.95);
-    transition: transform 0.3s ease;
-  }
-
-  :global(.fullscreen-overlay.active img) {
-    transform: scale(1);
-  }
 </style>
