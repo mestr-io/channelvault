@@ -1,33 +1,17 @@
 <script lang="ts">
+  import * as runtime from "../wailsjs/runtime";
+  import { onMount, setContext } from "svelte";
+  import { GetViewState } from "../wailsjs/go/app/App";
+
   import FileUploader from "./lib/components/FileUploader.svelte";
   import Dashboard from "./lib/components/Dashboard.svelte";
   import Progress from "./lib/components/Progress.svelte";
-  import { onMount, setContext } from "svelte";
-  import { GetViewState } from "../wailsjs/go/app/App";
-  import * as runtime from "../wailsjs/runtime";
+  import Overlay from "./lib/components/Overlay.svelte";
 
   type ViewState = "setup" | "dashboard" | "loading";
 
+  let overlayComponent: Overlay;
   let viewState = $state<ViewState>("loading");
-
-  let overlayElement: HTMLDivElement | null = null;
-
-  const openOverlay = (src: string) => {
-    console.log("Open");
-    console.log(overlayElement.classList);
-    if (overlayElement) {
-      overlayElement.classList.add("active");
-      overlayElement.querySelector("img")!.src = src; // Set the image source
-    }
-  };
-
-  const closeOverlay = () => {
-    console.log("CLose");
-    if (overlayElement) {
-      overlayElement.classList.remove("active");
-      overlayElement.querySelector("img")!.src = ""; // Clear the image source
-    }
-  };
 
   // onMount is the perfect lifecycle hook to set up listeners.
   // It runs once after the component is first added to the DOM.
@@ -48,21 +32,17 @@
       );
     }
   });
-  setContext("overlay", { openOverlay, closeOverlay });
+
+  function openOverlay(src: string) {
+    if (overlayComponent) {
+      overlayComponent.showOverlay(src);
+    }
+  }
+
+  setContext("overlay", { openOverlay });
 </script>
 
-<!-- Overlay -->
-<div
-  class="fullscreen-overlay"
-  bind:this={overlayElement}
-  tabindex="0"
-  onkeyup={(event) => {
-    if (event.key === "Escape") closeOverlay();
-  }}
-  onclick={closeOverlay}
->
-  <img alt="Fullscreen Image" />
-</div>
+<Overlay bind:this={overlayComponent} />
 <main class="app-main">
   <header></header>
   <!-- Routing -->
