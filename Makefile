@@ -13,9 +13,6 @@ TMP := $(TOP)/tmp
 GOBIN  := $(TOP)/bin
 export GOBIN
 
-DISPLAY := :99
-export DISPLAY
-
 GOPATH ?= ${HOME}/go
 GOPROXY ?= ""
 # Inject the version in a global variable
@@ -47,7 +44,7 @@ build: goversion ##                        Build apps
 
 dev: goversion ##                          Dev launch
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
-	@wails dev -tags webkit2_41
+	wails dev -tags webkit2_41
 
 test: goversion ##                         Launch app tests
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
@@ -55,7 +52,7 @@ test: goversion ##                         Launch app tests
 
 testh: goversion ##                        Launch headless app tests
 	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
-	@xvfb-run -a go test -cover -count=1 -v -tags=dev,headless,webkit2_41 ./...
+	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -v -tags=dev,headless,webkit2_41 ./...
 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
