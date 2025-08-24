@@ -1,8 +1,15 @@
 <script lang="ts">
-  // Svelte 5 state management with runes
-  let resultText = $state("Drop your Slack import zip file here");
+  import { onMount } from 'svelte';
+  import { ListImports } from '../../../wailsjs/go/app/App'
+  import { models } from '../../../wailsjs/go/models'
+  
   let isDragging = $state(false);
   let dragCounter = $state(0);
+  let imports: models.SlackImport[] = $state([]);
+
+  onMount(async () => {
+    imports = await ListImports();
+  });
 
   // --- Drag & Drop Event Handlers ---
   // These are standard DOM event handlers and work perfectly with Svelte 5
@@ -34,15 +41,6 @@
     event.preventDefault();
     dragCounter = 0;
     isDragging = false;
-
-    // You would typically process the dropped files here
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      resultText = `${files.length} file(s) selected: ${files[0].name}`;
-      console.log(files);
-    } else {
-      resultText = "No files were dropped.";
-    }
   }
 </script>
 
@@ -113,18 +111,18 @@
         ></path>
       </svg>
     </div>
-    <div class="result-text">
-      {resultText}
-    </div>
   </div>
   <div class="imports">
+    {#each imports as card}
     <div class="card">
-      <h3>import_name.zip</h3>
-      <div>--------- 23/234</div>
+      <h3>{card.Name || 'xxx'}</h3>
+      <h4>{card.Path}</h4>
+      <div>{card.Created}</div>
+      <div>{card.Finished}</div>
+      <div>{card.ID}</div>
+      <div>{card.NumMessages}</div>
     </div>
-    <div class="card">xxx</div>
-    <div class="card">xxx</div>
-
+    {/each}
   </div>
 </main>
 
@@ -142,10 +140,12 @@
 
   .imports {
     margin-top: 3rem;
+    margin-bottom: 3rem;
     display: grid;
     row-gap: 1rem;
     column-gap: 1rem;
     grid-template-columns: 1fr 1fr;
+    width: 100%;
   }
 
   .card {
@@ -154,8 +154,7 @@
     flex-direction: column;
     border-radius: 1rem;
     padding: 1rem;
-    height: 300px;
-    width: 500px;
+    margin: 0 1rem 0 1rem;
     background-color: white;
     box-shadow: 2px 2px 6px black;
   }
