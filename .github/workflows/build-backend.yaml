@@ -5,6 +5,8 @@ on:
     branches:
       - "*"
     paths:
+      - "go.mod"
+      - "main.go"
       - "backend/**"
       - ".github/workflows/build-backend.yaml"
 
