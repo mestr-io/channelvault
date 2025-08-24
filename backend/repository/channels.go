@@ -9,7 +9,7 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
+func (r *RepositorySql) BulkInsertChannels(channels []models.Channel) (err error) {
 	tx, err := r.db.Begin()
 
 	if err != nil {
@@ -55,7 +55,7 @@ func (r *Repository) BulkInsertChannels(channels []models.Channel) (err error) {
 	return tx.Commit()
 }
 
-func (r *Repository) GetChannels() (channels []models.Channel, err error) {
+func (r *RepositorySql) GetChannels() (channels []models.Channel, err error) {
 	rows, err := r.db.Query("select id, name from channels")
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)

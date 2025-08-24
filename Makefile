@@ -18,7 +18,7 @@ GOPROXY ?= ""
 # Inject the version in a global variable
 LDFLAGS  := "-X 'main.version=$(VERSION)-$(RELEASE)'"
 
-.PHONY: help build dev compile goversion fmt check-fmt test clean
+.PHONY: help build dev compile goversion fmt check-fmt test clean testh
 
 all: help
 
@@ -44,16 +44,20 @@ build: goversion ##                        Build apps
 
 dev: goversion ##                          Dev launch
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
-	@wails dev -tags webkit2_41
+	wails dev -tags webkit2_41
 
 test: goversion ##                         Launch app tests
-	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
-	go test -count=1 -v ./...
+	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
+	@go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
+
+testh: goversion ##                        Launch headless app tests
+	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
+	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -v -tags=dev,headless,webkit2_41 ./...
 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
 
-clean: ##                       Clean build
+clean: ##                        Clean build
 	rm -Rf $(TOP)/build/bin
 	rm -Rf $(TOP)/frontend/dist
 	rm -Rf $(TOP)/frontend/node_modules

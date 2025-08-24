@@ -25,14 +25,17 @@ type Progress struct {
 type Importer struct {
 	ctx        context.Context
 	path       string
-	repository *repository.Repository
+	repository repository.Repository
 }
 
-func NewImporter(ctx context.Context, path string, repository *repository.Repository) *Importer {
+func NewImporter(ctx context.Context, path string, repository repository.Repository) *Importer {
 	return &Importer{ctx: ctx, path: path, repository: repository}
 }
 
 func (i *Importer) processUsers(zf *zip.File) (err error) {
+	if err = i.ctx.Err(); err != nil {
+		return fmt.Errorf("context expired: %w", err)
+	}	
 	f, err := zf.Open()
 	if err != nil {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
@@ -55,7 +58,10 @@ func (i *Importer) processUsers(zf *zip.File) (err error) {
 	return i.repository.BulkInsertUsers(result)
 }
 
-func (i *Importer) processChannels(zf *zip.File) error {
+func (i *Importer) processChannels(zf *zip.File) (err error) {
+	if err = i.ctx.Err(); err != nil {
+		return fmt.Errorf("context expired: %w", err)
+	}
 	f, err := zf.Open()
 	if err != nil {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
@@ -77,7 +83,10 @@ func (i *Importer) processChannels(zf *zip.File) error {
 	return i.repository.BulkInsertChannels(result)
 }
 
-func (i *Importer) processMessages(ChannelID string, f *zip.File) error {
+func (i *Importer) processMessages(ChannelID string, f *zip.File) (err error) {
+	if err = i.ctx.Err(); err != nil {
+				return fmt.Errorf("context expired: %w", err)
+	}	
 	file, err := f.Open()
 	if err != nil {
 		return fmt.Errorf("FATAL: fail to open messages file %s: %v", f.Name, err)
@@ -106,8 +115,11 @@ func findFile(filename string, files []*zip.File) (*zip.File, error) {
 	return nil, fmt.Errorf("FATAL: couldnt find file %s", filename)
 }
 
-func (i *Importer) Import(c chan Progress) error {
+func (i *Importer) Import(c chan Progress) (err error) {
 	defer close(c)
+	if err = i.ctx.Err(); err != nil {
+		return fmt.Errorf("context expired: %w", err)
+	}
 
 	r, err := zip.OpenReader(i.path)
 	if err != nil {

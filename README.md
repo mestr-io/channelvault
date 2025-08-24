@@ -14,3 +14,14 @@ to this in your browser, and you can call your Go code from devtools.
 ## Building
 
 To build a redistributable, production mode package, use `wails build`.
+
+
+## Extra requirements
+To run integration tests (`make testh`) please install X11's related tools
+- `xvfb`
+- `xauth`
+
+#### Ubuntu Linux
+```
+sudo apt install -y xvfb xauth
+```

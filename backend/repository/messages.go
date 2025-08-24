@@ -11,7 +11,7 @@ import (
 )
 
 // TODO: add context to stop it if needed
-func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error) {
+func (r *RepositorySql) BulkInserMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error) {
 	// Start a new transaction
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -122,7 +122,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 
 }
 
-func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
+func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
 	query := `
         SELECT 
 			ts, text, 
@@ -196,11 +196,11 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 	return messages, nil
 }
 
-func (r *Repository) ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error) {
+func (r *RepositorySql) ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error) {
 	panic("not implemented")
 }
 
-func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
+func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
 	query := `
         SELECT 
 			ts, text, 
@@ -264,7 +264,7 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 	return messages, nil
 }
 
-func (r *Repository) GetFileById(ctx context.Context, fileId string) (*models.File, error) {
+func (r *RepositorySql) GetFileById(ctx context.Context, fileId string) (*models.File, error) {
 	query := `
         SELECT 
 			id,
