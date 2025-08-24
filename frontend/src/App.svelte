@@ -1,13 +1,16 @@
 <script lang="ts">
+import * as runtime from '../wailsjs/runtime'
+import { onMount, setContext } from 'svelte'
+import { GetViewState } from '../wailsjs/go/app/App'
+
 import FileUploader from './lib/components/FileUploader.svelte'
 import Dashboard from './lib/components/Dashboard.svelte'
 import Progress from './lib/components/Progress.svelte'
-import { onMount } from 'svelte'
-import { GetViewState } from '../wailsjs/go/app/App'
-import * as runtime from '../wailsjs/runtime'
+import Overlay from './lib/components/Overlay.svelte'
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
 
+let overlayComponent: Overlay
 let viewState = $state<ViewState>('loading')
 
 // onMount is the perfect lifecycle hook to set up listeners.
@@ -26,8 +29,17 @@ onMount(async () => {
     console.error('Failed to initialize view state or set up listener:', error)
   }
 })
+
+function openOverlay(src: string) {
+  if (overlayComponent) {
+    overlayComponent.showOverlay(src)
+  }
+}
+
+setContext('overlay', { openOverlay })
 </script>
 
+<Overlay bind:this={overlayComponent} />
 <main class="app-main">
   <header></header>
   <!-- Routing -->
@@ -40,7 +52,6 @@ onMount(async () => {
   {/if}
   <footer></footer>
 </main>
-
 
 <style>
   /* Inter font from Google Fonts (or similar system font for local development) */
@@ -65,5 +76,4 @@ onMount(async () => {
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
   }
-  
 </style>

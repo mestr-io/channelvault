@@ -1,6 +1,7 @@
 <script lang="ts">
 import { GetBase64Image } from '../../../wailsjs/go/app/App'
-import { onMount } from 'svelte'
+
+import { onMount, getContext } from 'svelte'
 let { fileId, alt, url } = $props()
 
 let shouldLoad = $state(false)
@@ -8,6 +9,7 @@ let container: HTMLDivElement
 
 const delay = 250
 const threshold = 0.05 // Load when 5% of the image is visible
+const { openOverlay } = getContext<{ openOverlay: (src: string) => void }>('overlay')
 
 onMount(() => {
   // Ensure the container element is mounted before proceeding
@@ -55,17 +57,23 @@ onMount(() => {
 })
 </script>
 
-<a href={url} target="_blank" rel="noopener noreferrer">
+<div>
   <div bind:this={container} class="wrapper">
     <div class="placeholder">
       {#if shouldLoad}
         {#await GetBase64Image(fileId) then src}
-          <img {src} {alt} />
+          <img
+            {src}
+            {alt}
+            onclick={() => {
+              openOverlay(src);
+            }}
+          />
         {/await}
       {/if}
     </div>
   </div>
-</a>
+</div>
 
 <style>
   /* The wrapper must be a layout element for the observer to see it. */
