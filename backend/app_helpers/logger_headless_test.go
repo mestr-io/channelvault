@@ -11,11 +11,6 @@ func TestInitWailsLog_InitializesLogger(t *testing.T) {
 	ch := make(chan string)
 	app := &FakeApp{}
 
-	//avoid wails to see go test flags
-	//save := backupFlags()
-	//resetFlags()
-	//defer restoreFlags(save)
-
 	//schedule test tear down
 
 	go func() {
@@ -27,9 +22,7 @@ func TestInitWailsLog_InitializesLogger(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error starting fake app: %s", err.Error())
 	}
-
-	time.Sleep(time.Second) //avoid race cond
-
+	
 	ctx := app.GetContext()
 	if ctx == nil {
 		t.Fatalf("got nil context")
