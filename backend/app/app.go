@@ -2,6 +2,8 @@ package app
 
 import (
 	"context" // For the context.Context type
+	"sync"
+
 	// For embedding frontend assets
 	// For formatting output, like in LogPrintf
 	"time"
@@ -10,6 +12,7 @@ import (
 	_ "github.com/mattn/go-sqlite3" // For checking the build mode
 	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
+	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 
 	// Ensure this is imported for assetserver.Options
@@ -81,11 +84,19 @@ func (a *App) processImport(path string) {
 		return
 	}
 
-	progressChan := make(chan importer.Progress)
+	// notify the FE
+	runtime.EventsEmit(a.ctx, "startImport", record)
+
+	progressChan := make(chan models.Progress)
 	imp := importer.NewImporter(a.ctx, path, a.repository, record.ID)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
 
 	var importErr error
 	go func() {
+		defer wg.Done()
+
 		importErr = imp.Import(progressChan)
 	}()
 
@@ -98,6 +109,7 @@ func (a *App) processImport(path string) {
 		}
 		record.NumMessages++
 	}
+	wg.Wait()
 
 	if importErr != nil {
 		ah.Errorf("Import failed: %v", importErr)

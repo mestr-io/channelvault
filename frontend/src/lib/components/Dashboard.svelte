@@ -9,8 +9,8 @@
   import { onMount, tick } from 'svelte'
   import Welcome from './Welcome.svelte'
   import { setContext } from 'svelte'
-  import ImportManager from './ImportManager.svelte' // <-- 1. Import the new component
-    import FileUploader from './FileUploader.svelte';
+  import FileUploader from './FileUploader.svelte';
+
 
   // --- State Variables ---
   let channels = $state<models.Channel[]>([] as models.Channel[])
@@ -257,6 +257,12 @@
   .sidebar .imports svg {
     height: 1rem;
   }
+
+  .sidebar .imports:active {
+    background-color: #f9edff;
+    color: #39063a;
+  }
+
   .sidebar h4 {
     padding: 1rem 1.25rem 0.5rem;
     font-size: 1.2rem;

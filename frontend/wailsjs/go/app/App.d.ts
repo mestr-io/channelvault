@@ -15,3 +15,5 @@ export function GetUserAvatar(arg1:string):Promise<string>;
 export function GetViewState():Promise<string>;
 
 export function ListImports():Promise<Array<models.SlackImport>>;
+
+export function WailsGenProgress():Promise<models.Progress>;

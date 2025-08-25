@@ -29,3 +29,7 @@ export function GetViewState() {
 export function ListImports() {
   return window['go']['app']['App']['ListImports']();
 }
+
+export function WailsGenProgress() {
+  return window['go']['app']['App']['WailsGenProgress']();
+}

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -45,19 +46,23 @@ func (r *Repository) MarkCheckpointAsCompleted(ctx context.Context, importID int
 }
 
 func (r *Repository) GetImport(ctx context.Context, id int64) (*models.SlackImport, error) {
-	sql := `SELECT id, name, path, created, finished, num_messages, error FROM imports WHERE id = ?`
+	sqlStatement := `SELECT id, name, path, created, finished, num_messages, error FROM imports WHERE id = ?`
 	var imp models.SlackImport
-	err := r.db.QueryRowContext(ctx, sql, id).Scan(
+	var finished sql.NullString
+	err := r.db.QueryRowContext(ctx, sqlStatement, id).Scan(
 		&imp.ID,
 		&imp.Name,
 		&imp.Path,
 		&imp.Created,
-		&imp.Finished,
+		&finished,
 		&imp.NumMessages,
 		&imp.Error,
 	)
 	if err != nil {
 		return nil, err
+	}
+	if finished.Valid {
+		imp.Finished = finished.String
 	}
 	return &imp, nil
 }
@@ -80,7 +85,7 @@ func (r *Repository) DeleteImport(ctx context.Context, id int64) error {
 }
 
 func (r *Repository) CreateImport(ctx context.Context, path string) (*models.SlackImport, error) {
-	sql := `INSERT INTO imports (path) VALUES (?);`
+	sql := `INSERT INTO imports (path, name, error) VALUES (?, '', '');`
 	result, err := r.db.ExecContext(ctx, sql, path)
 	if err != nil {
 		return nil, err
@@ -105,8 +110,8 @@ func (r *Repository) NoFinishedImports(ctx context.Context) (bool, error) {
 }
 
 func (r *Repository) ListImports(ctx context.Context) (imports []models.SlackImport, err error) {
-	sql := `SELECT id, created, finished, num_messages, path FROM imports;`
-	rows, err := r.db.Query(sql)
+	sqlStatement := `SELECT id, created, finished, num_messages, path FROM imports ORDER BY id DESC;`
+	rows, err := r.db.Query(sqlStatement)
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
 	}
@@ -116,9 +121,13 @@ func (r *Repository) ListImports(ctx context.Context) (imports []models.SlackImp
 
 	for rows.Next() {
 		var imp models.SlackImport
-		err = rows.Scan(&imp.ID, &imp.Created, &imp.Finished, &imp.NumMessages, &imp.Path)
+		var finished sql.NullString
+		err = rows.Scan(&imp.ID, &imp.Created, &finished, &imp.NumMessages, &imp.Path)
 		if err != nil {
 			return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
+		}
+		if finished.Valid {
+			imp.Finished = finished.String
 		}
 		imports = append(imports, imp)
 	}

@@ -7,7 +7,6 @@ import { GetViewState } from '../wailsjs/go/app/App'
 import * as runtime from '../wailsjs/runtime'
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
-
 let viewState = $state<ViewState>('loading')
 
 // onMount is the perfect lifecycle hook to set up listeners.
@@ -30,14 +29,7 @@ onMount(async () => {
 
 <main class="app-main">
   <header></header>
-  <!-- Routing -->
-  {#if viewState === "loading"}
-    <Progress />
-  {:else if viewState === "setup"}
-    <FileUploader />
-  {:else if viewState === "dashboard"}
-    <Dashboard />
-  {/if}
+  <Dashboard />
   <footer></footer>
 </main>
 

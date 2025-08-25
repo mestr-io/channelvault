@@ -107,7 +107,7 @@ func findFile(filename string, files []*zip.File) (*zip.File, error) {
 	return nil, fmt.Errorf("FATAL: couldnt find file %s", filename)
 }
 
-func (i *Importer) Import(c chan Progress) error {
+func (i *Importer) Import(c chan models.Progress) error {
 	defer close(c)
 
 	r, err := zip.OpenReader(i.path)
@@ -123,7 +123,10 @@ func (i *Importer) Import(c chan Progress) error {
 	for _, f := range r.File {
 		files = append(files, f.Name)
 	}
-	i.repository.CreateCheckpointPlaceHolders(i.ctx, i.importID, files)
+	err = i.repository.CreateCheckpointPlaceHolders(i.ctx, i.importID, files)
+	if err != nil {
+		return fmt.Errorf("fail to create import placeholder: %w", err)
+	}
 
 	// users.json
 	f, err := findFile("users.json", r.File)
@@ -159,9 +162,10 @@ func (i *Importer) Import(c chan Progress) error {
 			messagesFileRegex := regexp.MustCompile(`([^/]+)/(\d{4}-\d{2}-\d{2}\.json)$`)
 			if matches := messagesFileRegex.FindStringSubmatch(f.Name); len(matches) > 1 {
 				channelID := matches[1]
-				c <- Progress{
+				c <- models.Progress{
+					ImportID:    i.importID,
 					FileName:    fmt.Sprintf("%s / %s", channelID, matches[2]),
-					Progress:    float32(idx+1) / float32(totalFiles),
+					Progress:    100 * (idx + 1) / totalFiles,
 					TotalFiles:  totalFiles,
 					CurrentFile: idx + 1,
 				}

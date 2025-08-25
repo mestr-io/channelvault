@@ -356,6 +356,26 @@ export namespace models {
 		    return a;
 		}
 	}
+	export class Progress {
+	    ImportID: number;
+	    FileName: string;
+	    Progress: number;
+	    TotalFiles: number;
+	    CurrentFile: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Progress(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ImportID = source["ImportID"];
+	        this.FileName = source["FileName"];
+	        this.Progress = source["Progress"];
+	        this.TotalFiles = source["TotalFiles"];
+	        this.CurrentFile = source["CurrentFile"];
+	    }
+	}
 	
 	
 	export class SlackImport {
