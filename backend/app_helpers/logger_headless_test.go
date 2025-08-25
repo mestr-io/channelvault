@@ -23,6 +23,9 @@ func TestInitWailsLog_InitializesLogger(t *testing.T) {
 		t.Fatalf("Error starting fake app: %s", err.Error())
 	}
 	
+	//a race condition appears if getting context before one second...
+	time.Sleep(time.Second)
+
 	ctx := app.GetContext()
 	if ctx == nil {
 		t.Fatalf("got nil context")
