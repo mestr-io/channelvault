@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Update and install basic dependencies
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends \
+        sudo \
         ca-certificates \
         curl \
         wget \
