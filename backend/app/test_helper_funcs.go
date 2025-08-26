@@ -27,7 +27,7 @@ func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.
 	args := m.Called(ctx, path)
 	// Handle the case where the first return value might be nil
 	if args.Get(0) == nil {
-		return &models.Import{}, args.Error(1)
+		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.Import), args.Error(1)
 }
