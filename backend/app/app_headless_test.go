@@ -3,6 +3,7 @@ package app
 
 import (
 	"testing"
+	"context"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -29,12 +30,31 @@ func TestSetViewState(t *testing.T) {
 	}
 	
 	//a race condition appears if getting context before one or 2 seconds...
-	time.Sleep(2*time.Second)
+	//time.Sleep(2*time.Second)
 
-	ctx := app.GetContext()
-	if ctx == nil {
-		t.Fatalf("got nil context")
+	// Wait for app context to be ready, polling with timeout instead of fixed sleep
+	var ctx context.Context
+	timeout := time.After(5 * time.Second)
+	tick := time.Tick(50 * time.Millisecond)
+
+	ever := true
+	for ever {
+		select {
+		case <-timeout:
+			t.Fatalf("timeout waiting for app context to be ready")
+		case <-tick:
+			ctx = app.GetContext()
+			if ctx != nil {
+				ever = false				
+			}
+		}
 	}
+
+	//ctx := app.GetContext()
+	//if ctx == nil {
+	//	t.Fatalf("got nil context")
+	//}
+
 	// Create a real App instance with the fake app context
 	realApp := New(nil, "")
 	realApp.ctx = app.GetContext() // In a real scenario, this would be set by Wails
