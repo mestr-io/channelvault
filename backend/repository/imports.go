@@ -23,8 +23,8 @@ func (r *RepositorySql) StoreImport(ctx context.Context, path string) (*models.I
 
 // FinishedImport marks the import as finished in the database.
 func (r *RepositorySql) FinishedImport(ctx context.Context, ID int64) error {
-	sql := `UPDATE imports SET finished = ?;`
-	_, err := r.db.ExecContext(ctx, sql, time.Now())
+	sql := `UPDATE imports SET finished = ? WHERE id = ?;`
+	_, err := r.db.ExecContext(ctx, sql, time.Now(), ID)
 	if err != nil {
 		return err
 	}
