@@ -16,7 +16,7 @@ import (
 )
 
 //go:embed all:testdata/dist
-var assets embed.FS //neded by FakeApp
+var assets embed.FS //needed by FakeApp
 
 type FakeApp struct {
 	ctx context.Context
