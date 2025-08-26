@@ -21,7 +21,7 @@ type ViewState string
 const (
 	ViewStateSetup     ViewState = "setup"
 	ViewStateDashboard ViewState = "dashboard"
-	VIewStateLoading   ViewState = "loading"
+	ViewStateLoading   ViewState = "loading"
 )
 
 type App struct {
@@ -73,7 +73,7 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 }
 
 func (a *App) processImport(path string) {
-	a.setViewState(VIewStateLoading)
+	a.setViewState(ViewStateLoading)
 	record, err := a.repository.StoreImport(a.ctx, path)
 	if err != nil {
 		ah.Errorf("Import failed: %v", err)
