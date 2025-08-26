@@ -83,7 +83,9 @@ func TestNoFinishedImports(t *testing.T) {
 		}
 	})
 
-	repo.FinishedImport(context.Background(), imp.ID)
+	if err := repo.FinishedImport(context.Background(), imp.ID); err != nil {
+		t.Fatalf("FinishedImport() error = %v", err)
+	}
 
 	t.Run("Finished import", func(t *testing.T) {
 		any, err := repo.NoFinishedImports(context.Background())
