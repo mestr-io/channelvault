@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 	"testing"
-	
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -32,19 +32,19 @@ func (m *MockRepository) BulkInsertChannels(channels []models.Channel) error {
 	return args.Error(0)
 }
 
-func (m *MockRepository) BulkInserMessages(ctx context.Context, channelID string, messages []models.Message) error {
+func (m *MockRepository) BulkInsertMessages(ctx context.Context, channelID string, messages []models.Message) error {
 	args := m.Called(ctx, channelID, messages)
 	return args.Error(0)
 }
 
-//channels	
+// channels
 func (m *MockRepository) GetChannels() (channels []models.Channel, err error) {
 	panic("GetChannels not defined in mock")
 }
 
-//imports
+// imports
 func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.Import, error) {
-	panic("StoreImport not defined in mock")	
+	panic("StoreImport not defined in mock")
 }
 func (m *MockRepository) FinishedImport(ctx context.Context, ID int64) error {
 	panic("FinishedImport not defined in mock")
@@ -53,7 +53,7 @@ func (m *MockRepository) NoFinishedImports(ctx context.Context) (bool, error) {
 	panic("NotFinishedImports not defined in mock")
 }
 
-//messages
+// messages
 func (m *MockRepository) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
 	panic("GetMessages not defined in mock")
 }
@@ -68,12 +68,12 @@ func (m *MockRepository) GetFileById(ctx context.Context, fileId string) (*model
 	panic("GetFileById not defined in mock")
 }
 
-//setup
+// setup
 func (m *MockRepository) SetupSchemas() error {
 	panic("SetupSchemas not defined in mock")
 }
 
-//users	
+// users
 func (m *MockRepository) GetUserAvatar(ctx context.Context, userId string) (string, error) {
 	panic("GetUserAvatar nor defined in mock")
 }
@@ -116,7 +116,6 @@ func createTestZip(t *testing.T, files map[string]string) string {
 	return tmpFile.Name()
 }
 
-
 func TestImporter_Imports(t *testing.T) {
 	validUsersJSON := `[{"id": "U1", "name": "user1"}]`
 	validChannelsJSON := `[{"id": "C1", "name": "channel1"}]`
@@ -134,12 +133,12 @@ func TestImporter_Imports(t *testing.T) {
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
 				mockRepo.On("BulkInsertUsers", mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertChannels", mock.Anything).Return(nil).Once()
-				mockRepo.On("BulkInserMessages", mock.Anything, "C1", mock.Anything).Return(nil).Once()
+				mockRepo.On("BulkInsertMessages", mock.Anything, "C1", mock.Anything).Return(nil).Once()
 
 				zipPath := createTestZip(t, map[string]string{
-					"users.json":             validUsersJSON,
-					"channels.json":          validChannelsJSON,
-					"C1/2022-01-01.json":     validMessagesJSON,
+					"users.json":                    validUsersJSON,
+					"channels.json":                 validChannelsJSON,
+					"C1/2022-01-01.json":            validMessagesJSON,
 					"ignore_this_dir/some_file.txt": "data",
 				})
 				return zipPath, context.Background()
@@ -218,7 +217,7 @@ func TestImporter_Imports(t *testing.T) {
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
 				mockRepo.On("BulkInsertUsers", mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertChannels", mock.Anything).Return(nil).Once()
-				mockRepo.On("BulkInserMessages", mock.Anything, "C1", mock.Anything).Return(errors.New("db error")).Once()
+				mockRepo.On("BulkInsertMessages", mock.Anything, "C1", mock.Anything).Return(errors.New("db error")).Once()
 				zipPath := createTestZip(t, map[string]string{
 					"users.json":         validUsersJSON,
 					"channels.json":      validChannelsJSON,
@@ -231,7 +230,7 @@ func TestImporter_Imports(t *testing.T) {
 			checkMock: func(t *testing.T, mockRepo *MockRepository) {
 				mockRepo.AssertCalled(t, "BulkInsertUsers", mock.Anything)
 				mockRepo.AssertCalled(t, "BulkInsertChannels", mock.Anything)
-				mockRepo.AssertCalled(t, "BulkInserMessages", mock.Anything, "C1", mock.Anything)
+				mockRepo.AssertCalled(t, "BulkInsertMessages", mock.Anything, "C1", mock.Anything)
 			},
 		},
 		{
@@ -239,7 +238,7 @@ func TestImporter_Imports(t *testing.T) {
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
 				mockRepo.On("BulkInsertUsers", mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertChannels", mock.Anything).Return(nil).Once()
-				// No call to BulkInserMessages is expected as it should be cancelled before.
+				// No call to BulkInsertMessages is expected as it should be cancelled before.
 
 				zipPath := createTestZip(t, map[string]string{
 					"users.json":         validUsersJSON,
@@ -315,7 +314,6 @@ func TestFindFile(t *testing.T) {
 		assert.NotNil(t, f)
 		assert.Equal(t, "messages.json", filepath.Base(f.Name))
 	})
-
 
 	t.Run("returns error for non-existing file", func(t *testing.T) {
 		f, err := findFile("nonexistent.json", files)

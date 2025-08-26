@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
-	"context"	
 	"fmt"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
@@ -15,11 +15,11 @@ type Repository interface {
 
 	//imports
 	StoreImport(ctx context.Context, path string) (*models.Import, error)
-	FinishedImport(ctx context.Context, ID int64) error	
+	FinishedImport(ctx context.Context, ID int64) error
 	NoFinishedImports(ctx context.Context) (bool, error)
 
 	//messages
-	BulkInserMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error)
+	BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error)
 	GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error)
 	ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error)
 	GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error)
@@ -29,8 +29,8 @@ type Repository interface {
 	SetupSchemas() error
 
 	//users
-	BulkInsertUsers(users []models.User) (err error)	
-	GetUserAvatar(ctx context.Context, userId string) (string, error)	
+	BulkInsertUsers(users []models.User) (err error)
+	GetUserAvatar(ctx context.Context, userId string) (string, error)
 }
 
 type RepositorySql struct {

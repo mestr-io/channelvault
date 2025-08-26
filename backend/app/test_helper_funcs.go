@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
-		
+
 	"github.com/stretchr/testify/mock"
 )
 
@@ -47,7 +47,7 @@ func (m *MockRepository) BulkInsertChannels(channels []models.Channel) error {
 	return args.Error(0)
 }
 
-func (m *MockRepository) BulkInserMessages(ctx context.Context, ChannelID string, messages []models.Message) error {
+func (m *MockRepository) BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) error {
 	args := m.Called(ctx, ChannelID, messages)
 	return args.Error(0)
 }
