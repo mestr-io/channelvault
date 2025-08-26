@@ -68,7 +68,10 @@ func TestNoFinishedImports(t *testing.T) {
 		}
 	})
 
-	imp, _ := repo.StoreImport(context.Background(), "/path/to/import")
+	imp, err := repo.StoreImport(context.Background(), "/path/to/import")
+	if err != nil {
+		t.Fatalf("StoreImport() error = %v", err)
+	}
 
 	t.Run("Unfinished import", func(t *testing.T) {
 		any, err := repo.NoFinishedImports(context.Background())
