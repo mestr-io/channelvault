@@ -2,6 +2,8 @@ package app
 
 import (
 	"context" // For the context.Context type
+	"path/filepath"
+	"strings"
 	"sync"
 
 	// For embedding frontend assets
@@ -75,9 +77,14 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 	a.processImport(paths[0])
 }
 
+func defaultImportName(path string) string {
+	name, _ := strings.CutSuffix(filepath.Base(path), ".zip")
+	return name
+}
+
 func (a *App) processImport(path string) {
 	a.setViewState(VIewStateLoading)
-	record, err := a.repository.CreateImport(a.ctx, path)
+	record, err := a.repository.CreateImport(a.ctx, path, defaultImportName(path))
 	if err != nil {
 		ah.Errorf("Import failed: %v", err)
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
@@ -96,7 +103,6 @@ func (a *App) processImport(path string) {
 	var importErr error
 	go func() {
 		defer wg.Done()
-
 		importErr = imp.Import(progressChan)
 	}()
 
@@ -107,8 +113,10 @@ func (a *App) processImport(path string) {
 			runtime.EventsEmit(a.ctx, "importProgress", p)
 			lastUpdateTime = time.Now()
 		}
-		record.NumMessages++
+		record.NumFiles++
 	}
+
+	// wait for completion or error
 	wg.Wait()
 
 	if importErr != nil {

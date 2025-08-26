@@ -10,19 +10,20 @@
   import Welcome from './Welcome.svelte'
   import { setContext } from 'svelte'
   import FileUploader from './FileUploader.svelte';
+  import * as runtime from "../../../wailsjs/runtime";
 
 
   // --- State Variables ---
   let channels = $state<models.Channel[]>([] as models.Channel[])
-  let messages = $state<models.Message[]>([] as models.Message[])
-  let threadMessages = $state<models.Message[]>([] as models.Message[])
   let selectedChannel = $state<models.Channel | null>(null)
+  
+  let threadMessages = $state<models.Message[]>([] as models.Message[])
+  let messages = $state<models.Message[]>([] as models.Message[])
   let isLoadingMessages = $state(false)
   let hasMoreMessages = $state(true)
 
   let showThread = $state(false)
   let selectedThread = $state<string | null>(null)
-  let isInitialLoad = $state(true)
 
   // 2. Add state to control the main view
   let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
@@ -32,6 +33,11 @@
   // svelte-ignore non_reactive_update
   let vlist_thread: VListHandle
 
+
+  $effect(()=>{
+    console.log(currentView)
+  })
+  
   const startResize = () => {
     document.body.classList.add('is-resizing-panes')
   }
@@ -71,6 +77,12 @@
 
   onMount(async () => {
     channels = await GetChannels()
+    
+    // reload the 
+    runtime.EventsOn("importComplete", async () => {
+      const fresh = await GetChannels()
+      channels = [...fresh]
+    });
   })
 
   async function selectChannel(channel: models.Channel) {
@@ -79,7 +91,6 @@
     selectedChannel = channel
     messages = []
     hasMoreMessages = true
-    isInitialLoad = true
     showThread = false
     currentView = 'channel' // <-- 3. Set view to 'channel' on selection
     await loadMoreMessages()

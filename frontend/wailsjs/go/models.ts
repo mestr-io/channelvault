@@ -383,7 +383,7 @@ export namespace models {
 	    Path: string;
 	    Created: string;
 	    Finished: string;
-	    NumMessages: number;
+	    NumFiles: number;
 	    Name: string;
 	    Error: string;
 	
@@ -397,7 +397,7 @@ export namespace models {
 	        this.Path = source["Path"];
 	        this.Created = source["Created"];
 	        this.Finished = source["Finished"];
-	        this.NumMessages = source["NumMessages"];
+	        this.NumFiles = source["NumFiles"];
 	        this.Name = source["Name"];
 	        this.Error = source["Error"];
 	    }

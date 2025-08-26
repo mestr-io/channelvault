@@ -12,7 +12,7 @@ import (
 func (r *Repository) CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("starting transaction failed: %w", err)
 	}
 	defer func() {
 		if err != nil {
@@ -22,18 +22,18 @@ func (r *Repository) CreateCheckpointPlaceHolders(ctx context.Context, importID 
 
 	stmt, err := tx.PrepareContext(ctx, `INSERT INTO checkpoints (import_id, path) VALUES (?, ?)`)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating prepare statement failed: %w", err)
 	}
 	defer stmt.Close()
 
 	for _, path := range paths {
 		if _, err = stmt.ExecContext(ctx, importID, path); err != nil {
-			return err
+			return fmt.Errorf("inserting record for path %s failed: %w", path, err)
 		}
 	}
 
 	if err = tx.Commit(); err != nil {
-		return err
+		return fmt.Errorf("commiting transaction failed: %w", err)
 	}
 
 	return nil
@@ -41,8 +41,10 @@ func (r *Repository) CreateCheckpointPlaceHolders(ctx context.Context, importID 
 
 func (r *Repository) MarkCheckpointAsCompleted(ctx context.Context, importID int64, path string, errMsg string) error {
 	sql := `UPDATE checkpoints SET processed_at = CURRENT_TIMESTAMP, error = ? WHERE import_id = ? AND path = ?;`
-	_, err := r.db.ExecContext(ctx, sql, errMsg, importID, path)
-	return err
+	if _, err := r.db.ExecContext(ctx, sql, errMsg, importID, path); err != nil {
+		return fmt.Errorf("update checkpoint for import %d and path %s failed: %w", importID, path, err)
+	}
+	return nil
 }
 
 func (r *Repository) GetImport(ctx context.Context, id int64) (*models.SlackImport, error) {
@@ -55,11 +57,11 @@ func (r *Repository) GetImport(ctx context.Context, id int64) (*models.SlackImpo
 		&imp.Path,
 		&imp.Created,
 		&finished,
-		&imp.NumMessages,
+		&imp.NumFiles,
 		&imp.Error,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("retrieving import %d failed: %w", id, err)
 	}
 	if finished.Valid {
 		imp.Finished = finished.String
@@ -69,13 +71,15 @@ func (r *Repository) GetImport(ctx context.Context, id int64) (*models.SlackImpo
 
 func (r *Repository) FinishedImportUpdate(ctx context.Context, imp *models.SlackImport) error {
 	sql := `UPDATE imports SET name = ?, finished = CURRENT_TIMESTAMP, num_messages = ?, error = ? WHERE id = ?`
-	_, err := r.db.ExecContext(ctx, sql,
+	if _, err := r.db.ExecContext(ctx, sql,
 		imp.Name,
-		imp.NumMessages,
+		imp.NumFiles,
 		imp.Error,
 		imp.ID,
-	)
-	return err
+	); err != nil {
+		return fmt.Errorf("updating import %d failed: %w", imp.ID, err)
+	}
+	return nil
 }
 
 func (r *Repository) DeleteImport(ctx context.Context, id int64) error {
@@ -84,9 +88,9 @@ func (r *Repository) DeleteImport(ctx context.Context, id int64) error {
 	return err
 }
 
-func (r *Repository) CreateImport(ctx context.Context, path string) (*models.SlackImport, error) {
-	sql := `INSERT INTO imports (path, name, error) VALUES (?, '', '');`
-	result, err := r.db.ExecContext(ctx, sql, path)
+func (r *Repository) CreateImport(ctx context.Context, path string, name string) (*models.SlackImport, error) {
+	sql := `INSERT INTO imports (path, name, error) VALUES (?, ?, '');`
+	result, err := r.db.ExecContext(ctx, sql, path, name)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +99,8 @@ func (r *Repository) CreateImport(ctx context.Context, path string) (*models.Sla
 	if err != nil {
 		return nil, err
 	}
+	i.Name = name
+	i.Path = path
 	return &i, nil
 }
 
@@ -110,7 +116,7 @@ func (r *Repository) NoFinishedImports(ctx context.Context) (bool, error) {
 }
 
 func (r *Repository) ListImports(ctx context.Context) (imports []models.SlackImport, err error) {
-	sqlStatement := `SELECT id, created, finished, num_messages, path FROM imports ORDER BY id DESC;`
+	sqlStatement := `SELECT id, created, finished, num_messages, path, name FROM imports ORDER BY id DESC;`
 	rows, err := r.db.Query(sqlStatement)
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
@@ -122,7 +128,7 @@ func (r *Repository) ListImports(ctx context.Context) (imports []models.SlackImp
 	for rows.Next() {
 		var imp models.SlackImport
 		var finished sql.NullString
-		err = rows.Scan(&imp.ID, &imp.Created, &finished, &imp.NumMessages, &imp.Path)
+		err = rows.Scan(&imp.ID, &imp.Created, &finished, &imp.NumFiles, &imp.Path, &imp.Name)
 		if err != nil {
 			return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
 		}

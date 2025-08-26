@@ -186,9 +186,9 @@
                     />
                 </svg>
                 <div class="info-text">
-                    <span class="info-label">Messages</span>
+                    <span class="info-label">Files</span>
                     <span class="info-value"
-                        >{card.NumMessages?.toLocaleString() || "0"}</span
+                        >{card.NumFiles?.toLocaleString() || "0"}</span
                     >
                 </div>
             </div>

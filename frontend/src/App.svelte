@@ -1,13 +1,13 @@
 <script lang="ts">
 import FileUploader from './lib/components/FileUploader.svelte'
 import Dashboard from './lib/components/Dashboard.svelte'
-import Progress from './lib/components/Progress.svelte'
 import { onMount } from 'svelte'
 import { GetViewState } from '../wailsjs/go/app/App'
 import * as runtime from '../wailsjs/runtime'
 
-type ViewState = 'setup' | 'dashboard' | 'loading'
-let viewState = $state<ViewState>('loading')
+type ViewState = 'setup' | 'dashboard'
+
+let viewState = $state<ViewState>('setup')
 
 // onMount is the perfect lifecycle hook to set up listeners.
 // It runs once after the component is first added to the DOM.

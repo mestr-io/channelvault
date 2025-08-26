@@ -92,7 +92,7 @@ function getStatus(imp: models.SlackImport): Status {
 
           <div class="meta-col">
             {#if getStatus(imp) === Status.Ready}
-              <span>{imp.NumMessages} messages</span>
+              <span>{imp.NumFiles} messages</span>
             {:else if getStatus(imp) === Status.Processing}
               <span class="processing">Processing…</span>
             {:else}

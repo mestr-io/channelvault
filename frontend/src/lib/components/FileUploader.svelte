@@ -8,18 +8,24 @@
   let isDragging = $state(false);
   let dragCounter = $state(0);
   let imports: models.SlackImport[] = $state([]);
-  
+
   onMount(async () => {
-    imports = await ListImports();
+    try {
+      const fresh = await ListImports()
+      imports = [...fresh] 
+    } catch (error) {
+      console.log(error)
+    }
   
     // subscribe to new import notification
     runtime.EventsOn("startImport", (imp: models.SlackImport) => {
-      imports.unshift(imp);
+      imports = [imp, ...imports]
     });
-    
+
      // reload the 
     runtime.EventsOn("importComplete", async () => {
-      imports = await ListImports();
+      const fresh = await ListImports()
+      imports = [...fresh]
     });
   });
 
@@ -124,7 +130,7 @@
   </div>
 
   <div class="imports">
-    {#each imports as card (card.ID)}
+    {#each imports as card (card.Finished)}
       <SlackImport {card} />
     {/each}
   </div>
