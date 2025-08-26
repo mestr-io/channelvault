@@ -8,7 +8,7 @@ require (
 	github.com/adrg/xdg v0.5.3
 	github.com/marcboeker/go-duckdb v1.8.5
 	github.com/mattn/go-sqlite3 v1.14.30
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	github.com/wailsapp/wails/v2 v2.10.2
 )
 

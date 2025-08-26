@@ -3,14 +3,10 @@
 package app_helpers
 
 import (
-	"embed"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-//go:embed all:testdata/dist
-var assets embed.FS //neded by FakeApp
 
 func TestAppLoggerIsNilBeforeInitLog(t *testing.T) {
 	assert := assert.New(t)

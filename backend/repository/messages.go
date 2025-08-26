@@ -11,7 +11,7 @@ import (
 )
 
 // TODO: add context to stop it if needed
-func (r *RepositorySql) BulkInserMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error) {
+func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error) {
 	// Start a new transaction
 	tx, err := r.db.Begin()
 	if err != nil {

@@ -21,8 +21,8 @@ func TestBulkInsertMessages(t *testing.T) {
 		{Ts: "123.457", UserId: "U1", Text: "World", ThreadTs: "123.456"},
 	}
 
-	if err := repo.BulkInserMessages(context.Background(), "C1", messages); err != nil {
-		t.Fatalf("BulkInserMessages() error = %v", err)
+	if err := repo.BulkInsertMessages(context.Background(), "C1", messages); err != nil {
+		t.Fatalf("BulkInsertMessages() error = %v", err)
 	}
 
 	var count int
@@ -47,7 +47,7 @@ func TestGetMessages(t *testing.T) {
 	}
 
 	//note channel name is used on the insert and not channel ID
-	repo.BulkInserMessages(context.Background(), "channel1", messages)
+	repo.BulkInsertMessages(context.Background(), "channel1", messages)
 
 	retrieved, err := repo.GetMessages(context.Background(), "C1", "", 10)
 	if err != nil {
@@ -82,7 +82,7 @@ func TestGetThreadByTs(t *testing.T) {
 	}
 
 	//note channel name is used on the insert and not channel ID
-	repo.BulkInserMessages(context.Background(), "channel1", messages)
+	repo.BulkInsertMessages(context.Background(), "channel1", messages)
 	
 	retrieved, err := repo.GetThreadByTs(context.Background(), "123.456", "C1")
 	if err != nil {
@@ -106,7 +106,7 @@ func TestGetFileById(t *testing.T) {
 	messages := []models.Message{
 		{Ts: "123.456", Files: []models.File{{ID: "F1", Name: "file1.txt"}}},
 	}
-	repo.BulkInserMessages(context.Background(), "C1", messages)
+	repo.BulkInsertMessages(context.Background(), "C1", messages)
 
 	file, err := repo.GetFileById(context.Background(), "F1")
 	if err != nil {

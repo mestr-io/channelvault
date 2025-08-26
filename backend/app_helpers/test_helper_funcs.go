@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 	"time"
+	"embed"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
@@ -13,6 +14,9 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+//go:embed all:testdata/dist
+var assets embed.FS //needed by FakeApp
 
 type FakeApp struct {
 	ctx context.Context

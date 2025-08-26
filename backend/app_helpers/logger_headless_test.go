@@ -1,10 +1,11 @@
-//go:build (dev&&headless)
+//go:build dev && headless
 
 package app_helpers
 
-import (	
+import (
+	"context"
 	"testing"
-	"time"	
+	"time"
 )
 
 func TestInitWailsLog_InitializesLogger(t *testing.T) {
@@ -23,14 +24,25 @@ func TestInitWailsLog_InitializesLogger(t *testing.T) {
 		t.Fatalf("Error starting fake app: %s", err.Error())
 	}
 	
-	//a race condition appears if getting context before one second...
-	time.Sleep(time.Second)
+	// Wait for app context to be ready, polling with timeout instead of fixed sleep
+	var ctx context.Context
+	timeout := time.After(5 * time.Second)
+	tick := time.Tick(50 * time.Millisecond)
 
-	ctx := app.GetContext()
-	if ctx == nil {
-		t.Fatalf("got nil context")
+	ever := true
+	for ever {
+		select {
+		case <-timeout:
+			t.Fatalf("timeout waiting for app context to be ready")
+		case <-tick:
+			ctx = app.GetContext()
+			if ctx != nil {
+				ever = false				
+			}
+		}
 	}
 	
+	// Initialize the logger with the app context	
 	InitWailsLog(ctx)
 	defer func(){
 		//undo InitWailsLog
