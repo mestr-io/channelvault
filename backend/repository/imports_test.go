@@ -35,7 +35,10 @@ func TestFinishedImport(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 
-	imp, _ := repo.StoreImport(context.Background(), "/path/to/import")
+	imp, err := repo.StoreImport(context.Background(), "/path/to/import")
+	if err != nil {
+		t.Fatalf("StoreImport() error = %v", err)
+	}
 
 	if err := repo.FinishedImport(context.Background(), imp.ID); err != nil {
 		t.Fatalf("FinishedImport() error = %v", err)
