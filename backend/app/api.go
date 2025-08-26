@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 func (a *App) GetChannels() ([]models.Channel, error) {
@@ -70,4 +71,21 @@ func (a *App) GetBase64Image(fileId string) (string, error) {
 
 func (a *App) ListImports() ([]models.SlackImport, error) {
 	return a.repository.ListImports(a.ctx)
+}
+
+func (a *App) DeleteImport(importID int64) error {
+	selection, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+		Type:          runtime.QuestionDialog,
+		Title:         "Confirm Delete",
+		Message:       "Are you sure you want to delete this import? This action cannot be undone.",
+		Buttons:       []string{"Cancel", "Delete"},
+		DefaultButton: "Cancel",
+	})
+	if err != nil {
+		return err
+	}
+	if selection != "Delete" {
+		return fmt.Errorf("user cancelled deletion")
+	}
+	return a.repository.DeleteImport(a.ctx, importID)
 }

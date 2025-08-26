@@ -4,6 +4,7 @@ import { ListImports } from '../../../wailsjs/go/app/App'
 import { models } from '../../../wailsjs/go/models'
 import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
+import { DeleteImport } from '../../../wailsjs/go/app/App'
 
 let isDragging = $state(false)
 let dragCounter = $state(0)
@@ -11,13 +12,7 @@ let imports: models.SlackImport[] = $state([])
 let isImporting = $state(false)
 
 onMount(async () => {
-  try {
-    const fresh = await ListImports()
-    imports = [...fresh]
-  } catch (error) {
-    console.log(error)
-  }
-
+  
   // subscribe to new import notification
   runtime.EventsOn('startImport', (imp: models.SlackImport) => {
     imports = [imp, ...imports]
@@ -30,7 +25,21 @@ onMount(async () => {
     imports = [...fresh]
     isImporting = false
   })
+
+  // load imports
+  const fresh = await ListImports()
+  imports = [...fresh]
+
 })
+
+let DeleteImportHandle = async (importID: number) => {
+  try {
+    await DeleteImport(importID)
+    const fresh = await ListImports()
+    imports = [...fresh]
+  } catch (error) {
+  }
+}
 
 // --- Drag & Drop Event Handlers ---
 function handleDragEnter(event: DragEvent): void {
@@ -128,7 +137,7 @@ function handleDrop(event: DragEvent): void {
 
   <div class="imports">
     {#each imports as slackImportcard (slackImportcard.ID)}
-      <SlackImport {slackImportcard} isCollapsed={slackImportcard.Finished !== ""} />
+      <SlackImport {slackImportcard} isCollapsed={slackImportcard.Finished !== ""} {DeleteImportHandle}/>
     {/each}
   </div>
 </main>

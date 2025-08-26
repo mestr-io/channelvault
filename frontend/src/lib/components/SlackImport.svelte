@@ -1,58 +1,71 @@
 <script lang="ts">
-import { onMount } from 'svelte'
-import * as runtime from '../../../wailsjs/runtime'
-import { models } from '../../../wailsjs/go/models'
+    import { onMount } from "svelte";
+    import * as runtime from "../../../wailsjs/runtime";
+    import { models } from "../../../wailsjs/go/models";
 
-let {
-  slackImportcard: slackImportcard,
-  isCollapsed = true,
-}: { slackImportcard: models.SlackImport; isCollapsed: boolean } = $props()
-let progress: models.Progress | null = $state(null)
+    let {
+        slackImportcard: slackImportcard,
+        isCollapsed = true,
+        DeleteImportHandle,
+    }: {
+        slackImportcard: models.SlackImport;
+        isCollapsed: boolean;
+        DeleteImportHandle: (id: number) => Promise<void>;
+    } = $props();
+    let progress: models.Progress | null = $state(null);
 
-onMount(() => {
-  runtime.EventsOn('importProgress', (p: models.Progress) => {
-    if (slackImportcard.ID == p.ImportID) {
-      progress = p
+    onMount(() => {
+        runtime.EventsOn("importProgress", (p: models.Progress) => {
+            if (slackImportcard.ID == p.ImportID) {
+                progress = p;
+            }
+        });
+
+        runtime.EventsOn("importError", (err) => {});
+        runtime.EventsOn("importComplete", () => {});
+    });
+
+    function formatDate(dateString: string): string {
+        if (!dateString) return "Not started";
+        const date = new Date(dateString);
+        return (
+            date.toLocaleDateString() +
+            " " +
+            date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        );
     }
-  })
 
-  runtime.EventsOn('importError', err => {})
-  runtime.EventsOn('importComplete', () => {})
-})
+    function getStatusColor(progress: number, error: string): string {
+        if (error) return "#DC2626"; // red
+        if (progress === 0) return "#6B7280"; // gray
+        if (progress < 50) return "#D97706"; // amber
+        if (progress < 100) return "#2563EB"; // blue
+        return "#059669"; // green
+    }
 
-function formatDate(dateString: string): string {
-  if (!dateString) return 'Not started'
-  const date = new Date(dateString)
-  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
+    function getStatusText(
+        progress: number,
+        finished: string,
+        error: string,
+    ): string {
+        if (error) return "Error";
+        if (finished) return "Completed";
+        if (progress === 0) return "Pending";
+        if (progress < 100) return "In Progress";
+        return "Processing";
+    }
 
-function getStatusColor(progress: number, error: string): string {
-  if (error) return '#ef4444' // red
-  if (progress === 0) return '#6b7280' // gray
-  if (progress < 50) return '#f59e0b' // amber
-  if (progress < 100) return '#3b82f6' // blue
-  return '#10b981' // green
-}
+    function handleRename(importId: number, currentName: string) {
+        const newName = prompt("Enter new name for import:", currentName);
+    }
 
-function getStatusText(progress: number, finished: string, error: string): string {
-  if (error) return 'Error'
-  if (finished) return 'Completed'
-  if (progress === 0) return 'Pending'
-  if (progress < 100) return 'In Progress'
-  return 'Processing'
-}
+    async function handleDelete(importId: number, importName: string) {
+        await DeleteImportHandle(importId);
+    }
 
-function handleRename(importId: number, currentName: string) {
-  const newName = prompt('Enter new name for import:', currentName)
-}
-
-function handleDelete(importId: number, importName: string) {
-  confirm(`Are you sure you want to delete "${importName}"? This action cannot be undone.`)
-}
-
-function toggleCollapse() {
-  isCollapsed = !isCollapsed
-}
+    function toggleCollapse() {
+        isCollapsed = !isCollapsed;
+    }
 </script>
 
 <main class="card">
@@ -175,7 +188,7 @@ function toggleCollapse() {
                     >
                         <path
                             fill-rule="evenodd"
-                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a1 1 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
                             clip-rule="evenodd"
                         />
                     </svg>
@@ -278,13 +291,11 @@ function toggleCollapse() {
 
 <style>
     .card {
-        background: linear-gradient(135deg, #ffffff 0%, #dfdfdf 100%);
+        background: #ffffff;
         border-radius: 1rem;
         padding: 1.5rem;
-        box-shadow:
-            0 4px 6px -1px rgba(0, 0, 0, 0.1),
-            0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
     }
 
     .card-header {
@@ -296,7 +307,7 @@ function toggleCollapse() {
     }
 
     .card-title {
-        color: #1a202c;
+        color: #111827;
         font-size: 1.25rem;
         font-weight: 600;
         margin: 0;
@@ -312,7 +323,7 @@ function toggleCollapse() {
     }
 
     .status-badge {
-        color: white;
+        color: #fff;
         font-size: 0.75rem;
         font-weight: 600;
         padding: 0.25rem 0.75rem;
@@ -322,7 +333,8 @@ function toggleCollapse() {
         flex-shrink: 0;
     }
 
-    .action-button {
+    .action-button,
+    .chevron-button {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -332,38 +344,30 @@ function toggleCollapse() {
         border-radius: 0.5rem;
         cursor: pointer;
         transition: all 0.2s ease;
-        background-color: #f3f4f6;
+        background-color: #f9fafb;
         color: #6b7280;
     }
-    .action-button:hover {
+
+    .action-button:hover,
+    .chevron-button:hover {
+        background-color: #f3f4f6;
+        color: #111827;
         transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
-    .action-button svg {
+
+    .action-button svg,
+    .chevron-button svg {
         width: 1rem;
         height: 1rem;
     }
 
-    .collapse-button {
-        background-color: #e0f2fe;
-        color: #0284c7;
-    }
-    .collapse-button:hover {
-        background-color: #bae6fd;
-        color: #0369a1;
-    }
-
-    .rename-button:hover {
-        background-color: #dbeafe;
-        color: #3b82f6;
-    }
-    .delete-button:hover {
-        background-color: #fef2f2;
-        color: #ef4444;
+    .chevron-button svg.rotated {
+        transform: rotate(90deg);
     }
 
     .collapsible {
-        max-height: 2000px; /* large enough */
+        max-height: 2000px;
         overflow: hidden;
         transition: max-height 0.3s ease;
     }
@@ -387,13 +391,13 @@ function toggleCollapse() {
     .error-icon {
         width: 1.25rem;
         height: 1.25rem;
-        color: #ef4444;
+        color: #dc2626;
         flex-shrink: 0;
     }
     .error-title {
         font-size: 0.875rem;
         font-weight: 600;
-        color: #dc2626;
+        color: #b91c1c;
     }
     .error-message {
         font-size: 0.875rem;
@@ -405,12 +409,12 @@ function toggleCollapse() {
     .card-content {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.25rem;
         margin-bottom: 1.5rem;
     }
     .info-row {
         display: flex;
-        gap: 1rem;
+        gap: 1.25rem;
     }
     .info-item {
         display: flex;
@@ -439,8 +443,8 @@ function toggleCollapse() {
         margin-bottom: 0.25rem;
     }
     .info-value {
-        font-size: 0.875rem;
-        color: #374151;
+        font-size: 0.9rem;
+        color: #111827;
         font-weight: 500;
         word-break: break-word;
     }
@@ -464,12 +468,12 @@ function toggleCollapse() {
     .progress-percentage {
         font-size: 0.875rem;
         font-weight: 600;
-        color: #374151;
+        color: #111827;
     }
     .progress-bar {
         width: 100%;
-        height: 0.5rem;
-        background-color: #e5e7eb;
+        height: 0.625rem;
+        background-color: #f3f4f6;
         border-radius: 9999px;
         overflow: hidden;
     }
@@ -477,27 +481,5 @@ function toggleCollapse() {
         height: 100%;
         border-radius: 9999px;
         transition: width 0.3s ease;
-    }
-    .chevron-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 2rem;
-        height: 2rem;
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: transparent;
-        color: #374151;
-        flex-shrink: 0;
-    }
-    .chevron-button svg {
-        width: 1rem;
-        height: 1rem;
-        transition: transform 0.2s ease;
-    }
-    .chevron-button svg.rotated {
-        transform: rotate(90deg);
     }
 </style>

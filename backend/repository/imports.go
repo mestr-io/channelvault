@@ -141,5 +141,11 @@ func (r *Repository) ListImports(ctx context.Context) (imports []models.SlackImp
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
 	}
+
+	// Ensure empty slice instead of nil
+	if imports == nil {
+		imports = []models.SlackImport{}
+	}
+
 	return imports, nil
 }
