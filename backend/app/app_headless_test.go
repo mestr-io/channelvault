@@ -28,8 +28,8 @@ func TestSetViewState(t *testing.T) {
 		t.Fatalf("Error starting fake app: %s", err.Error())
 	}
 	
-	//a race condition appears if getting context before one second...
-	time.Sleep(time.Second)
+	//a race condition appears if getting context before one or 2 seconds...
+	time.Sleep(2*time.Second)
 
 	ctx := app.GetContext()
 	if ctx == nil {
