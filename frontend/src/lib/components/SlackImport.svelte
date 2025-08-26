@@ -1,65 +1,53 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import * as runtime from '../../../wailsjs/runtime'
-    import { models } from "../../../wailsjs/go/models";
-    let { card }: { card: models.SlackImport } = $props();
-    let progress: models.Progress | null = $state(null);
+import { onMount } from 'svelte'
+import * as runtime from '../../../wailsjs/runtime'
+import { models } from '../../../wailsjs/go/models'
+let { card }: { card: models.SlackImport } = $props()
+let progress: models.Progress | null = $state(null)
 
-    onMount(() => {
-        runtime.EventsOn("importProgress", (p: models.Progress) => {
-            // dispatching
-            if (card.ID == p.ImportID) {
-                progress = p;
-                console.log(card, p)
-            }
-        });
-
-        runtime.EventsOn("importError", (err) => {
-        });
-
-        runtime.EventsOn("importComplete", () => {
-        });
-    });
-
-    function formatDate(dateString: string): string {
-        if (!dateString) return "Not started";
-        const date = new Date(dateString);
-        return (
-            date.toLocaleDateString() +
-            " " +
-            date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        );
+onMount(() => {
+  runtime.EventsOn('importProgress', (p: models.Progress) => {
+    // dispatching
+    if (card.ID == p.ImportID) {
+      progress = p
+      console.log(card, p)
     }
+  })
 
-    function getStatusColor(progress: number, error: string): string {
-        if (error) return "#ef4444"; // red for errors
-        if (progress === 0) return "#6b7280"; // gray
-        if (progress < 50) return "#f59e0b"; // amber
-        if (progress < 100) return "#3b82f6"; // blue
-        return "#10b981"; // green
-    }
+  runtime.EventsOn('importError', err => {})
 
-    function getStatusText(
-        progress: number,
-        finished: string,
-        error: string,
-    ): string {
-        if (error) return "Error";
-        if (finished) return "Completed";
-        if (progress === 0) return "Pending";
-        if (progress < 100) return "In Progress";
-        return "Processing";
-    }
+  runtime.EventsOn('importComplete', () => {})
+})
 
-    function handleRename(importId: number, currentName: string) {
-        const newName = prompt("Enter new name for import:", currentName);
-    }
+function formatDate(dateString: string): string {
+  if (!dateString) return 'Not started'
+  const date = new Date(dateString)
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
 
-    function handleDelete(importId: number, importName: string) {
-        confirm(
-            `Are you sure you want to delete "${importName}"? This action cannot be undone.`,
-        )
-    }
+function getStatusColor(progress: number, error: string): string {
+  if (error) return '#ef4444' // red for errors
+  if (progress === 0) return '#6b7280' // gray
+  if (progress < 50) return '#f59e0b' // amber
+  if (progress < 100) return '#3b82f6' // blue
+  return '#10b981' // green
+}
+
+function getStatusText(progress: number, finished: string, error: string): string {
+  if (error) return 'Error'
+  if (finished) return 'Completed'
+  if (progress === 0) return 'Pending'
+  if (progress < 100) return 'In Progress'
+  return 'Processing'
+}
+
+function handleRename(importId: number, currentName: string) {
+  const newName = prompt('Enter new name for import:', currentName)
+}
+
+function handleDelete(importId: number, importName: string) {
+  confirm(`Are you sure you want to delete "${importName}"? This action cannot be undone.`)
+}
 </script>
 
 <main class="card">

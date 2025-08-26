@@ -1,5 +1,4 @@
 <script lang="ts">
-import FileUploader from './lib/components/FileUploader.svelte'
 import Dashboard from './lib/components/Dashboard.svelte'
 import { onMount } from 'svelte'
 import { GetViewState } from '../wailsjs/go/app/App'

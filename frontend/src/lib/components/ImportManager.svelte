@@ -1,69 +1,75 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { ListImports } from "../../../wailsjs/go/app/App";
-  import { models } from "../../../wailsjs/go/models";
-  import SlackImport from "./SlackImport.svelte";
-  import * as runtime from "../../../wailsjs/runtime";
+import { onMount } from 'svelte'
+import { ListImports } from '../../../wailsjs/go/app/App'
+import { models } from '../../../wailsjs/go/models'
+import SlackImport from './SlackImport.svelte'
+import * as runtime from '../../../wailsjs/runtime/runtime'
 
-  let isDragging = $state(false);
-  let dragCounter = $state(0);
-  let imports: models.SlackImport[] = $state([]);
+let isDragging = $state(false)
+let dragCounter = $state(0)
+let imports: models.SlackImport[] = $state([])
+let isImporting = $state(false)
 
-  onMount(async () => {
-    try {
-      const fresh = await ListImports()
-      imports = [...fresh] 
-    } catch (error) {
-      console.log(error)
-    }
-  
-    // subscribe to new import notification
-    runtime.EventsOn("startImport", (imp: models.SlackImport) => {
-      imports = [imp, ...imports]
-    });
-
-     // reload the 
-    runtime.EventsOn("importComplete", async () => {
-      const fresh = await ListImports()
-      imports = [...fresh]
-    });
-  });
-
-  // --- Drag & Drop Event Handlers ---
-  function handleDragEnter(event: DragEvent): void {
-    event.preventDefault();
-    dragCounter++;
-    if (dragCounter === 1) {
-      isDragging = true;
-    }
+onMount(async () => {
+  try {
+    const fresh = await ListImports()
+    imports = [...fresh]
+  } catch (error) {
+    console.log(error)
   }
 
-  function handleDragOver(event: DragEvent): void {
-    event.preventDefault();
-    if (!isDragging) {
-      isDragging = true;
-    }
-  }
+  // subscribe to new import notification
+  runtime.EventsOn('startImport', (imp: models.SlackImport) => {
+    imports = [imp, ...imports]
+    isImporting = true
+  })
 
-  function handleDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    dragCounter--;
-    if (dragCounter === 0) {
-      isDragging = false;
-    }
-  }
+  // reload the
+  runtime.EventsOn('importComplete', async () => {
+    const fresh = await ListImports()
+    imports = [...fresh]
+    isImporting = false
+  })
+})
 
-  function handleDrop(event: DragEvent): void {
-    event.preventDefault();
-    dragCounter = 0;
-    isDragging = false;
+// --- Drag & Drop Event Handlers ---
+function handleDragEnter(event: DragEvent): void {
+  event.preventDefault()
+  dragCounter++
+  if (dragCounter === 1) {
+    isDragging = true
   }
+}
+
+function handleDragOver(event: DragEvent): void {
+  event.preventDefault()
+  if (!isDragging) {
+    isDragging = true
+  }
+}
+
+function handleDragLeave(event: DragEvent): void {
+  event.preventDefault()
+  dragCounter--
+  if (dragCounter === 0) {
+    isDragging = false
+  }
+}
+
+function handleDrop(event: DragEvent): void {
+  event.preventDefault()
+  if (isImporting) return
+
+  dragCounter = 0
+  isDragging = false
+}
 </script>
 
 <main>
   <div
     class="drop-zone"
     class:is-dragging={isDragging}
+    class:is-disabled={isImporting}
     role="button"
     tabindex="0"
     ondragenter={handleDragEnter}
@@ -71,26 +77,6 @@
     ondragover={handleDragOver}
     ondrop={handleDrop}
   >
-    <div class="add-file">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M12 6C12.5523 6 13 6.44772 13 7V11H17C17.5523 11 18 11.4477 18 12C18 12.5523 17.5523 13 17 13H13V17C13 17.5523 12.5523 18 12 18C11.4477 18 11 17.5523 11 17V13H7C6.44772 13 6 12.5523 6 12C6 11.4477 6.44772 11 7 11H11V7C11 6.44772 11.4477 6 12 6Z"
-          fill="currentColor"
-        />
-        <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
-          d="M5 22C3.34315 22 2 20.6569 2 19V5C2 3.34315 3.34315 2 5 2H19C20.6569 2 22 3.34315 22 5V19C22 20.6569 20.6569 22 19 22H5ZM4 19C4 19.5523 4.44772 20 5 20H19C19.5523 20 20 19.5523 20 19V5C20 4.44772 19.5523 4 19 4H5C4.44772 4 4 4.44772 4 5V19Z"
-          fill="currentColor"
-        />
-      </svg>
-    </div>
     <div class="icons-container">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -126,6 +112,17 @@
           d="M28,43c-2.209,0-4-1.791-4-4c0-1.195,0-4,0-4s2.986,0,4,0c2.209,0,4,1.791,4,4S30.209,43,28,43z"
         ></path>
       </svg>
+      <div>Drop here your Slack export zip file</div>
+      <div>
+        Check this <a
+          href="#"
+          onclick={() =>
+            runtime.BrowserOpenURL(
+              "https://slack.com/intl/en-gb/help/articles/201658943-Export-your-workspace-data",
+            )}>link</a
+        > for more information about the export process.
+      </div>
+      <div><small>*Only public channels are supported for the moment</small></div>
     </div>
   </div>
 
@@ -178,11 +175,11 @@
     position: relative;
   }
 
-  .add-file {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    cursor: pointer;
+  .drop-zone.is-disabled {
+    opacity: 0.5;
+    pointer-events: none; /* prevents interaction */
+    border-color: #4b5563;
+    background-color: #1f2937;
   }
 
   .drop-zone.is-dragging {
@@ -195,6 +192,7 @@
 
   .icons-container {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 1rem;
     margin-bottom: 1rem;
@@ -206,5 +204,10 @@
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
+  }
+  a {
+      color: #768998;
+      text-decoration: none;
+      cursor: pointer;
   }
 </style>

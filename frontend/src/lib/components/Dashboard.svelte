@@ -1,130 +1,128 @@
 <script lang="ts">
-  import { GetChannels, GetMessages, GetThreadByTs } from '../../../wailsjs/go/app/App'
-  import { Pane, Splitpanes } from 'svelte-splitpanes'
-  import { onDestroy } from 'svelte'
-  import { VList, type VListHandle } from 'virtua/svelte'
-  import DayDivider from './DayDivider.svelte'
-  import Message from './Message.svelte'
-  import { models } from '../../../wailsjs/go/models'
-  import { onMount, tick } from 'svelte'
-  import Welcome from './Welcome.svelte'
-  import { setContext } from 'svelte'
-  import FileUploader from './FileUploader.svelte';
-  import * as runtime from "../../../wailsjs/runtime";
+import { GetChannels, GetMessages, GetThreadByTs } from '../../../wailsjs/go/app/App'
+import { Pane, Splitpanes } from 'svelte-splitpanes'
+import { onDestroy } from 'svelte'
+import { VList, type VListHandle } from 'virtua/svelte'
+import DayDivider from './DayDivider.svelte'
+import Message from './Message.svelte'
+import { models } from '../../../wailsjs/go/models'
+import { onMount, tick } from 'svelte'
+import Welcome from './Welcome.svelte'
+import { setContext } from 'svelte'
+import ImportManager from './ImportManager.svelte'
+import * as runtime from '../../../wailsjs/runtime'
 
+// --- State Variables ---
+let channels = $state<models.Channel[]>([] as models.Channel[])
+let selectedChannel = $state<models.Channel | null>(null)
 
-  // --- State Variables ---
-  let channels = $state<models.Channel[]>([] as models.Channel[])
-  let selectedChannel = $state<models.Channel | null>(null)
-  
-  let threadMessages = $state<models.Message[]>([] as models.Message[])
-  let messages = $state<models.Message[]>([] as models.Message[])
-  let isLoadingMessages = $state(false)
-  let hasMoreMessages = $state(true)
+let threadMessages = $state<models.Message[]>([] as models.Message[])
+let messages = $state<models.Message[]>([] as models.Message[])
+let isLoadingMessages = $state(false)
+let hasMoreMessages = $state(true)
 
-  let showThread = $state(false)
-  let selectedThread = $state<string | null>(null)
+let showThread = $state(false)
+let selectedThread = $state<string | null>(null)
 
-  // 2. Add state to control the main view
-  let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
+// 2. Add state to control the main view
+let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
 
-  // svelte-ignore non_reactive_update
-  let vlist_messages: VListHandle
-  // svelte-ignore non_reactive_update
-  let vlist_thread: VListHandle
+// svelte-ignore non_reactive_update
+let vlist_messages: VListHandle
+// svelte-ignore non_reactive_update
+let vlist_thread: VListHandle
 
+$effect(() => {
+  console.log(currentView)
+})
 
-  $effect(()=>{
-    console.log(currentView)
-  })
-  
-  const startResize = () => {
-    document.body.classList.add('is-resizing-panes')
+const startResize = () => {
+  document.body.classList.add('is-resizing-panes')
+}
+
+const endResize = () => {
+  document.body.classList.remove('is-resizing-panes')
+}
+
+onDestroy(() => {
+  document.body.classList.remove('is-resizing-panes')
+})
+
+// init the cache
+setContext('cache', new Map<string, string>())
+
+$effect(() => {
+  if (!showThread) {
+    selectedThread = null
   }
+})
 
-  const endResize = () => {
-    document.body.classList.remove('is-resizing-panes')
-  }
-
-  onDestroy(() => {
-    document.body.classList.remove('is-resizing-panes')
-  })
-
-  // init the cache
-  setContext('cache', new Map<string, string>())
-
-  $effect(() => {
-    if (!showThread) {
-      selectedThread = null
-    }
-  })
-
-  $effect(() => {
-    if (selectedThread && selectedChannel) {
-      const loadThread = async () => {
-        threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
-        if (vlist_thread && threadMessages.length > 0) {
-          await tick()
-          vlist_thread.scrollToIndex(threadMessages.length - 1, {
-            align: 'end',
-          })
-        }
+$effect(() => {
+  if (selectedThread && selectedChannel) {
+    const loadThread = async () => {
+      threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
+      if (vlist_thread && threadMessages.length > 0) {
+        await tick()
+        vlist_thread.scrollToIndex(threadMessages.length - 1, {
+          align: 'end',
+        })
       }
-      loadThread()
-      showThread = true
     }
+    loadThread()
+    showThread = true
+  }
+})
+
+onMount(async () => {
+  channels = await GetChannels()
+
+  // reload the
+  runtime.EventsOn('importComplete', async () => {
+    const fresh = await GetChannels()
+    channels = [...fresh]
   })
+})
 
-  onMount(async () => {
-    channels = await GetChannels()
-    
-    // reload the 
-    runtime.EventsOn("importComplete", async () => {
-      const fresh = await GetChannels()
-      channels = [...fresh]
-    });
-  })
+async function selectChannel(channel: models.Channel) {
+  if (selectedChannel?.id === channel.id && currentView === 'channel') return
 
-  async function selectChannel(channel: models.Channel) {
-    if (selectedChannel?.id === channel.id && currentView === 'channel') return
-
-    selectedChannel = channel
-    messages = []
-    hasMoreMessages = true
-    showThread = false
-    currentView = 'channel' // <-- 3. Set view to 'channel' on selection
-    await loadMoreMessages()
-    if (vlist_messages && messages.length > 0) {
-      await tick()
-      vlist_messages.scrollToIndex(messages.length - 1, { align: 'end' })
-    }
+  selectedChannel = channel
+  messages = []
+  hasMoreMessages = true
+  showThread = false
+  currentView = 'channel' // <-- 3. Set view to 'channel' on selection
+  await loadMoreMessages()
+  if (vlist_messages && messages.length > 0) {
+    await tick()
+    vlist_messages.scrollToIndex(messages.length - 1, { align: 'end' })
   }
+}
 
-  async function loadMoreMessages() {
-    if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
+async function loadMoreMessages() {
+  if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
 
-    isLoadingMessages = true
-    try {
-      const cursor = messages[0]?.ts || ''
-      const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 200)
+  isLoadingMessages = true
+  try {
+    const cursor = messages[0]?.ts || ''
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 200)
 
-      if (newMessages?.length > 0) {
-        messages = [...newMessages.reverse(), ...messages]
-      } else {
-        hasMoreMessages = false
-      }
-    } catch (error) {
-      console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
-    } finally {
-      isLoadingMessages = false
+    if (newMessages?.length > 0) {
+      messages = [...newMessages.reverse(), ...messages]
+    } else {
+      hasMoreMessages = false
     }
+  } catch (error) {
+    console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
+  } finally {
+    isLoadingMessages = false
   }
+}
 
-  function handleScroll(offset: number) {
-    if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
-      loadMoreMessages()
-    }
+function handleScroll(offset: number) {
+  if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
+    loadMoreMessages()
   }
+}
 </script>
 
 <main class="slack-clone">
@@ -177,7 +175,7 @@
             {/snippet}
           </VList>
         {:else if currentView === 'imports'}
-          <FileUploader />
+          <ImportManager />
         {:else}
           <Welcome />
         {/if}
