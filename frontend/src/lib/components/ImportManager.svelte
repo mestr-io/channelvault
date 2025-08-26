@@ -127,8 +127,8 @@ function handleDrop(event: DragEvent): void {
   </div>
 
   <div class="imports">
-    {#each imports as card (card.Finished)}
-      <SlackImport {card} />
+    {#each imports as slackImportcard (slackImportcard.ID)}
+      <SlackImport {slackImportcard} isCollapsed={slackImportcard.Finished !== ""} />
     {/each}
   </div>
 </main>
@@ -149,9 +149,9 @@ function handleDrop(event: DragEvent): void {
   .imports {
     margin-top: 3rem;
     margin-bottom: 3rem;
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     width: 100%;
     max-width: 1200px;
   }
