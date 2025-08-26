@@ -34,7 +34,7 @@ func TestGetMessages(t *testing.T) {
 	app.ctx = context.Background()
 
 	expectedMessages := []models.Message{{Text: "Hello"}}
-	mockRepo.On("GetMessages", mock.Anything, "C1", "", 10).Return(expectedMessages, nil).Once()
+	mockRepo.On("GetMessages", mock.Anything /*ctx*/, "C1", "", 10).Return(expectedMessages, nil).Once()
 
 	messages, err := app.GetMessages("C1", "", 10)
 
@@ -49,7 +49,7 @@ func TestGetUserAvatar(t *testing.T) {
 	app.ctx = context.Background()
 
 	expectedAvatar := "http://example.com/avatar.png"
-	mockRepo.On("GetUserAvatar", mock.Anything, "U1").Return(expectedAvatar, nil).Once()
+	mockRepo.On("GetUserAvatar", mock.Anything /*ctx*/, "U1").Return(expectedAvatar, nil).Once()
 
 	avatar, err := app.GetUserAvatar("U1")
 
@@ -64,7 +64,7 @@ func TestGetThreadByTs(t *testing.T) {
 	app.ctx = context.Background()
 
 	expectedMessages := []models.Message{{Text: "Reply"}}
-	mockRepo.On("GetThreadByTs", mock.Anything, "123.456", "C1").Return(expectedMessages, nil).Once()
+	mockRepo.On("GetThreadByTs", mock.Anything /*ctx*/, "123.456", "C1").Return(expectedMessages, nil).Once()
 
 	messages, err := app.GetThreadByTs("123.456", "C1")
 
@@ -92,6 +92,7 @@ func TestGetBase64Image(t *testing.T) {
 	t.Run("Image already exists locally", func(t *testing.T) {
 		// Create a dummy file
 		dummyFilePath := filepath.Join(tempDir, "F1_test.jpg")
+		// NOTE: "test data" in base64 is dGVzdCBkYXRh
 		err := os.WriteFile(dummyFilePath, []byte("test data"), 0644)
 		assert.NoError(t, err)
 
@@ -100,6 +101,7 @@ func TestGetBase64Image(t *testing.T) {
 		b64, err := app.GetBase64Image("F1")
 
 		assert.NoError(t, err)
+		/* "test data" in base64 is dGVzdCBkYXRh */
 		assert.Equal(t, "data:image/jpeg;base64,dGVzdCBkYXRh", b64)
 		mockRepo.AssertExpectations(t)
 	})
@@ -107,6 +109,7 @@ func TestGetBase64Image(t *testing.T) {
 	t.Run("Image needs to be downloaded", func(t *testing.T) {
 		// Setup a mock HTTP server
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// NOTE: "downloaded data" in base64 is ZG93bmxvYWRlZCBkYXRh
 			fmt.Fprint(w, "downloaded data")
 		}))
 		defer server.Close()

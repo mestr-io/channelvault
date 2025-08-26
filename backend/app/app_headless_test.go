@@ -12,7 +12,9 @@ import (
 
 func TestSetViewState(t *testing.T) {
 	ch := make(chan string)
-	app := &ah.FakeApp{}
+
+	// Create a fake app instance to get a valid Wails context
+	app := new(ah.FakeApp)
 
 	//schedule test tear down
 
@@ -33,8 +35,7 @@ func TestSetViewState(t *testing.T) {
 	if ctx == nil {
 		t.Fatalf("got nil context")
 	}
-
-
+	// Create a real App instance with the fake app context
 	realApp := New(nil, "")
 	realApp.ctx = app.GetContext() // In a real scenario, this would be set by Wails
 
