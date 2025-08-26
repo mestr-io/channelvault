@@ -60,7 +60,7 @@ func TestGetMessages(t *testing.T) {
 
 	//GetMessages newest first
 	if retrieved[0].Text != "Not in thread" {
-		t.Errorf("unexpected message text: %s", retrieved[1].Text)
+		t.Errorf("unexpected message text: %s", retrieved[0].Text)
 	}
 
 	if retrieved[1].Text != "In thread" {
