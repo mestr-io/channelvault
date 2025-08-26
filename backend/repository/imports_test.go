@@ -45,7 +45,7 @@ func TestFinishedImport(t *testing.T) {
 	}
 
 	var finished time.Time
-	err := repo.db.QueryRow("SELECT finished FROM imports WHERE id = ?", imp.ID).Scan(&finished)
+	err = repo.db.QueryRow("SELECT finished FROM imports WHERE id = ?", imp.ID).Scan(&finished)
 	if err != nil {
 		t.Fatalf("failed to query import: %v", err)
 	}
