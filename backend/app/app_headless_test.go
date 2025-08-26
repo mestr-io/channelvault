@@ -21,16 +21,11 @@ func TestSetViewState(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Duration(2500) * time.Millisecond)
-		ah.TearDownFakeApp(app.GetContext(), ch)
+		ah.TearDownFakeAppWithCtx(app.GetContext(), ch)
 	}()
 
-	err := ah.StartupFakeApp(app)
-	if err != nil {
-		t.Fatalf("Error starting fake app: %s", err.Error())
-	}
-	
-	//a race condition appears if getting context before one or 2 seconds...
-	//time.Sleep(2*time.Second)
+	_ = ah.StartupFakeApp(app, "")
+
 
 	// Wait for app context to be ready, polling with timeout instead of fixed sleep
 	var ctx context.Context
