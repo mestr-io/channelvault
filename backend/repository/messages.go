@@ -15,7 +15,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 	// Start a new transaction
 	tx, err := r.db.Begin()
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return fmt.Errorf("failed to begin transaction: %v", err)
 	}
 	// Defer a rollback in case of an error. The rollback will be ignored if the transaction is committed.
 	defer func() {
@@ -27,7 +27,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 	// extract importId from the context
 	importId, ok := ctx.Value("importId").(int64)
 	if !ok {
-		return fmt.Errorf("failed to retrieve context: %w", err)
+		return fmt.Errorf("failed to retrieve context: %v", err)
 	}
 
 	sqlStmtMsg := `
@@ -41,7 +41,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 	// Prepare the statement. This is compiled once and reused for every message.
 	stmt1, err := tx.Prepare(sqlStmtMsg)
 	if err != nil {
-		return fmt.Errorf("failed to prepare statement: %w", err)
+		return fmt.Errorf("failed to prepare statement: %v", err)
 	}
 	defer func() { err = errors.Join(stmt1.Close(), err) }()
 
@@ -54,7 +54,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 	// Prepare the statement. This is compiled once and reused for every message.
 	stmt2, err := tx.Prepare(sqlStmtFiles)
 	if err != nil {
-		return fmt.Errorf("failed to prepare statement: %w", err)
+		return fmt.Errorf("failed to prepare statement: %v", err)
 	}
 	defer func() { err = errors.Join(stmt2.Close(), err) }()
 
@@ -63,7 +63,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 		// Marshal complex fields into JSON strings for storage in TEXT columns.
 		reactionsJSON, err := json.Marshal(msg.Reactions)
 		if err != nil {
-			return fmt.Errorf("failed to marshal reactions for ts %s: %w", msg.Ts, err)
+			return fmt.Errorf("failed to marshal reactions for ts %s: %v", msg.Ts, err)
 		}
 
 		// The 'reply_users_json' field in your table seems to correspond to the users in the 'replies' field.
@@ -74,17 +74,17 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 		}
 		replyUsersJSON, err := json.Marshal(replyUsers)
 		if err != nil {
-			return fmt.Errorf("failed to marshal reply users for ts %s: %w", msg.Ts, err)
+			return fmt.Errorf("failed to marshal reply users for ts %s: %v", msg.Ts, err)
 		}
 
 		repliesJSON, err := json.Marshal(msg.Replies)
 		if err != nil {
-			return fmt.Errorf("failed to marshal replies for ts %s: %w", msg.Ts, err)
+			return fmt.Errorf("failed to marshal replies for ts %s: %v", msg.Ts, err)
 		}
 
 		filesJSON, err := json.Marshal(msg.Files)
 		if err != nil {
-			return fmt.Errorf("failed to marshal files for ts %s: %w", msg.Ts, err)
+			return fmt.Errorf("failed to marshal files for ts %s: %v", msg.Ts, err)
 		}
 		filesNullable := toNullString(filesJSON)
 		if filesNullable.Valid {
@@ -96,7 +96,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 
 		attachmentsJSON, err := json.Marshal(msg.Attachments)
 		if err != nil {
-			return fmt.Errorf("failed to marshal attachments for ts %s: %w", msg.Ts, err)
+			return fmt.Errorf("failed to marshal attachments for ts %s: %v", msg.Ts, err)
 		}
 
 		// Execute the prepared statement with the data for the current message.
@@ -120,7 +120,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 		)
 
 		if err != nil {
-			return fmt.Errorf("failed to execute statement for ts %s: %w", msg.Ts, err)
+			return fmt.Errorf("failed to execute statement for ts %s: %v", msg.Ts, err)
 		}
 	}
 
@@ -164,7 +164,7 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 	// Pass query parameters as arguments to prevent SQL injection.
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("could not query messages for channel %s: %w", channelID, err)
+		return nil, fmt.Errorf("could not query messages for channel %s: %v", channelID, err)
 	}
 	defer func() { err = errors.Join(rows.Close(), err) }()
 
@@ -176,19 +176,19 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 
 		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson); err != nil {
 			// Error during row scanning is a server-side issue.
-			return nil, fmt.Errorf("could not scan message row: %w", err)
+			return nil, fmt.Errorf("could not scan message row: %v", err)
 		}
 
 		if usersJson.Valid {
 			err = json.Unmarshal([]byte(usersJson.String), &msg.ReplyUsers)
 			if err != nil {
-				return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+				return nil, fmt.Errorf("could not deserialize reply users: %v", err)
 			}
 		}
 		if filesJson.Valid {
 			err = json.Unmarshal([]byte(filesJson.String), &msg.Files)
 			if err != nil {
-				return nil, fmt.Errorf("could not deserialize files: %w", err)
+				return nil, fmt.Errorf("could not deserialize files: %v", err)
 			}
 		}
 
@@ -197,7 +197,7 @@ func (r *Repository) GetMessages(ctx context.Context, channelID string, cursor s
 
 	// Check for any errors that occurred during iteration.
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating message rows: %w", err)
+		return nil, fmt.Errorf("error iterating message rows: %v", err)
 	}
 
 	return messages, nil
@@ -234,7 +234,7 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 	// Pass query parameters as arguments to prevent SQL injection.
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("could not query messages for channel %s: %w", channelID, err)
+		return nil, fmt.Errorf("could not query messages for channel %s: %v", channelID, err)
 	}
 	defer rows.Close()
 
@@ -246,18 +246,18 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 
 		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &reactionsJson); err != nil {
 			// Error during row scanning is a server-side issue.
-			return nil, fmt.Errorf("could not scan message row: %w", err)
+			return nil, fmt.Errorf("could not scan message row: %v", err)
 		}
 		if usersJson.Valid {
 			err = json.Unmarshal([]byte(usersJson.String), &msg.ReplyUsers)
 			if err != nil {
-				return nil, fmt.Errorf("could not deserialize reply users: %w", err)
+				return nil, fmt.Errorf("could not deserialize reply users: %v", err)
 			}
 		}
 		if reactionsJson.Valid {
 			err = json.Unmarshal([]byte(reactionsJson.String), &msg.Reactions)
 			if err != nil {
-				return nil, fmt.Errorf("could not deserialize reactions: %w", err)
+				return nil, fmt.Errorf("could not deserialize reactions: %v", err)
 			}
 		}
 		messages = append(messages, msg)
@@ -265,7 +265,7 @@ func (r *Repository) GetThreadByTs(ctx context.Context, threadTs string, channel
 
 	// Check for any errors that occurred during iteration.
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating message rows: %w", err)
+		return nil, fmt.Errorf("error iterating message rows: %v", err)
 	}
 
 	return messages, nil
@@ -288,7 +288,7 @@ func (r *Repository) GetFileById(ctx context.Context, fileId string) (*models.Fi
 	file := models.File{}
 	err := r.db.QueryRowContext(ctx, query, args...).Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.User)
 	if err != nil {
-		return nil, fmt.Errorf("could not query file with id %s: %w", fileId, err)
+		return nil, fmt.Errorf("could not query file with id %s: %v", fileId, err)
 	}
 	return &file, nil
 }

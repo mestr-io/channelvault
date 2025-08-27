@@ -21,6 +21,7 @@ onMount(() => {
     if (slackImportcard.ID == p.ImportID) {
       progress = p
     }
+    console.log(p)
   })
 
   runtime.EventsOn('importError', err => {})

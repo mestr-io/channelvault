@@ -91,6 +91,8 @@ func defaultImportName(path string) string {
 
 func (a *App) processImport(record *models.SlackImport) {
 	// notify the FE
+	record.Error = ""
+	record.NumFiles = 0
 	runtime.EventsEmit(a.ctx, "startImport", record)
 
 	progressChan := make(chan models.Progress)
@@ -122,12 +124,13 @@ func (a *App) processImport(record *models.SlackImport) {
 		ah.Errorf("Import failed: %v", importErr)
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
 		record.Error = fmt.Sprintf("%v", importErr)
+		// update the import
+		a.repository.FinishedImportUpdateWithError(a.ctx, record)
 	} else {
 		ah.Infof("Import completed successfully!!")
 		runtime.EventsEmit(a.ctx, "importComplete")
-		record.Error = ""
+		// update the import
+		a.repository.FinishedImportUpdate(a.ctx, record)
 	}
 
-	// update the import
-	a.repository.FinishedImportUpdate(a.ctx, record)
 }

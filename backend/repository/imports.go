@@ -82,6 +82,19 @@ func (r *Repository) FinishedImportUpdate(ctx context.Context, imp *models.Slack
 	return nil
 }
 
+func (r *Repository) FinishedImportUpdateWithError(ctx context.Context, imp *models.SlackImport) error {
+	sql := `UPDATE imports SET name = ?, num_messages = ?, error = ? WHERE id = ?`
+	if _, err := r.db.ExecContext(ctx, sql,
+		imp.Name,
+		imp.NumFiles,
+		imp.Error,
+		imp.ID,
+	); err != nil {
+		return fmt.Errorf("updating import %d failed: %w", imp.ID, err)
+	}
+	return nil
+}
+
 func (r *Repository) DeleteImport(ctx context.Context, id int64) error {
 	sql := `DELETE FROM imports WHERE id = ?`
 	_, err := r.db.ExecContext(ctx, sql, id)
