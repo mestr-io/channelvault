@@ -66,6 +66,7 @@ async function confirmRename(newName: string) {
   if (!newName) return
   await RenameImport(importId, newName)
   slackImportcard.Name = newName
+  showPrompt = false
 }
 
 async function handleDelete(importId: number, importName: string) {
