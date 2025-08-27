@@ -6,7 +6,6 @@ import (
 
 func (r *Repository) SetupSchemas() error {
 	createTableSQL := `
-		PRAGMA foreign_keys = ON;
 		CREATE TABLE IF NOT EXISTS imports (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT,

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context" // For the context.Context type
+	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -123,14 +124,14 @@ func (a *App) processImport(path string) {
 		ah.Errorf("Import failed: %v", importErr)
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
-		return
+		record.Error = fmt.Sprintf("%v", importErr)
+	} else {
+		ah.Infof("Import completed successfully!!")
+		runtime.EventsEmit(a.ctx, "importComplete")
+		a.setViewState(ViewStateDashboard) // Move to the dashboard
 	}
-
-	ah.Infof("Import completed successfully!!")
-	runtime.EventsEmit(a.ctx, "importComplete")
 
 	// update the import
 	a.repository.FinishedImportUpdate(a.ctx, record)
 
-	a.setViewState(ViewStateDashboard) // Move to the dashboard
 }

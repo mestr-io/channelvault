@@ -87,5 +87,10 @@ func (a *App) DeleteImport(importID int64) error {
 	if selection != "Delete" {
 		return fmt.Errorf("user cancelled deletion")
 	}
-	return a.repository.DeleteImport(a.ctx, importID)
+	err = a.repository.DeleteImport(a.ctx, importID)
+
+	if err == nil {
+		runtime.EventsEmit(a.ctx, "importDeleted", importID)
+	}
+	return err
 }

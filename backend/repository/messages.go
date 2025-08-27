@@ -24,12 +24,18 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 		}
 	}()
 
+	// extract importId from the context
+	importId, ok := ctx.Value("importId").(int64)
+	if !ok {
+		return fmt.Errorf("failed to retrieve context: %w", err)
+	}
+
 	sqlStmtMsg := `
         INSERT OR IGNORE INTO messages (
-            ts, channel_id, user_id, text, thread_ts, event_type, event_subtype,
+            import_id, ts, channel_id, user_id, text, thread_ts, event_type, event_subtype,
             reactions_json, reply_users_json, replies_json, files_json,
             attachments_json, reply_count, latest_reply, reply_users_count
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `
 
 	// Prepare the statement. This is compiled once and reused for every message.
@@ -41,8 +47,8 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 
 	sqlStmtFiles := `
         INSERT OR IGNORE INTO files (
-            ts, channel_id, user, url_private, mimetype, id, name, title
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            import_id, ts, channel_id, user, url_private, mimetype, id, name, title
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
     `
 
 	// Prepare the statement. This is compiled once and reused for every message.
@@ -84,7 +90,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 		if filesNullable.Valid {
 			// insert into files table
 			for _, file := range msg.Files {
-				stmt2.ExecContext(ctx, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
+				stmt2.ExecContext(ctx, importId, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
 			}
 		}
 
@@ -95,6 +101,7 @@ func (r *Repository) BulkInserMessages(ctx context.Context, ChannelID string, me
 
 		// Execute the prepared statement with the data for the current message.
 		_, err = stmt1.Exec(
+			importId,
 			msg.Ts,
 			ChannelID, // Make sure this value is set in your Message struct before calling this function.
 			msg.UserId,

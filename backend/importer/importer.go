@@ -30,6 +30,7 @@ type Importer struct {
 }
 
 func NewImporter(ctx context.Context, path string, repository *repository.Repository, importID int64) *Importer {
+	ctx = context.WithValue(ctx, "importId", importID)
 	return &Importer{ctx: ctx, path: path, repository: repository, importID: importID}
 }
 
@@ -53,7 +54,7 @@ func (i *Importer) processUsers(zf *zip.File) (err error) {
 		return fmt.Errorf("fail to deserialize 'users.json': %v", err)
 	}
 
-	return i.repository.BulkInsertUsers(result)
+	return i.repository.BulkInsertUsers(i.ctx, result)
 }
 
 func (i *Importer) processChannels(zf *zip.File) error {
@@ -75,7 +76,7 @@ func (i *Importer) processChannels(zf *zip.File) error {
 		return fmt.Errorf("fail to deserialize 'channels.json': %v", err)
 	}
 
-	return i.repository.BulkInsertChannels(result)
+	return i.repository.BulkInsertChannels(i.ctx, result)
 }
 
 func (i *Importer) processMessages(ChannelID string, f *zip.File) error {
@@ -115,7 +116,9 @@ func (i *Importer) Import(c chan models.Progress) error {
 		return fmt.Errorf("fail to open the zip export file: %w", err)
 	}
 
-	defer func() { err = errors.Join(r.Close(), err) }()
+	defer func() {
+		err = errors.Join(r.Close(), err)
+	}()
 
 	totalFiles := len(r.File)
 	// checkpoints

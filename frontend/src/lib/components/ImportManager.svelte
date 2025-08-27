@@ -12,7 +12,6 @@ let imports: models.SlackImport[] = $state([])
 let isImporting = $state(false)
 
 onMount(async () => {
-  
   // subscribe to new import notification
   runtime.EventsOn('startImport', (imp: models.SlackImport) => {
     imports = [imp, ...imports]
@@ -26,10 +25,15 @@ onMount(async () => {
     isImporting = false
   })
 
+  runtime.EventsOn('importError', async () => {
+    const fresh = await ListImports()
+    imports = [...fresh]
+    isImporting = false
+  })
+
   // load imports
   const fresh = await ListImports()
   imports = [...fresh]
-
 })
 
 let DeleteImportHandle = async (importID: number) => {
@@ -37,8 +41,7 @@ let DeleteImportHandle = async (importID: number) => {
     await DeleteImport(importID)
     const fresh = await ListImports()
     imports = [...fresh]
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 // --- Drag & Drop Event Handlers ---
@@ -137,7 +140,7 @@ function handleDrop(event: DragEvent): void {
 
   <div class="imports">
     {#each imports as slackImportcard (slackImportcard.ID)}
-      <SlackImport {slackImportcard} isCollapsed={slackImportcard.Finished !== ""} {DeleteImportHandle}/>
+      <SlackImport {slackImportcard} isCollapsed={slackImportcard.Finished !== "" && slackImportcard.Error === ""} {DeleteImportHandle}/>
     {/each}
   </div>
 </main>

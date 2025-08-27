@@ -81,6 +81,11 @@ onMount(async () => {
     const fresh = await GetChannels()
     channels = [...fresh]
   })
+
+  runtime.EventsOn('importDeleted', async () => {
+    const fresh = await GetChannels()
+    channels = [...fresh]
+  })
 })
 
 async function selectChannel(channel: models.Channel) {

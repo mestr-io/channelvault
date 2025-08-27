@@ -116,7 +116,7 @@ func (r *Repository) NoFinishedImports(ctx context.Context) (bool, error) {
 }
 
 func (r *Repository) ListImports(ctx context.Context) (imports []models.SlackImport, err error) {
-	sqlStatement := `SELECT id, created, finished, num_messages, path, name FROM imports ORDER BY id DESC;`
+	sqlStatement := `SELECT id, created, finished, num_messages, path, name, error FROM imports ORDER BY id DESC;`
 	rows, err := r.db.Query(sqlStatement)
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
@@ -128,13 +128,18 @@ func (r *Repository) ListImports(ctx context.Context) (imports []models.SlackImp
 	for rows.Next() {
 		var imp models.SlackImport
 		var finished sql.NullString
-		err = rows.Scan(&imp.ID, &imp.Created, &finished, &imp.NumFiles, &imp.Path, &imp.Name)
+		var errorMsg sql.NullString
+		err = rows.Scan(&imp.ID, &imp.Created, &finished, &imp.NumFiles, &imp.Path, &imp.Name, &errorMsg)
 		if err != nil {
 			return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
 		}
 		if finished.Valid {
 			imp.Finished = finished.String
 		}
+		if errorMsg.Valid {
+			imp.Error = errorMsg.String
+		}
+
 		imports = append(imports, imp)
 	}
 	err = rows.Err()

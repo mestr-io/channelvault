@@ -1,71 +1,63 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import * as runtime from "../../../wailsjs/runtime";
-    import { models } from "../../../wailsjs/go/models";
+import { onMount } from 'svelte'
+import * as runtime from '../../../wailsjs/runtime'
+import { models } from '../../../wailsjs/go/models'
 
-    let {
-        slackImportcard: slackImportcard,
-        isCollapsed = true,
-        DeleteImportHandle,
-    }: {
-        slackImportcard: models.SlackImport;
-        isCollapsed: boolean;
-        DeleteImportHandle: (id: number) => Promise<void>;
-    } = $props();
-    let progress: models.Progress | null = $state(null);
+let {
+  slackImportcard: slackImportcard,
+  isCollapsed = true,
+  DeleteImportHandle,
+}: {
+  slackImportcard: models.SlackImport
+  isCollapsed: boolean
+  DeleteImportHandle: (id: number) => Promise<void>
+} = $props()
+let progress: models.Progress | null = $state(null)
 
-    onMount(() => {
-        runtime.EventsOn("importProgress", (p: models.Progress) => {
-            if (slackImportcard.ID == p.ImportID) {
-                progress = p;
-            }
-        });
-
-        runtime.EventsOn("importError", (err) => {});
-        runtime.EventsOn("importComplete", () => {});
-    });
-
-    function formatDate(dateString: string): string {
-        if (!dateString) return "Not started";
-        const date = new Date(dateString);
-        return (
-            date.toLocaleDateString() +
-            " " +
-            date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        );
+onMount(() => {
+  runtime.EventsOn('importProgress', (p: models.Progress) => {
+    if (slackImportcard.ID == p.ImportID) {
+      progress = p
     }
+  })
 
-    function getStatusColor(progress: number, error: string): string {
-        if (error) return "#DC2626"; // red
-        if (progress === 0) return "#6B7280"; // gray
-        if (progress < 50) return "#D97706"; // amber
-        if (progress < 100) return "#2563EB"; // blue
-        return "#059669"; // green
-    }
+  runtime.EventsOn('importError', err => {})
+  runtime.EventsOn('importComplete', () => {})
+})
 
-    function getStatusText(
-        progress: number,
-        finished: string,
-        error: string,
-    ): string {
-        if (error) return "Error";
-        if (finished) return "Completed";
-        if (progress === 0) return "Pending";
-        if (progress < 100) return "In Progress";
-        return "Processing";
-    }
+function formatDate(dateString: string): string {
+  if (!dateString) return 'Not started'
+  const date = new Date(dateString)
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
 
-    function handleRename(importId: number, currentName: string) {
-        const newName = prompt("Enter new name for import:", currentName);
-    }
+function getStatusColor(progress: number, error: string): string {
+  if (error) return '#DC2626' // red
+  if (progress === 0) return '#6B7280' // gray
+  if (progress < 50) return '#D97706' // amber
+  if (progress < 100) return '#2563EB' // blue
+  return '#059669' // green
+}
 
-    async function handleDelete(importId: number, importName: string) {
-        await DeleteImportHandle(importId);
-    }
+function getStatusText(progress: number, finished: string, error: string): string {
+  if (error) return 'Error'
+  if (finished) return 'Completed'
+  if (progress === 0) return 'Pending'
+  if (progress < 100) return 'In Progress'
+  return 'Processing'
+}
 
-    function toggleCollapse() {
-        isCollapsed = !isCollapsed;
-    }
+function handleRename(importId: number, currentName: string) {
+  const newName = prompt('Enter new name for import:', currentName)
+}
+
+async function handleDelete(importId: number, importName: string) {
+  await DeleteImportHandle(importId)
+}
+
+function toggleCollapse() {
+  isCollapsed = !isCollapsed
+}
 </script>
 
 <main class="card">
