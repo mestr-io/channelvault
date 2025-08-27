@@ -109,7 +109,7 @@ async function loadMoreMessages() {
   isLoadingMessages = true
   try {
     const cursor = messages[0]?.ts || ''
-    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 200)
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 25)
 
     if (newMessages?.length > 0) {
       messages = [...newMessages.reverse(), ...messages]
