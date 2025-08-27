@@ -9,7 +9,7 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) BulkInsertUsers(ctx context.Context, users []models.User) (err error) {
+func (r *RepositorySql) BulkInsertUsers(ctx context.Context, users []models.User) (err error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)

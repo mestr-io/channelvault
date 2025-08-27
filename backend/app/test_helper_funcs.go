@@ -23,13 +23,13 @@ func (m *MockRepository) NoFinishedImports(ctx context.Context) (bool, error) {
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.Import, error) {
+func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.SlackImport, error) {
 	args := m.Called(ctx, path)
 	// Handle the case where the first return value might be nil
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*models.Import), args.Error(1)
+	return args.Get(0).(*models.SlackImport), args.Error(1)
 }
 
 func (m *MockRepository) FinishedImport(ctx context.Context, id int64) error {

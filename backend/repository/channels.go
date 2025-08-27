@@ -10,7 +10,7 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) BulkInsertChannels(ctx context.Context, channels []models.Channel) (err error) {
+func (r *RepositorySql) BulkInsertChannels(ctx context.Context, channels []models.Channel) (err error) {
 	tx, err := r.db.Begin()
 
 	if err != nil {

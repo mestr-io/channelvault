@@ -6,9 +6,10 @@ import { GetViewState } from '../wailsjs/go/app/App'
 import Dashboard from './lib/components/Dashboard.svelte'
 import Overlay from './lib/components/Overlay.svelte'
 
-type ViewState = 'setup' | 'dashboard'
+type ViewState = 'setup' | 'dashboard' | 'loading'
 
-let viewState = $state<ViewState>('setup')
+let overlayComponent: Overlay
+let viewState = $state<ViewState>('loading')
 
 // onMount is the perfect lifecycle hook to set up listeners.
 // It runs once after the component is first added to the DOM.
@@ -39,7 +40,7 @@ setContext('overlay', { openOverlay })
 <Overlay bind:this={overlayComponent} />
 <main class="app-main">
   <header></header>
-  <Dashboard />
+    <Dashboard />
   <footer></footer>
 </main>
 

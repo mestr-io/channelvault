@@ -9,7 +9,7 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) error {
+func (r *RepositorySql) CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("starting transaction failed: %w", err)
@@ -39,7 +39,7 @@ func (r *Repository) CreateCheckpointPlaceHolders(ctx context.Context, importID 
 	return nil
 }
 
-func (r *Repository) MarkCheckpointAsCompleted(ctx context.Context, importID int64, path string, errMsg string) error {
+func (r *RepositorySql) MarkCheckpointAsCompleted(ctx context.Context, importID int64, path string, errMsg string) error {
 	sql := `UPDATE checkpoints SET processed_at = CURRENT_TIMESTAMP, error = ? WHERE import_id = ? AND path = ?;`
 	if _, err := r.db.ExecContext(ctx, sql, errMsg, importID, path); err != nil {
 		return fmt.Errorf("update checkpoint for import %d and path %s failed: %w", importID, path, err)
@@ -47,7 +47,7 @@ func (r *Repository) MarkCheckpointAsCompleted(ctx context.Context, importID int
 	return nil
 }
 
-func (r *Repository) GetImport(ctx context.Context, id int64) (*models.SlackImport, error) {
+func (r *RepositorySql) GetImport(ctx context.Context, id int64) (*models.SlackImport, error) {
 	sqlStatement := `SELECT id, name, path, created, finished, num_messages, error FROM imports WHERE id = ?`
 	var imp models.SlackImport
 	var finished sql.NullString
@@ -69,7 +69,7 @@ func (r *Repository) GetImport(ctx context.Context, id int64) (*models.SlackImpo
 	return &imp, nil
 }
 
-func (r *Repository) FinishedImportUpdate(ctx context.Context, imp *models.SlackImport) error {
+func (r *RepositorySql) FinishedImportUpdate(ctx context.Context, imp *models.SlackImport) error {
 	sql := `UPDATE imports SET name = ?, finished = CURRENT_TIMESTAMP, num_messages = ?, error = ? WHERE id = ?`
 	if _, err := r.db.ExecContext(ctx, sql,
 		imp.Name,
@@ -82,7 +82,7 @@ func (r *Repository) FinishedImportUpdate(ctx context.Context, imp *models.Slack
 	return nil
 }
 
-func (r *Repository) FinishedImportUpdateWithError(ctx context.Context, imp *models.SlackImport) error {
+func (r *RepositorySql) FinishedImportUpdateWithError(ctx context.Context, imp *models.SlackImport) error {
 	sql := `UPDATE imports SET name = ?, num_messages = ?, error = ? WHERE id = ?`
 	if _, err := r.db.ExecContext(ctx, sql,
 		imp.Name,
@@ -95,13 +95,13 @@ func (r *Repository) FinishedImportUpdateWithError(ctx context.Context, imp *mod
 	return nil
 }
 
-func (r *Repository) DeleteImport(ctx context.Context, id int64) error {
+func (r *RepositorySql) DeleteImport(ctx context.Context, id int64) error {
 	sql := `DELETE FROM imports WHERE id = ?`
 	_, err := r.db.ExecContext(ctx, sql, id)
 	return err
 }
 
-func (r *Repository) RenameImport(ctx context.Context, importID int64, name string) error {
+func (r *RepositorySql) RenameImport(ctx context.Context, importID int64, name string) error {
 	sql := `UPDATE imports SET name = ? WHERE id = ?`
 	if _, err := r.db.ExecContext(ctx, sql, name, importID); err != nil {
 		return fmt.Errorf("updating import %d failed: %v", importID, err)
@@ -109,7 +109,7 @@ func (r *Repository) RenameImport(ctx context.Context, importID int64, name stri
 	return nil
 }
 
-func (r *Repository) CreateImport(ctx context.Context, path string, name string) (*models.SlackImport, error) {
+func (r *RepositorySql) CreateImport(ctx context.Context, path string, name string) (*models.SlackImport, error) {
 	sql := `INSERT INTO imports (path, name, error) VALUES (?, ?, '');`
 	result, err := r.db.ExecContext(ctx, sql, path, name)
 	if err != nil {
@@ -125,7 +125,7 @@ func (r *Repository) CreateImport(ctx context.Context, path string, name string)
 	return &i, nil
 }
 
-func (r *Repository) NoFinishedImports(ctx context.Context) (bool, error) {
+func (r *RepositorySql) NoFinishedImports(ctx context.Context) (bool, error) {
 	sql := `SELECT count(*) > 0 FROM imports WHERE finished IS NOT NULL;`
 	rows := r.db.QueryRowContext(ctx, sql)
 	var any bool
@@ -136,7 +136,7 @@ func (r *Repository) NoFinishedImports(ctx context.Context) (bool, error) {
 	return any, nil
 }
 
-func (r *Repository) ListImports(ctx context.Context) (imports []models.SlackImport, err error) {
+func (r *RepositorySql) ListImports(ctx context.Context) (imports []models.SlackImport, err error) {
 	sqlStatement := `SELECT id, created, finished, num_messages, path, name, error FROM imports ORDER BY id DESC;`
 	rows, err := r.db.Query(sqlStatement)
 	if err != nil {

@@ -25,11 +25,11 @@ type Progress struct {
 type Importer struct {
 	ctx        context.Context
 	path       string
-	repository *repository.Repository
+	repository repository.Repository
 	importID   int64
 }
 
-func NewImporter(ctx context.Context, path string, repository *repository.Repository, importID int64) *Importer {
+func NewImporter(ctx context.Context, path string, repository repository.Repository, importID int64) *Importer {
 	ctx = context.WithValue(ctx, "importId", importID)
 	return &Importer{ctx: ctx, path: path, repository: repository, importID: importID}
 }
@@ -119,9 +119,6 @@ func findFile(filename string, files []*zip.File) (*zip.File, error) {
 
 func (i *Importer) Import(c chan models.Progress) error {
 	defer close(c)
-	if err = i.ctx.Err(); err != nil {
-		return fmt.Errorf("context expired: %w", err)
-	}
 
 	r, err := zip.OpenReader(i.path)
 	if err != nil {

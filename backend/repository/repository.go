@@ -10,14 +10,20 @@ import (
 
 type Repository interface {
 	//channels
-	BulkInsertChannels(channels []models.Channel) (err error)
 	GetChannels() (channels []models.Channel, err error)
+	BulkInsertChannels(ctx context.Context, channels []models.Channel) (err error)
 
 	//imports
-	StoreImport(ctx context.Context, path string) (*models.Import, error)
-	FinishedImport(ctx context.Context, ID int64) error
+	MarkCheckpointAsCompleted(ctx context.Context, importID int64, path string, errMsg string) error
+	CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) error
+	GetImport(ctx context.Context, id int64) (*models.SlackImport, error)
+	FinishedImportUpdate(ctx context.Context, imp *models.SlackImport) error
+	FinishedImportUpdateWithError(ctx context.Context, imp *models.SlackImport) error
+	DeleteImport(ctx context.Context, id int64) error
+	RenameImport(ctx context.Context, importID int64, name string) error
+	CreateImport(ctx context.Context, path string, name string) (*models.SlackImport, error)
 	NoFinishedImports(ctx context.Context) (bool, error)
-
+	ListImports(ctx context.Context) (imports []models.SlackImport, err error)
 	//messages
 	BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error)
 	GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error)
@@ -29,7 +35,7 @@ type Repository interface {
 	SetupSchemas() error
 
 	//users
-	BulkInsertUsers(users []models.User) (err error)
+	BulkInsertUsers(ctx context.Context, users []models.User) (err error)
 	GetUserAvatar(ctx context.Context, userId string) (string, error)
 }
 
