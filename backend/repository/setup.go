@@ -6,15 +6,24 @@ import (
 
 func (r *Repository) SetupSchemas() error {
 	createTableSQL := `
-		PRAGMA foreign_keys = ON;
 		CREATE TABLE IF NOT EXISTS imports (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT,
 			path TEXT,
 			created DATETIME DEFAULT CURRENT_TIMESTAMP,
 			finished DATETIME,
-			num_messages INTEGER DEFAULT 0
+			num_messages INTEGER DEFAULT 0,
+			error TEXT
+		);
+		CREATE TABLE IF NOT EXISTS checkpoints (
+			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
+			path TEXT,
+			processed_at DATETIME,
+			error TEXT,
+			PRIMARY KEY(import_id, path)
 		);
 		CREATE TABLE IF NOT EXISTS files (
+			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
 			id TEXT PRIMARY KEY,
 			name TEXT,
 			title TEXT,
@@ -22,9 +31,11 @@ func (r *Repository) SetupSchemas() error {
 			user TEXT,
 			url_private TEXT,
 			ts TEXT,
-			channel_id TEXT
+			channel_id TEXT,
+			downloaded INTEGER DEFAULT 0
 		);
 		CREATE TABLE IF NOT EXISTS messages (
+			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
 			ts TEXT NOT NULL,
 			channel_id TEXT NOT NULL,
 			user_id TEXT,
@@ -43,6 +54,7 @@ func (r *Repository) SetupSchemas() error {
 			PRIMARY KEY (ts, channel_id)
 		);
 		CREATE TABLE IF NOT EXISTS channels (
+			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
 			id TEXT PRIMARY KEY,
 			members_json TEXT,
 			pins_json TEXT,
@@ -51,6 +63,7 @@ func (r *Repository) SetupSchemas() error {
 			name TEXT NOT NULL		
 		);
 		CREATE TABLE IF NOT EXISTS users (
+			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
 			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL,
 			real_name TEXT NOT NULL,

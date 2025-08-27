@@ -7,7 +7,7 @@
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Daniel Manchon",
-    "email": "dmanchon@gmail.com"
+    "name": "mestr.io",
+    "email": "info@mestr.io"
   }
 }

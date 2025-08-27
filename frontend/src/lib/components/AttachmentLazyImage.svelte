@@ -81,8 +81,8 @@ onMount(() => {
 
   .placeholder > img {
     display: block;
-    max-width: 100%;
+    max-width: 90%;
     height: 300px;
-    object-fit: scale-down;
+    object-fit: contain;
   }
 </style>

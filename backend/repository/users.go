@@ -1,14 +1,15 @@
 package repository
 
 import (
-	"context"	
+	"context"
+	"errors"
 	"fmt"
-	"errors"	
+
 	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
+func (r *Repository) BulkInsertUsers(ctx context.Context, users []models.User) (err error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -20,16 +21,21 @@ func (r *Repository) BulkInsertUsers(users []models.User) (err error) {
 		}
 	}()
 
-	stmt, err := tx.Prepare("INSERT OR REPLACE INTO users (id, name, profile_image_url, real_name, is_deleted, is_bot) VALUES (?, ?, ?, ?, ?, ?)")
+	// extract importId from the context
+	importId, ok := ctx.Value("importId").(int64)
+	if !ok {
+		return fmt.Errorf("failed to retrieve context: %w", err)
+	}
+	stmt, err := tx.Prepare("INSERT OR REPLACE INTO users (import_id, id, name, profile_image_url, real_name, is_deleted, is_bot) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer func(){err = errors.Join(stmt.Close(), err)}()
+	defer func() { err = errors.Join(stmt.Close(), err) }()
 
 	// 5. Iterate over users, filter, and execute the prepared statement.
 	insertCount := 0
 	for _, user := range users {
-		_, err := stmt.Exec(user.ID, user.Name, user.Profile.Image32, user.RealName, user.Deleted, user.IsBot)
+		_, err := stmt.Exec(importId, user.ID, user.Name, user.Profile.Image32, user.RealName, user.Deleted, user.IsBot)
 		if err != nil {
 			return fmt.Errorf("failed to insert user %s: %w", user.ID, err)
 		}

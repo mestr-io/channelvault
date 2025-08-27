@@ -9,22 +9,32 @@ import { models } from '../../../wailsjs/go/models'
 import { onMount, tick } from 'svelte'
 import Welcome from './Welcome.svelte'
 import { setContext } from 'svelte'
+import ImportManager from './ImportManager.svelte'
+import * as runtime from '../../../wailsjs/runtime'
 
+// --- State Variables ---
 let channels = $state<models.Channel[]>([] as models.Channel[])
-let messages = $state<models.Message[]>([] as models.Message[])
-let threadMessages = $state<models.Message[]>([] as models.Message[])
 let selectedChannel = $state<models.Channel | null>(null)
+
+let threadMessages = $state<models.Message[]>([] as models.Message[])
+let messages = $state<models.Message[]>([] as models.Message[])
 let isLoadingMessages = $state(false)
 let hasMoreMessages = $state(true)
 
 let showThread = $state(false)
 let selectedThread = $state<string | null>(null)
-let isInitialLoad = $state(true)
+
+// 2. Add state to control the main view
+let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
 
 // svelte-ignore non_reactive_update
 let vlist_messages: VListHandle
 // svelte-ignore non_reactive_update
 let vlist_thread: VListHandle
+
+$effect(() => {
+  console.log(currentView)
+})
 
 const startResize = () => {
   document.body.classList.add('is-resizing-panes')
@@ -63,19 +73,29 @@ $effect(() => {
   }
 })
 
-// Sidebar resizing logic
 onMount(async () => {
   channels = await GetChannels()
+
+  // reload the
+  runtime.EventsOn('importComplete', async () => {
+    const fresh = await GetChannels()
+    channels = [...fresh]
+  })
+
+  runtime.EventsOn('importDeleted', async () => {
+    const fresh = await GetChannels()
+    channels = [...fresh]
+  })
 })
 
 async function selectChannel(channel: models.Channel) {
-  if (selectedChannel?.id === channel.id) return
+  if (selectedChannel?.id === channel.id && currentView === 'channel') return
 
   selectedChannel = channel
   messages = []
   hasMoreMessages = true
-  isInitialLoad = true
   showThread = false
+  currentView = 'channel' // <-- 3. Set view to 'channel' on selection
   await loadMoreMessages()
   if (vlist_messages && messages.length > 0) {
     await tick()
@@ -89,12 +109,9 @@ async function loadMoreMessages() {
   isLoadingMessages = true
   try {
     const cursor = messages[0]?.ts || ''
-
-    // The backend returns messages newest-to-oldest
     const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 200)
 
     if (newMessages?.length > 0) {
-      // Prepend older messages. Reverse the fetched chunk so it's in chronological order.
       messages = [...newMessages.reverse(), ...messages]
     } else {
       hasMoreMessages = false
@@ -121,16 +138,31 @@ function handleScroll(offset: number) {
         {#each channels as channel (channel.id)}
           <div class="channel-item">
             <button
-              class:active={channel.id === selectedChannel?.id}
+              class:active={channel.id === selectedChannel?.id && currentView === 'channel'}
               onclick={() => selectChannel(channel)}># {channel.name}</button
             >
           </div>
         {/each}
+        <div class="imports" onclick={() => (currentView = 'imports')}>
+          <svg
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+            ></path></svg
+          >
+          Imports
+        </div>
       </div>
     </Pane>
     <Pane>
       <div class="main-content" id="main-content">
-        {#if selectedChannel}
+        {#if currentView === 'channel' && selectedChannel}
           <header class="channel-header">
             <h2># {selectedChannel.name}</h2>
           </header>
@@ -147,6 +179,8 @@ function handleScroll(offset: number) {
               <Message {msg} bind:selectedThread />
             {/snippet}
           </VList>
+        {:else if currentView === 'imports'}
+          <ImportManager />
         {:else}
           <Welcome />
         {/if}
@@ -200,8 +234,8 @@ function handleScroll(offset: number) {
 
 <style>
   :global(body.is-resizing-panes) {
-    cursor: col-resize !important; /* Force the cursor */
-    user-select: none !important; /* Force disable selection */
+    cursor: col-resize !important;
+    user-select: none !important;
     -webkit-user-select: none !important;
     -moz-user-select: none !important;
     -ms-user-select: none !important;
@@ -216,6 +250,31 @@ function handleScroll(offset: number) {
     height: 100%;
     overflow-x: hidden;
     background-color: #552958;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar .imports {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #dbc9e0;
+    padding: 0.5rem 1.25rem;
+    margin: auto 0.5rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.1s ease-in-out;
+  }
+  .sidebar .imports:hover {
+    background-color: #663867;
+  }
+  .sidebar .imports svg {
+    height: 1rem;
+  }
+
+  .sidebar .imports:active {
+    background-color: #f9edff;
+    color: #39063a;
   }
 
   .sidebar h4 {
@@ -223,26 +282,23 @@ function handleScroll(offset: number) {
     font-size: 1.2rem;
     color: #dbc9e0;
   }
-  
+
   .channel-header {
-    /* Add these properties */
     display: flex;
     justify-content: space-between;
     align-items: center;
-
-    /* Keep existing properties */
     padding: 1rem 1.25rem;
     border-bottom: 1px solid #3b3d40;
     flex-shrink: 0;
   }
-  /* Add this new style block */
+
   .close-thread-btn {
     background: none;
     border: none;
     cursor: pointer;
     padding: 4px;
     border-radius: 6px;
-    color: #dbc9e0; /* Match sidebar icon/text color */
+    color: #dbc9e0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -250,7 +306,7 @@ function handleScroll(offset: number) {
   }
 
   .close-thread-btn:hover {
-    background-color: #663867; /* Use existing hover color */
+    background-color: #663867;
   }
   .channel-item button {
     background: none;
@@ -283,25 +339,7 @@ function handleScroll(offset: number) {
     height: 100vh;
   }
 
-  .channel-header {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #3b3d40;
-    flex-shrink: 0;
-  }
   .channel-header h2 {
     margin: 0;
-  }
-  .messages-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .thread-container {
-    flex-grow: 1; /* Key property */
-    overflow-y: auto; /* Key property */
-    display: flex;
-    flex-direction: column;
   }
 </style>
