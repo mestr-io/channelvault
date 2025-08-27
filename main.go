@@ -74,7 +74,7 @@ func main() {
 			Assets: assets,
 		},
 
-		OnStartup: app.Startup,
+		OnDomReady: app.Startup,
 
 		Bind: []any{
 			app,

@@ -4,3 +4,7 @@ frontend/dist
 .gemini/
 .env
 .DS_Store
+.vscode
+bin
+slack-export-viewer.code-workspace
+zips

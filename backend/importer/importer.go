@@ -35,6 +35,9 @@ func NewImporter(ctx context.Context, path string, repository *repository.Reposi
 }
 
 func (i *Importer) processUsers(zf *zip.File) (err error) {
+	if err = i.ctx.Err(); err != nil {
+		return fmt.Errorf("context expired: %w", err)
+	}
 	f, err := zf.Open()
 	if err != nil {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
@@ -57,7 +60,10 @@ func (i *Importer) processUsers(zf *zip.File) (err error) {
 	return i.repository.BulkInsertUsers(i.ctx, result)
 }
 
-func (i *Importer) processChannels(zf *zip.File) error {
+func (i *Importer) processChannels(zf *zip.File) (err error) {
+	if err = i.ctx.Err(); err != nil {
+		return fmt.Errorf("context expired: %w", err)
+	}
 	f, err := zf.Open()
 	if err != nil {
 		return fmt.Errorf("FATAL: cannot open 'users.json': %v", err)
@@ -79,7 +85,10 @@ func (i *Importer) processChannels(zf *zip.File) error {
 	return i.repository.BulkInsertChannels(i.ctx, result)
 }
 
-func (i *Importer) processMessages(ChannelID string, f *zip.File) error {
+func (i *Importer) processMessages(ChannelID string, f *zip.File) (err error) {
+	if err = i.ctx.Err(); err != nil {
+		return fmt.Errorf("context expired: %w", err)
+	}
 	file, err := f.Open()
 	if err != nil {
 		return fmt.Errorf("FATAL: fail to open messages file %s: %v", f.Name, err)
@@ -95,7 +104,7 @@ func (i *Importer) processMessages(ChannelID string, f *zip.File) error {
 		return fmt.Errorf("fail to deserialize 'users.json': %v", err)
 	}
 
-	return i.repository.BulkInserMessages(i.ctx, ChannelID, result)
+	return i.repository.BulkInsertMessages(i.ctx, ChannelID, result)
 }
 
 func findFile(filename string, files []*zip.File) (*zip.File, error) {
@@ -110,6 +119,9 @@ func findFile(filename string, files []*zip.File) (*zip.File, error) {
 
 func (i *Importer) Import(c chan models.Progress) error {
 	defer close(c)
+	if err = i.ctx.Err(); err != nil {
+		return fmt.Errorf("context expired: %w", err)
+	}
 
 	r, err := zip.OpenReader(i.path)
 	if err != nil {

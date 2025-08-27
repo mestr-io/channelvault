@@ -60,7 +60,7 @@ func (r *Repository) BulkInsertChannels(ctx context.Context, channels []models.C
 	return tx.Commit()
 }
 
-func (r *Repository) GetChannels() (channels []models.Channel, err error) {
+func (r *RepositorySql) GetChannels() (channels []models.Channel, err error) {
 	rows, err := r.db.Query("select id, name from channels")
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)

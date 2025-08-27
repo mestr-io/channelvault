@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func (r *Repository) SetupSchemas() error {
+func (r *RepositorySql) SetupSchemas() error {
 	createTableSQL := `
 		CREATE TABLE IF NOT EXISTS imports (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,

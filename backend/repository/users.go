@@ -47,7 +47,7 @@ func (r *Repository) BulkInsertUsers(ctx context.Context, users []models.User) (
 	return tx.Commit()
 }
 
-func (r *Repository) GetUserAvatar(ctx context.Context, userId string) (string, error) {
+func (r *RepositorySql) GetUserAvatar(ctx context.Context, userId string) (string, error) {
 	sql := `SELECT profile_image_url FROM users WHERE id = ?;`
 	rows := r.db.QueryRowContext(ctx, sql, userId)
 	var url string

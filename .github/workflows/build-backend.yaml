@@ -5,6 +5,8 @@ on:
     branches:
       - "*"
     paths:
+      - "go.mod"
+      - "main.go"
       - "backend/**"
       - ".github/workflows/build-backend.yaml"
 
@@ -35,6 +37,11 @@ jobs:
 
       - name: Build wails go app
         run: make build
-        
+
+      - name: Install Xvfb and dependencies
+        run: sudo apt update && sudo apt install -y xvfb xauth
+
       - name: Run go tests
-        run: make test
+        run: make testh
+        env:
+          DISPLAY: :99
