@@ -7,10 +7,12 @@ let {
   slackImportcard: slackImportcard,
   isCollapsed = true,
   DeleteImportHandle,
+  RetryImportHandle,
 }: {
   slackImportcard: models.SlackImport
   isCollapsed: boolean
   DeleteImportHandle: (id: number) => Promise<void>
+  RetryImportHandle: (id: number) => Promise<void>
 } = $props()
 let progress: models.Progress | null = $state(null)
 
@@ -53,6 +55,10 @@ function handleRename(importId: number, currentName: string) {
 
 async function handleDelete(importId: number, importName: string) {
   await DeleteImportHandle(importId)
+}
+
+async function handleRetry(importId: number) {
+  await RetryImportHandle(importId)
 }
 
 function toggleCollapse() {
@@ -146,6 +152,22 @@ function toggleCollapse() {
                     <span class="error-title">Import Error</span>
                 </div>
                 <p class="error-message">{slackImportcard.Error}</p>
+                <div class="error-actions">
+                    <button
+                        class="retry-button"
+                        onclick={() => handleRetry(slackImportcard.ID)}
+                        title="Retry import"
+                    >
+                        <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path
+                                fill-rule="evenodd"
+                                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        Retry Import
+                    </button>
+                </div>
             </div>
         {/if}
 
@@ -394,8 +416,40 @@ function toggleCollapse() {
     .error-message {
         font-size: 0.875rem;
         color: #7f1d1d;
-        margin: 0;
+        margin: 0 0 0.75rem 0;
         line-height: 1.5;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .retry-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background-color: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .retry-button:hover {
+        background-color: #b91c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+    }
+
+    .retry-button svg {
+        width: 1rem;
+        height: 1rem;
     }
 
     .card-content {

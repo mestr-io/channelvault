@@ -20,7 +20,7 @@ func (r *Repository) CreateCheckpointPlaceHolders(ctx context.Context, importID 
 		}
 	}()
 
-	stmt, err := tx.PrepareContext(ctx, `INSERT INTO checkpoints (import_id, path) VALUES (?, ?)`)
+	stmt, err := tx.PrepareContext(ctx, `INSERT OR IGNORE INTO checkpoints (import_id, path) VALUES (?, ?)`)
 	if err != nil {
 		return fmt.Errorf("creating prepare statement failed: %w", err)
 	}

@@ -34,6 +34,10 @@ export function ListImports() {
   return window['go']['app']['App']['ListImports']();
 }
 
+export function ResumeImport(arg1) {
+  return window['go']['app']['App']['ResumeImport'](arg1);
+}
+
 export function WailsGenProgress() {
   return window['go']['app']['App']['WailsGenProgress']();
 }

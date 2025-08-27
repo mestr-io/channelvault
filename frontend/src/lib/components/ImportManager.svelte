@@ -1,6 +1,6 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { ListImports } from '../../../wailsjs/go/app/App'
+import { ListImports, ResumeImport } from '../../../wailsjs/go/app/App'
 import { models } from '../../../wailsjs/go/models'
 import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
@@ -13,8 +13,9 @@ let isImporting = $state(false)
 
 onMount(async () => {
   // subscribe to new import notification
-  runtime.EventsOn('startImport', (imp: models.SlackImport) => {
-    imports = [imp, ...imports]
+  runtime.EventsOn('startImport', async (imp: models.SlackImport) => {
+    const fresh = await ListImports()
+    imports = [...fresh]
     isImporting = true
   })
 
@@ -42,6 +43,10 @@ let DeleteImportHandle = async (importID: number) => {
     const fresh = await ListImports()
     imports = [...fresh]
   } catch (error) {}
+}
+
+let RetryImportHandle = async (importID: number) => {
+  await ResumeImport(importID)
 }
 
 // --- Drag & Drop Event Handlers ---
@@ -140,7 +145,7 @@ function handleDrop(event: DragEvent): void {
 
   <div class="imports">
     {#each imports as slackImportcard (slackImportcard.ID)}
-      <SlackImport {slackImportcard} isCollapsed={slackImportcard.Finished !== "" && slackImportcard.Error === ""} {DeleteImportHandle}/>
+      <SlackImport {RetryImportHandle} {slackImportcard} isCollapsed={slackImportcard.Finished !== "" && slackImportcard.Error === ""} {DeleteImportHandle}/>
     {/each}
   </div>
 </main>

@@ -94,3 +94,13 @@ func (a *App) DeleteImport(importID int64) error {
 	}
 	return err
 }
+
+func (a *App) ResumeImport(importID int64) error {
+	imp, err := a.repository.GetImport(a.ctx, importID)
+	if err != nil {
+		return fmt.Errorf("cannot find import %d: %v", importID, err)
+	}
+
+	a.processImport(imp)
+	return nil
+}

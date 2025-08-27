@@ -75,7 +75,13 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 		ah.Fatalf("internal error. import part incorrect: %v", paths)
 	}
 
-	a.processImport(paths[0])
+	record, err := a.repository.CreateImport(a.ctx, paths[0], defaultImportName(paths[0]))
+	if err != nil {
+		ah.Errorf("Import failed: %v", err)
+		a.setViewState(ViewStateSetup) // Go back to setup on failure
+		return
+	}
+	a.processImport(record)
 }
 
 func defaultImportName(path string) string {
@@ -83,20 +89,12 @@ func defaultImportName(path string) string {
 	return name
 }
 
-func (a *App) processImport(path string) {
-	a.setViewState(VIewStateLoading)
-	record, err := a.repository.CreateImport(a.ctx, path, defaultImportName(path))
-	if err != nil {
-		ah.Errorf("Import failed: %v", err)
-		a.setViewState(ViewStateSetup) // Go back to setup on failure
-		return
-	}
-
+func (a *App) processImport(record *models.SlackImport) {
 	// notify the FE
 	runtime.EventsEmit(a.ctx, "startImport", record)
 
 	progressChan := make(chan models.Progress)
-	imp := importer.NewImporter(a.ctx, path, a.repository, record.ID)
+	imp := importer.NewImporter(a.ctx, record.Path, a.repository, record.ID)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -123,15 +121,13 @@ func (a *App) processImport(path string) {
 	if importErr != nil {
 		ah.Errorf("Import failed: %v", importErr)
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
-		a.setViewState(ViewStateSetup) // Go back to setup on failure
 		record.Error = fmt.Sprintf("%v", importErr)
 	} else {
 		ah.Infof("Import completed successfully!!")
 		runtime.EventsEmit(a.ctx, "importComplete")
-		a.setViewState(ViewStateDashboard) // Move to the dashboard
+		record.Error = ""
 	}
 
 	// update the import
 	a.repository.FinishedImportUpdate(a.ctx, record)
-
 }
