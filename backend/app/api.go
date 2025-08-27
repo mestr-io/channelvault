@@ -104,3 +104,7 @@ func (a *App) ResumeImport(importID int64) error {
 	a.processImport(imp)
 	return nil
 }
+
+func (a *App) RenameImport(importID int64, name string) error {
+	return a.repository.RenameImport(a.ctx, importID, name)
+}

@@ -2,6 +2,8 @@
 import { onMount } from 'svelte'
 import * as runtime from '../../../wailsjs/runtime'
 import { models } from '../../../wailsjs/go/models'
+import { RenameImport } from '../../../wailsjs/go/app/App'
+import Prompt from './Prompt.svelte'
 
 let {
   slackImportcard: slackImportcard,
@@ -50,8 +52,20 @@ function getStatusText(progress: number, finished: string, error: string): strin
   return 'Processing'
 }
 
-function handleRename(importId: number, currentName: string) {
-  const newName = prompt('Enter new name for import:', currentName)
+let showPrompt = $state(false)
+let promptDefault = ''
+let importId: number
+
+async function handleRename(importId_: number, currentName: string) {
+  importId = importId_
+  promptDefault = currentName
+  showPrompt = true
+}
+
+async function confirmRename(newName: string) {
+  if (!newName) return
+  await RenameImport(importId, newName)
+  slackImportcard.Name = newName
 }
 
 async function handleDelete(importId: number, importName: string) {
@@ -67,6 +81,14 @@ function toggleCollapse() {
 }
 </script>
 
+<Prompt
+    open={showPrompt}
+    title="Rename Import"
+    message="Enter new name:"
+    defaultValue={promptDefault}
+    onConfirm={confirmRename}
+    onCancel={() => (showPrompt = false)}
+/>
 <main class="card">
     <div class="card-header">
         <button
@@ -117,21 +139,23 @@ function toggleCollapse() {
                     />
                 </svg>
             </button>
-            <button
-                aria-label="delete import"
-                class="action-button delete-button"
-                onclick={() =>
-                    handleDelete(slackImportcard.ID, slackImportcard.Name)}
-                title="Delete import"
-            >
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path
-                        fill-rule="evenodd"
-                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-            </button>
+            {#if false}
+                <button
+                    aria-label="delete import"
+                    class="action-button delete-button"
+                    onclick={() =>
+                        handleDelete(slackImportcard.ID, slackImportcard.Name)}
+                    title="Delete import"
+                >
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                            fill-rule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                </button>
+            {/if}
         </div>
     </div>
 

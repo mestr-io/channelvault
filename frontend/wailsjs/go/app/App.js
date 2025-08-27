@@ -34,6 +34,10 @@ export function ListImports() {
   return window['go']['app']['App']['ListImports']();
 }
 
+export function RenameImport(arg1, arg2) {
+  return window['go']['app']['App']['RenameImport'](arg1, arg2);
+}
+
 export function ResumeImport(arg1) {
   return window['go']['app']['App']['ResumeImport'](arg1);
 }

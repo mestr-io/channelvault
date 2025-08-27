@@ -101,6 +101,14 @@ func (r *Repository) DeleteImport(ctx context.Context, id int64) error {
 	return err
 }
 
+func (r *Repository) RenameImport(ctx context.Context, importID int64, name string) error {
+	sql := `UPDATE imports SET name = ? WHERE id = ?`
+	if _, err := r.db.ExecContext(ctx, sql, name, importID); err != nil {
+		return fmt.Errorf("updating import %d failed: %v", importID, err)
+	}
+	return nil
+}
+
 func (r *Repository) CreateImport(ctx context.Context, path string, name string) (*models.SlackImport, error) {
 	sql := `INSERT INTO imports (path, name, error) VALUES (?, ?, '');`
 	result, err := r.db.ExecContext(ctx, sql, path, name)
