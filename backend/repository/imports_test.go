@@ -12,7 +12,7 @@ func TestStoreImport(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 
-	imp, err := repo.StoreImport(context.Background(), "/path/to/import")
+	imp, err := repo.CreateImport(context.Background(), "/path/to/import", "an import")
 	if err != nil {
 		t.Fatalf("StoreImport() error = %v", err)
 	}
@@ -35,12 +35,12 @@ func TestFinishedImport(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 
-	imp, err := repo.StoreImport(context.Background(), "/path/to/import")
+	imp, err := repo.CreateImport(context.Background(), "/path/to/import", "an import")
 	if err != nil {
 		t.Fatalf("StoreImport() error = %v", err)
 	}
 
-	if err := repo.FinishedImport(context.Background(), imp.ID); err != nil {
+	if err := repo.FinishedImportUpdate(context.Background(), imp); err != nil {
 		t.Fatalf("FinishedImport() error = %v", err)
 	}
 
@@ -68,7 +68,7 @@ func TestNoFinishedImports(t *testing.T) {
 		}
 	})
 
-	imp, err := repo.StoreImport(context.Background(), "/path/to/import")
+	imp, err := repo.CreateImport(context.Background(), "/path/to/import", "an import")
 	if err != nil {
 		t.Fatalf("StoreImport() error = %v", err)
 	}
@@ -83,7 +83,7 @@ func TestNoFinishedImports(t *testing.T) {
 		}
 	})
 
-	if err := repo.FinishedImport(context.Background(), imp.ID); err != nil {
+	if err := repo.FinishedImportUpdate(context.Background(), imp); err != nil {
 		t.Fatalf("FinishedImport() error = %v", err)
 	}
 
