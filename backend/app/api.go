@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 func (a *App) GetChannels() ([]models.Channel, error) {
@@ -66,4 +67,44 @@ func (a *App) GetBase64Image(fileId string) (string, error) {
 	// 4. Encode the data to Base64 and format the data URI string
 	encodedData := base64.StdEncoding.EncodeToString(data)
 	return fmt.Sprintf("data:%s;base64,%s", file.Mimetype, encodedData), nil
+}
+
+func (a *App) ListImports() ([]models.SlackImport, error) {
+	return a.repository.ListImports(a.ctx)
+}
+
+func (a *App) DeleteImport(importID int64) error {
+	selection, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+		Type:          runtime.QuestionDialog,
+		Title:         "Confirm Delete",
+		Message:       "Are you sure you want to delete this import? This action cannot be undone.",
+		Buttons:       []string{"Cancel", "Delete"},
+		DefaultButton: "Cancel",
+	})
+	if err != nil {
+		return err
+	}
+	if selection != "Delete" {
+		return fmt.Errorf("user cancelled deletion")
+	}
+	err = a.repository.DeleteImport(a.ctx, importID)
+
+	if err == nil {
+		runtime.EventsEmit(a.ctx, "importDeleted", importID)
+	}
+	return err
+}
+
+func (a *App) ResumeImport(importID int64) error {
+	imp, err := a.repository.GetImport(a.ctx, importID)
+	if err != nil {
+		return fmt.Errorf("cannot find import %d: %v", importID, err)
+	}
+
+	a.processImport(imp)
+	return nil
+}
+
+func (a *App) RenameImport(importID int64, name string) error {
+	return a.repository.RenameImport(a.ctx, importID, name)
 }

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,7 +10,7 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *RepositorySql) BulkInsertChannels(channels []models.Channel) (err error) {
+func (r *RepositorySql) BulkInsertChannels(ctx context.Context, channels []models.Channel) (err error) {
 	tx, err := r.db.Begin()
 
 	if err != nil {
@@ -24,8 +25,12 @@ func (r *RepositorySql) BulkInsertChannels(channels []models.Channel) (err error
 			}
 		}
 	}()
-
-	stmt, err := tx.Prepare("INSERT OR REPLACE INTO channels (id, name, topic, purpose, members_json, pins_json) VALUES (?, ?, ?, ?, ?, ?)")
+	// extract importId from the context
+	importId, ok := ctx.Value("importId").(int64)
+	if !ok {
+		return fmt.Errorf("failed to retrieve context: %w", err)
+	}
+	stmt, err := tx.Prepare("INSERT OR REPLACE INTO channels (import_id, id, name, topic, purpose, members_json, pins_json) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
@@ -43,7 +48,7 @@ func (r *RepositorySql) BulkInsertChannels(channels []models.Channel) (err error
 		if err != nil {
 			return fmt.Errorf("failed to marshal pins for channel %s: %v", channel.ID, err)
 		}
-		_, err = stmt.Exec(channel.ID, channel.Name, channel.Topic.Value, channel.Purpose.Value, toNullString(membersJson), toNullString(pinsJson))
+		_, err = stmt.Exec(importId, channel.ID, channel.Name, channel.Topic.Value, channel.Purpose.Value, toNullString(membersJson), toNullString(pinsJson))
 		if err != nil {
 			return fmt.Errorf("failed to insert channel %s: %w", channel.ID, err)
 		}
@@ -75,6 +80,11 @@ func (r *RepositorySql) GetChannels() (channels []models.Channel, err error) {
 	err = rows.Err()
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query channels: %w", err)
+	}
+
+	// on no results -> return empty list
+	if channels == nil {
+		channels = []models.Channel{}
 	}
 
 	return channels, nil

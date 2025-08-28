@@ -356,8 +356,52 @@ export namespace models {
 		    return a;
 		}
 	}
+	export class Progress {
+	    ImportID: number;
+	    FileName: string;
+	    Progress: number;
+	    TotalFiles: number;
+	    CurrentFile: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Progress(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ImportID = source["ImportID"];
+	        this.FileName = source["FileName"];
+	        this.Progress = source["Progress"];
+	        this.TotalFiles = source["TotalFiles"];
+	        this.CurrentFile = source["CurrentFile"];
+	    }
+	}
 	
 	
+	export class SlackImport {
+	    ID: number;
+	    Path: string;
+	    Created: string;
+	    Finished: string;
+	    NumFiles: number;
+	    Name: string;
+	    Error: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SlackImport(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ID = source["ID"];
+	        this.Path = source["Path"];
+	        this.Created = source["Created"];
+	        this.Finished = source["Finished"];
+	        this.NumFiles = source["NumFiles"];
+	        this.Name = source["Name"];
+	        this.Error = source["Error"];
+	    }
+	}
 
 }
 
