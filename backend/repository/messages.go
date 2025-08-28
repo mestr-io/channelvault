@@ -132,7 +132,7 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
 	query := `
         SELECT 
-			ts, text, 
+			distinct(ts), text, 
 			user_id, 
 			u.real_name as author, 
 			u.profile_image_url as profile_url,
@@ -142,9 +142,9 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 			reply_users_json,
 			reply_users_count,
 			files_json
-        FROM messages 
-		JOIN users AS u ON u.id = user_id
-		JOIN channels AS c ON c.name = channel_id
+        FROM messages AS m
+		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
+		JOIN channels AS c ON c.name = channel_id AND c.import_id = m.import_id
         WHERE c.id = $1 AND (thread_ts = ts OR thread_ts = "") 
     `
 	args := []interface{}{channelID}
@@ -210,7 +210,7 @@ func (r *RepositorySql) ListChannelFiles(ctx context.Context, channelID string, 
 func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
 	query := `
         SELECT 
-			ts, text, 
+			distinct(ts), text, 
 			user_id, 
 			u.real_name as author, 
 			u.profile_image_url as profile_url,
@@ -220,9 +220,9 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
 			reply_users_json,
 			reply_users_count,
 			reactions_json
-        FROM messages 
-		JOIN users AS u ON u.id = user_id
-		JOIN channels AS c ON c.name = channel_id
+        FROM messages AS m
+		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
+		JOIN channels AS c ON c.name = m.channel_id AND c.import_id = m.import_id
         WHERE c.id = $1 AND thread_ts = $2 
     `
 	args := []interface{}{channelID, threadTs}

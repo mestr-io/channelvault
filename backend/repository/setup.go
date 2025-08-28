@@ -24,7 +24,7 @@ func (r *RepositorySql) SetupSchemas() error {
 		);
 		CREATE TABLE IF NOT EXISTS files (
 			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
-			id TEXT PRIMARY KEY,
+			id TEXT,
 			name TEXT,
 			title TEXT,
 			mimetype TEXT,
@@ -32,7 +32,8 @@ func (r *RepositorySql) SetupSchemas() error {
 			url_private TEXT,
 			ts TEXT,
 			channel_id TEXT,
-			downloaded INTEGER DEFAULT 0
+			downloaded INTEGER DEFAULT 0,
+			PRIMARY KEY (import_id, id)
 		);
 		CREATE TABLE IF NOT EXISTS messages (
 			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
@@ -51,25 +52,27 @@ func (r *RepositorySql) SetupSchemas() error {
 			replies_json TEXT,
 			reply_users_count INTEGER NOT NULL DEFAULT 0,
 			reply_count INTEGER NOT NULL DEFAULT 0,
-			PRIMARY KEY (ts, channel_id)
+			PRIMARY KEY (import_id, ts, channel_id)
 		);
 		CREATE TABLE IF NOT EXISTS channels (
 			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
-			id TEXT PRIMARY KEY,
+			id TEXT,
 			members_json TEXT,
 			pins_json TEXT,
 			topic TEXT,
 			purpose TEXT,
-			name TEXT NOT NULL		
+			name TEXT NOT NULL,
+			PRIMARY KEY (import_id, id)	
 		);
 		CREATE TABLE IF NOT EXISTS users (
 			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
-			id TEXT PRIMARY KEY,
+			id TEXT,
 			name TEXT NOT NULL,
 			real_name TEXT NOT NULL,
 			is_deleted INTEGER DEFAULT 0,
 			is_bot INTEGER DEFAULT 0,
-			profile_image_url TEXT
+			profile_image_url TEXT,
+			PRIMARY KEY (import_id, id)	
 		);`
 	if _, err := r.db.Exec(createTableSQL); err != nil {
 		return fmt.Errorf("failed to create table: %w", err)

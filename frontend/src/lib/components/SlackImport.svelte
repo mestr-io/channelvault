@@ -140,7 +140,6 @@ function toggleCollapse() {
                     />
                 </svg>
             </button>
-            {#if false}
                 <button
                     aria-label="delete import"
                     class="action-button delete-button"
@@ -156,7 +155,6 @@ function toggleCollapse() {
                         />
                     </svg>
                 </button>
-            {/if}
         </div>
     </div>
 
