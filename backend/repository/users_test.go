@@ -12,13 +12,15 @@ import (
 func TestBulkInsertUsers(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "importId", int64(66))
 
 	users := []models.User{
 		{ID: "U1", Name: "user1", RealName: "User One", Profile: models.Profile{Image32: "http://example.com/avatar1.png"}},
 		{ID: "U2", Name: "user2", RealName: "User Two", IsBot: true},
 	}
 
-	if err := repo.BulkInsertUsers(users); err != nil {
+	if err := repo.BulkInsertUsers(ctx, users); err != nil {
 		t.Fatalf("BulkInsertUsers() error = %v", err)
 	}
 
@@ -46,15 +48,17 @@ func TestBulkInsertUsers(t *testing.T) {
 func TestGetUserAvatar(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "importId", int64(66))
 
 	users := []models.User{
 		{ID: "U1", Name: "user1", Profile: models.Profile{Image32: "http://example.com/avatar1.png"}},
 	}
-	if err := repo.BulkInsertUsers(users); err != nil {
+	if err := repo.BulkInsertUsers(ctx, users); err != nil {
 		t.Fatalf("failed to insert users for testing: %v", err)
 	}
 
-	avatar, err := repo.GetUserAvatar(context.Background(), "U1")
+	avatar, err := repo.GetUserAvatar(ctx, "U1")
 	if err != nil {
 		t.Fatalf("GetUserAvatar() error = %v", err)
 	}

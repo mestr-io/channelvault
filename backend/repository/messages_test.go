@@ -11,17 +11,19 @@ import (
 func TestBulkInsertMessages(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "importId", int64(66))
 
 	// Pre-insert a user and a channel for foreign key constraints
-	repo.BulkInsertUsers([]models.User{{ID: "U1", Name: "user1"}})
-	repo.BulkInsertChannels([]models.Channel{{ID: "C1", Name: "channel1"}})
+	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1"}})
+	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
 
 	messages := []models.Message{
 		{Ts: "123.456", UserId: "U1", Text: "Hello", ThreadTs: "123.456"},
 		{Ts: "123.457", UserId: "U1", Text: "World", ThreadTs: "123.456"},
 	}
 
-	if err := repo.BulkInsertMessages(context.Background(), "C1", messages); err != nil {
+	if err := repo.BulkInsertMessages(ctx, "C1", messages); err != nil {
 		t.Fatalf("BulkInsertMessages() error = %v", err)
 	}
 
@@ -38,16 +40,18 @@ func TestBulkInsertMessages(t *testing.T) {
 func TestGetMessages(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "importId", int64(66))
 
-	repo.BulkInsertUsers([]models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
-	repo.BulkInsertChannels([]models.Channel{{ID: "C1", Name: "channel1"}})
+	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
+	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
 	messages := []models.Message{
 		{Ts: "123.457", UserId: "U1", Text: "Not in thread"},
 		{Ts: "123.456", UserId: "U1", Text: "In thread", ThreadTs: "123.456"},
 	}
 
 	//note channel name is used on the insert and not channel ID
-	repo.BulkInsertMessages(context.Background(), "channel1", messages)
+	repo.BulkInsertMessages(ctx, "channel1", messages)
 
 	retrieved, err := repo.GetMessages(context.Background(), "C1", "", 10)
 	if err != nil {
@@ -71,9 +75,11 @@ func TestGetMessages(t *testing.T) {
 func TestGetThreadByTs(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "importId", int64(66))
 
-	repo.BulkInsertUsers([]models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
-	repo.BulkInsertChannels([]models.Channel{{ID: "C1", Name: "channel1"}})
+	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
+	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
 	messages := []models.Message{
 		{Ts: "123.455", UserId: "U1", Text: "Outside thread"},
 		{Ts: "123.457", UserId: "U1", Text: "Reply", ThreadTs: "123.456"},
@@ -82,7 +88,7 @@ func TestGetThreadByTs(t *testing.T) {
 	}
 
 	//note channel name is used on the insert and not channel ID
-	repo.BulkInsertMessages(context.Background(), "channel1", messages)
+	repo.BulkInsertMessages(ctx, "channel1", messages)
 	
 	retrieved, err := repo.GetThreadByTs(context.Background(), "123.456", "C1")
 	if err != nil {
@@ -101,14 +107,16 @@ func TestGetThreadByTs(t *testing.T) {
 func TestGetFileById(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "importId", int64(66))
 
-	repo.BulkInsertChannels([]models.Channel{{ID: "C1", Name: "channel1"}})
+	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
 	messages := []models.Message{
 		{Ts: "123.456", Files: []models.File{{ID: "F1", Name: "file1.txt"}}},
 	}
-	repo.BulkInsertMessages(context.Background(), "C1", messages)
+	repo.BulkInsertMessages(ctx, "C1", messages)
 
-	file, err := repo.GetFileById(context.Background(), "F1")
+	file, err := repo.GetFileById(ctx, "F1")
 	if err != nil {
 		t.Fatalf("GetFileById() error = %v", err)
 	}
