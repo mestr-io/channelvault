@@ -18,6 +18,7 @@ onMount(async () => {
     const fresh = await ListImports()
     imports = [...fresh]
     isImporting = true
+    isDropZoneCollapsed = true
   })
 
   // reload the
@@ -60,6 +61,7 @@ function toggleDropZone() {
 
 // --- Drag & Drop Event Handlers ---
 function handleDragEnter(event: DragEvent): void {
+  if (isImporting) return
   event.preventDefault()
   dragCounter++
   if (dragCounter === 1) {
@@ -72,6 +74,7 @@ function handleDragEnter(event: DragEvent): void {
 }
 
 function handleDragOver(event: DragEvent): void {
+  if (isImporting) return
   event.preventDefault()
   if (!isDragging) {
     isDragging = true
@@ -83,6 +86,7 @@ function handleDragOver(event: DragEvent): void {
 }
 
 function handleDragLeave(event: DragEvent): void {
+  if (isImporting) return
   event.preventDefault()
   dragCounter--
   if (dragCounter === 0) {
@@ -91,8 +95,8 @@ function handleDragLeave(event: DragEvent): void {
 }
 
 function handleDrop(event: DragEvent): void {
-  event.preventDefault()
   if (isImporting) return
+  event.preventDefault()
 
   dragCounter = 0
   isDragging = false
