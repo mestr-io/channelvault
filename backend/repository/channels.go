@@ -26,7 +26,7 @@ func (r *RepositorySql) BulkInsertChannels(ctx context.Context, channels []model
 		}
 	}()
 	// extract importId from the context
-	importId, ok := ctx.Value("importId").(int64)
+	imp, ok := ctx.Value("import").(*models.SlackImport)
 	if !ok {
 		return fmt.Errorf("failed to retrieve context: %w", err)
 	}
@@ -48,7 +48,7 @@ func (r *RepositorySql) BulkInsertChannels(ctx context.Context, channels []model
 		if err != nil {
 			return fmt.Errorf("failed to marshal pins for channel %s: %v", channel.ID, err)
 		}
-		_, err = stmt.Exec(importId, channel.ID, channel.Name, channel.Topic.Value, channel.Purpose.Value, toNullString(membersJson), toNullString(pinsJson))
+		_, err = stmt.Exec(imp.ID, channel.ID, channel.Name, channel.Topic.Value, channel.Purpose.Value, toNullString(membersJson), toNullString(pinsJson))
 		if err != nil {
 			return fmt.Errorf("failed to insert channel %s: %w", channel.ID, err)
 		}

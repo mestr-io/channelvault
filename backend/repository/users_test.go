@@ -5,16 +5,17 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/mestr-io/slack-export-viewer/backend/models"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
 func TestBulkInsertUsers(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "importId", int64(66))
-
+	imp := models.SlackImport{}
+	imp.ID = 66
+	ctx = context.WithValue(ctx, "import", imp)
 	users := []models.User{
 		{ID: "U1", Name: "user1", RealName: "User One", Profile: models.Profile{Image32: "http://example.com/avatar1.png"}},
 		{ID: "U2", Name: "user2", RealName: "User Two", IsBot: true},
@@ -49,7 +50,9 @@ func TestGetUserAvatar(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "importId", int64(66))
+	imp := models.SlackImport{}
+	imp.ID = 66
+	ctx = context.WithValue(ctx, "import", imp)
 
 	users := []models.User{
 		{ID: "U1", Name: "user1", Profile: models.Profile{Image32: "http://example.com/avatar1.png"}},

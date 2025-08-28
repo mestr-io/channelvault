@@ -24,6 +24,8 @@ type Repository interface {
 	CreateImport(ctx context.Context, path string, name string) (*models.SlackImport, error)
 	NoFinishedImports(ctx context.Context) (bool, error)
 	ListImports(ctx context.Context) (imports []models.SlackImport, err error)
+	ListPendingFiles(ctx context.Context) ([]string, error)
+
 	//messages
 	BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error)
 	GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error)

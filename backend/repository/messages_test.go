@@ -12,7 +12,9 @@ func TestBulkInsertMessages(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "importId", int64(66))
+	imp := models.SlackImport{}
+	imp.ID = 66
+	ctx = context.WithValue(ctx, "import", imp)
 
 	// Pre-insert a user and a channel for foreign key constraints
 	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1"}})
@@ -41,7 +43,9 @@ func TestGetMessages(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "importId", int64(66))
+	imp := models.SlackImport{}
+	imp.ID = 66
+	ctx = context.WithValue(ctx, "import", imp)
 
 	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
 	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
@@ -76,7 +80,9 @@ func TestGetThreadByTs(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "importId", int64(66))
+	imp := models.SlackImport{}
+	imp.ID = 66
+	ctx = context.WithValue(ctx, "import", imp)
 
 	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
 	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
@@ -89,7 +95,7 @@ func TestGetThreadByTs(t *testing.T) {
 
 	//note channel name is used on the insert and not channel ID
 	repo.BulkInsertMessages(ctx, "channel1", messages)
-	
+
 	retrieved, err := repo.GetThreadByTs(context.Background(), "123.456", "C1")
 	if err != nil {
 		t.Fatalf("GetThreadByTs() error = %v", err)
@@ -108,7 +114,9 @@ func TestGetFileById(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "importId", int64(66))
+	imp := models.SlackImport{}
+	imp.ID = 66
+	ctx = context.WithValue(ctx, "import", imp)
 
 	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
 	messages := []models.Message{

@@ -22,7 +22,7 @@ func (r *RepositorySql) BulkInsertUsers(ctx context.Context, users []models.User
 	}()
 
 	// extract importId from the context
-	importId, ok := ctx.Value("importId").(int64)
+	imp, ok := ctx.Value("import").(*models.SlackImport)
 	if !ok {
 		return fmt.Errorf("failed to retrieve context: %w", err)
 	}
@@ -35,7 +35,7 @@ func (r *RepositorySql) BulkInsertUsers(ctx context.Context, users []models.User
 	// 5. Iterate over users, filter, and execute the prepared statement.
 	insertCount := 0
 	for _, user := range users {
-		_, err := stmt.Exec(importId, user.ID, user.Name, user.Profile.Image32, user.RealName, user.Deleted, user.IsBot)
+		_, err := stmt.Exec(imp.ID, user.ID, user.Name, user.Profile.Image32, user.RealName, user.Deleted, user.IsBot)
 		if err != nil {
 			return fmt.Errorf("failed to insert user %s: %w", user.ID, err)
 		}

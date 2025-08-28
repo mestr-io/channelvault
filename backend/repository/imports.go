@@ -47,6 +47,29 @@ func (r *RepositorySql) MarkCheckpointAsCompleted(ctx context.Context, importID 
 	return nil
 }
 
+func (r *RepositorySql) ListPendingFiles(ctx context.Context) ([]string, error) {
+	query := `SELECT path FROM checkpoints WHERE processed_at IS NULL;`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var checkpoints []string
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err != nil {
+			return nil, err
+		}
+		checkpoints = append(checkpoints, path)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return checkpoints, nil
+
+}
+
 func (r *RepositorySql) GetImport(ctx context.Context, id int64) (*models.SlackImport, error) {
 	sqlStatement := `SELECT id, name, path, created, finished, num_messages, error FROM imports WHERE id = ?`
 	var imp models.SlackImport
