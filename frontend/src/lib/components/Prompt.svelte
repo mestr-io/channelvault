@@ -22,9 +22,9 @@ function handleCancel() {
 
 // Handle Escape key to close the modal
 function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-        handleCancel();
-    }
+  if (event.key === 'Escape') {
+    handleCancel()
+  }
 }
 </script>
 
@@ -60,51 +60,41 @@ function handleKeydown(event: KeyboardEvent) {
   }
 
   .backdrop {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: rgba(18, 20, 23, 0.7);
     backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     z-index: 50;
     animation: fadeIn 150ms ease-out;
   }
 
   .modal {
-    background: #2d3748; /* Dark background from card component */
-    color: #e2e8f0;
+    background: #22252A; /* Consistent with card background */
+    color: #d1d2d3;
     border-radius: 0.75rem;
     padding: 1.5rem;
     width: 90%;
     max-width: 400px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    border: 1px solid #4a5568;
+    display: flex; flex-direction: column; gap: 1rem;
+    border: 1px solid #35373B;
     animation: scaleUp 150ms ease-out;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
   .modal-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-    color: #f7fafc;
+    font-size: 1.25rem; font-weight: 600; margin: 0; color: #f8f8f8;
   }
 
   .modal-message {
-    font-size: 0.9rem;
-    color: #a0aec0; /* Lighter, secondary text color */
-    margin: -0.5rem 0 0;
-    line-height: 1.5;
+    font-size: 0.9rem; color: #86898e; /* Slack muted text */
+    margin: -0.5rem 0 0; line-height: 1.5;
   }
 
   .modal-input {
-    background: #25292f;
-    border: 1px solid #4a5568;
-    color: #e2e8f0;
+    background: #1A1D21; /* Darkest background for inputs */
+    border: 1px solid #35373B;
+    color: #d1d2d3;
     border-radius: 0.5rem;
     padding: 0.6rem 0.75rem;
     font-size: 1rem;
@@ -113,40 +103,32 @@ function handleKeydown(event: KeyboardEvent) {
   }
 
   .modal-input:focus {
-    border-color: #4a90e2; /* Slack blue accent */
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+    border-color: #1264a3; /* Slack accent blue */
+    box-shadow: 0 0 0 3px rgba(18, 100, 163, 0.4);
   }
 
   .modal-actions {
-    margin-top: 0.5rem;
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
+    margin-top: 0.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;
   }
 
   .btn {
-    padding: 0.6rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: background-color 200ms ease;
+    padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.875rem;
+    font-weight: 600; cursor: pointer; border: none; transition: background-color 200ms ease;
   }
 
   .cancel {
-    background: #4a5568;
-    color: #f7fafc;
+    background: #35373B;
+    color: #f8f8f8;
   }
   .cancel:hover {
-    background: #5a667a;
+    background: #42454B;
   }
 
   .confirm {
-    background: #4a90e2; /* Slack blue */
+    background: #1264a3; /* Slack accent blue */
     color: white;
   }
   .confirm:hover {
-    background: #357ABD;
+    background: #0A4F84; /* Darker blue on hover */
   }
 </style>

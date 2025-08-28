@@ -33,10 +33,10 @@ function formatDate(dateString: string): string {
 }
 
 function getStatusColor(progress: number, error: string): string {
-  if (error) return '#e53e3e' // Red
-  if (progress === 0 && slackImportcard.Finished === "") return '#718096' // Gray
-  if (progress < 100 && slackImportcard.Finished === "") return '#4a90e2' // Blue
-  return '#38a169' // Green
+  if (error) return '#E01E5A' // Slack 'Grapefruit' red for errors
+  if (progress === 0 && slackImportcard.Finished === '') return '#86898E' // Slack muted gray
+  if (progress < 100 && slackImportcard.Finished === '') return '#1264A3' // Slack accent blue
+  return '#2EB67D' // Slack green for success
 }
 
 function getStatusText(progress: number, finished: string, error: string): string {
@@ -223,132 +223,92 @@ function toggleCollapse() {
 
 <style>
     .card {
-        background: #2d3748; /* Dark card background */
+        background: #22252A;
         border-radius: 0.75rem;
-        border: 1px solid #4a5568;
-        color: #e2e8f0;
+        border: 1px solid #35373B;
+        color: #d1d2d3;
         overflow: hidden;
         transition: border-color 0.2s ease;
     }
     .card:hover {
-        border-color: #5a667a;
+        border-color: #42454B;
     }
 
     .card-header {
-        display: flex;
-        align-items: center;
-        padding: 1rem 1.25rem;
-        cursor: pointer;
-        gap: 1rem;
+        display: flex; align-items: center; padding: 1rem 1.25rem;
+        cursor: pointer; gap: 1rem;
     }
 
     .card-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        margin: 0;
-        flex-grow: 1;
-        color: #f7fafc;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 1.125rem; font-weight: 600; margin: 0;
+        flex-grow: 1; color: #f8f8f8; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis;
     }
 
     .card-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex-shrink: 0;
+        display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;
     }
 
     .status-badge {
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        background-color: color-mix(in srgb, var(--status-color) 25%, transparent);
-        color: var(--status-color);
-        border: 1px solid var(--status-color);
+        font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem;
+        border-radius: 9999px; background-color: color-mix(in srgb, var(--status-color) 20%, transparent);
+        color: var(--status-color); border: 1px solid color-mix(in srgb, var(--status-color) 50%, transparent);
     }
     
     .action-button, .chevron-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.25rem;
-        height: 2.25rem;
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: background-color 0.2s ease, color 0.2s ease;
-        background-color: transparent;
-        color: #a0aec0; /* Icon color */
+        display: flex; align-items: center; justify-content: center;
+        width: 2.25rem; height: 2.25rem; border: none; border-radius: 0.5rem;
+        cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease;
+        background-color: transparent; color: #86898e;
     }
 
-    .action-button:hover { background-color: #4a5568; color: #ffffff; }
+    .action-button:hover { background-color: #35373B; color: #f8f8f8; }
     .chevron-button { margin-left: -0.5rem; }
-    .delete-button:hover { background-color: #e53e3e; color: #ffffff; }
+    .delete-button:hover { background-color: #E01E5A; color: #ffffff; }
 
     .action-button svg, .chevron-button svg { width: 1.125rem; height: 1.125rem; }
-
     .chevron-button svg { transition: transform 0.3s ease; }
     .chevron-button svg.rotated { transform: rotate(90deg); }
 
     .collapsible {
-        display: grid;
-        grid-template-rows: 0fr;
-        transition: grid-template-rows 0.3s ease-out;
+        display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out;
     }
-    .collapsible:not(.collapsed) {
-        grid-template-rows: 1fr;
-    }
+    .collapsible:not(.collapsed) { grid-template-rows: 1fr; }
     .collapsible-content {
-        overflow: hidden;
-        padding: 0 1.25rem 1.25rem 1.25rem;
-        border-top: 1px solid #4a5568;
-        margin-top: -1px; /* Overlap border */
+        overflow: hidden; padding: 0 1.25rem 1.25rem 1.25rem;
+        border-top: 1px solid #35373B; margin-top: -1px;
     }
 
     .error-section {
-        background-color: #442121;
-        border: 1px solid #e53e3e;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin-top: 1rem;
+        background-color: rgba(224, 30, 90, 0.1); /* Slack Red bg */
+        border: 1px solid rgba(224, 30, 90, 0.4);
+        border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;
     }
     .error-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-    .error-icon { width: 1.25rem; height: 1.25rem; color: #e53e3e; }
-    .error-title { font-size: 0.875rem; font-weight: 600; color: #fed7d7; margin: 0; }
-    .error-message { font-size: 0.875rem; color: #e2e8f0; margin: 0 0 1rem; line-height: 1.5; }
+    .error-icon { width: 1.25rem; height: 1.25rem; color: #E01E5A; }
+    .error-title { font-size: 0.875rem; font-weight: 600; color: #f8f8f8; margin: 0; }
+    .error-message { font-size: 0.875rem; color: #d1d2d3; margin: 0 0 1rem; line-height: 1.5; }
     
     .retry-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background-color: #e53e3e;
-        color: white;
-        border: none;
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
+        display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;
+        background-color: #E01E5A; color: white; border: none; border-radius: 0.375rem;
+        font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s ease;
     }
-    .retry-button:hover { background-color: #c53030; }
+    .retry-button:hover { background-color: #b91548; }
     .retry-button svg { width: 1rem; height: 1rem; }
 
     .card-content { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1rem; }
     .info-row { display: flex; flex-direction: column; gap: 0.25rem; }
     .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.25rem; }
     .info-item { display: flex; flex-direction: column; gap: 0.25rem; }
-    .info-label { font-size: 0.75rem; font-weight: 500; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.025em; }
-    .info-value { font-size: 0.9rem; color: #f7fafc; font-weight: 500; }
+    .info-label { font-size: 0.75rem; font-weight: 500; color: #86898e; text-transform: uppercase; letter-spacing: 0.025em; }
+    .info-value { font-size: 0.9rem; color: #f8f8f8; font-weight: 500; }
     .info-value.path { font-family: monospace; word-break: break-all; }
 
     .progress-section { margin-top: 1rem; }
     .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-    .progress-label { font-size: 0.75rem; font-weight: 500; color: #a0aec0; text-transform: uppercase; }
-    .progress-percentage { font-size: 0.875rem; font-weight: 600; color: #f7fafc; }
-    .progress-bar { width: 100%; height: 0.5rem; background-color: #4a5568; border-radius: 9999px; overflow: hidden; }
+    .progress-label { font-size: 0.75rem; font-weight: 500; color: #86898e; text-transform: uppercase; }
+    .progress-percentage { font-size: 0.875rem; font-weight: 600; color: #f8f8f8; }
+    .progress-bar { width: 100%; height: 0.5rem; background-color: #35373B; border-radius: 9999px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 9999px; transition: width 0.3s ease; }
 </style>

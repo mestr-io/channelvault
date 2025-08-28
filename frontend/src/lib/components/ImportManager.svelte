@@ -200,12 +200,12 @@ function handleDrop(event: DragEvent): void {
 <style>
   main {
     margin: 0;
-    color: #e2e8f0; /* Light gray text */
+    color: #d1d2d3; /* Slack primary text */
     display: flex;
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    background-color: #1a1d21; /* Dark background */
+    background-color: #1a1d21; /* Slack content background */
     overflow-y: auto;
     padding: 2rem 1rem;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -222,13 +222,13 @@ function handleDrop(event: DragEvent): void {
   }
 
   .imports-title {
-    color: #a0aec0;
+    color: #86898e; /* Slack muted text */
     font-size: 0.875rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #2d3748;
+    border-bottom: 1px solid #2c2f33;
     margin-bottom: 1rem;
   }
 
@@ -247,7 +247,7 @@ function handleDrop(event: DragEvent): void {
     border: none;
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
-    color: #a0aec0; /* Lighter text color */
+    color: #86898e;
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
@@ -258,12 +258,12 @@ function handleDrop(event: DragEvent): void {
   }
 
   .collapse-toggle:hover {
-    color: #e2e8f0;
+    color: #d1d2d3;
   }
 
   .chevron {
     transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    color: #718096;
+    color: #86898e;
   }
 
   .chevron.collapsed {
@@ -272,14 +272,13 @@ function handleDrop(event: DragEvent): void {
 
   .drop-zone {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 2rem;
     border-radius: 0.75rem;
     transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid #3d4659;
-    background-color: #25292f;
+    border: 1px solid #35373B;
+    background-color: #22252A; /* Slightly lighter than main bg */
     width: 100%;
     min-height: 250px;
     position: relative;
@@ -289,55 +288,37 @@ function handleDrop(event: DragEvent): void {
   }
 
   .drop-zone.is-collapsed {
-    max-height: 0;
-    min-height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    opacity: 0;
-    pointer-events: none;
-    border-color: transparent;
-    margin: 0;
+    max-height: 0; min-height: 0; padding-top: 0; padding-bottom: 0;
+    opacity: 0; pointer-events: none; border-color: transparent; margin: 0;
   }
   
   .drop-zone.is-disabled {
-    opacity: 0.4;
-    pointer-events: none;
-    background-color: #2a2e34;
+    opacity: 0.4; pointer-events: none; background-color: #2a2e34;
   }
 
   .drop-zone.is-dragging {
-    border-color: #4a90e2; /* Slack blue for accent */
+    border-color: #1264a3; /* Slack accent blue */
     background-color: #2a2f35;
     transform: scale(1.02);
-    box-shadow: 0 0 25px rgba(74, 144, 226, 0.2);
+    box-shadow: 0 0 25px rgba(18, 100, 163, 0.2);
   }
 
   .drop-zone-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 0.75rem; text-align: center;
   }
   
   .drop-zone-text {
-    font-size: 1.125rem;
-    font-weight: 500;
-    color: #f7fafc;
-    margin-top: 0.5rem;
+    font-size: 1.125rem; font-weight: 500; color: #f8f8f8; margin-top: 0.5rem;
   }
   
   .drop-zone-subtext,
   .drop-zone-disclaimer {
-    font-size: 0.875rem;
-    color: #a0aec0;
+    font-size: 0.875rem; color: #86898e;
   }
 
   a {
-    color: #4a90e2; /* Slack blue */
-    text-decoration: none;
-    cursor: pointer;
-    font-weight: 500;
+    color: #1264a3; /* Slack accent blue */
+    text-decoration: none; cursor: pointer; font-weight: 500;
   }
   
   a:hover {
