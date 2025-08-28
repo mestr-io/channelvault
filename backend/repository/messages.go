@@ -25,7 +25,7 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 	}()
 
 	// extract importId from the context
-	importId, ok := ctx.Value("importId").(int64)
+	imp, ok := ctx.Value("import").(*models.SlackImport)
 	if !ok {
 		return fmt.Errorf("failed to retrieve context: %v", err)
 	}
@@ -90,7 +90,7 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 		if filesNullable.Valid {
 			// insert into files table
 			for _, file := range msg.Files {
-				stmt2.ExecContext(ctx, importId, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
+				stmt2.ExecContext(ctx, imp.ID, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
 			}
 		}
 
@@ -101,7 +101,7 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 
 		// Execute the prepared statement with the data for the current message.
 		_, err = stmt1.Exec(
-			importId,
+			imp.ID,
 			msg.Ts,
 			ChannelID, // Make sure this value is set in your Message struct before calling this function.
 			msg.UserId,

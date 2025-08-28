@@ -90,14 +90,14 @@ func defaultImportName(path string) string {
 	return name
 }
 
-func (a *App) processImport(record *models.SlackImport) {
+func (a *App) processImport(currentImport *models.SlackImport) {
 	// notify the FE
-	record.Error = ""
-	record.NumFiles = 0
-	runtime.EventsEmit(a.ctx, "startImport", record)
+	currentImport.Error = ""
+	currentImport.NumFiles = 0
+	runtime.EventsEmit(a.ctx, "startImport", currentImport)
 
 	progressChan := make(chan models.Progress)
-	imp := importer.NewImporter(a.ctx, record.Path, a.repository, record.ID)
+	imp := importer.NewImporter(a.ctx, currentImport.Path, a.repository, currentImport)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -115,7 +115,7 @@ func (a *App) processImport(record *models.SlackImport) {
 			runtime.EventsEmit(a.ctx, "importProgress", p)
 			lastUpdateTime = time.Now()
 		}
-		record.NumFiles++
+		currentImport.NumFiles++
 	}
 
 	// wait for completion or error
@@ -124,14 +124,14 @@ func (a *App) processImport(record *models.SlackImport) {
 	if importErr != nil {
 		ah.Errorf("Import failed: %v", importErr)
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
-		record.Error = fmt.Sprintf("%v", importErr)
+		currentImport.Error = fmt.Sprintf("%v", importErr)
 		// update the import
-		a.repository.FinishedImportUpdateWithError(a.ctx, record)
+		a.repository.FinishedImportUpdateWithError(a.ctx, currentImport)
 	} else {
 		ah.Infof("Import completed successfully!!")
 		runtime.EventsEmit(a.ctx, "importComplete")
 		// update the import
-		a.repository.FinishedImportUpdate(a.ctx, record)
+		a.repository.FinishedImportUpdate(a.ctx, currentImport)
 	}
 
 }
