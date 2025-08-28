@@ -34,8 +34,8 @@ function formatDate(dateString: string): string {
 
 function getStatusColor(progress: number, error: string): string {
   if (error) return '#e53e3e' // Red
-  if (progress === 0 && slackImportcard.Finished === "") return '#718096' // Gray
-  if (progress < 100 && slackImportcard.Finished === "") return '#4a90e2' // Blue
+  if (progress === 0 && slackImportcard.Finished === '') return '#718096' // Gray
+  if (progress < 100 && slackImportcard.Finished === '') return '#4a90e2' // Blue
   return '#38a169' // Green
 }
 
@@ -134,6 +134,7 @@ function toggleCollapse() {
                 </svg>
             </button>
             
+            {#if false }
             <button
                 aria-label="delete import"
                 class="action-button delete-button"
@@ -148,6 +149,7 @@ function toggleCollapse() {
                     />
                 </svg>
             </button>
+            {/if}
         </div>
     </header>
 

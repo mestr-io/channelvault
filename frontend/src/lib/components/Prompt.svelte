@@ -22,9 +22,9 @@ function handleCancel() {
 
 // Handle Escape key to close the modal
 function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-        handleCancel();
-    }
+  if (event.key === 'Escape') {
+    handleCancel()
+  }
 }
 </script>
 
