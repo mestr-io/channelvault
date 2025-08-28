@@ -21,10 +21,10 @@ func TestSetViewState(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Duration(2500) * time.Millisecond)
-		ah.TearDownFakeAppWithCtx(app.GetContext(), ch)
+		TearDownFakeApp(app.GetContext(), ch)
 	}()
 
-	_ = ah.StartupFakeApp(app, "")
+	_ = ah.StartupFakeApp(app, "", nil)
 
 
 	// Wait for app context to be ready, polling with timeout instead of fixed sleep
@@ -59,5 +59,5 @@ func TestSetViewState(t *testing.T) {
 	realApp.setViewState(ViewStateDashboard)
 	assert.Equal(t, ViewStateDashboard, realApp.state)
 
-	ah.WaitTestToEnd(t, ch)
+	WaitTestToEnd(t, ch)
 }

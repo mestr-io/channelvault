@@ -2,10 +2,13 @@ package app
 
 import (
 	"context"
+	"testing"
+	"time"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/wailsapp/wails/v2/pkg/runtime" //para runtime.Quit
 )
 
 // MockRepository is a mock implementation of the repository.Repository interface.
@@ -95,4 +98,19 @@ func (m *MockRepository) ListChannelFiles(ctx context.Context, channelID string,
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]models.File), args.Error(1)
+}
+
+func TearDownFakeApp(ctx context.Context, ch chan string) {
+	//fmt.Printf("After %d second(s) ending test", afterSeconds)
+	runtime.Quit(ctx)
+	ch <- "test ends"
+}
+
+func WaitTestToEnd(t *testing.T, ch chan string) {
+	select {
+	case /*msg := */ <-ch:
+		/*fmt.Println(msg)*/
+	case <-time.After(2 * time.Second):
+		t.Fatalf("Timeout")
+	}
 }
