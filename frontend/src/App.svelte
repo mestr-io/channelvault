@@ -3,9 +3,7 @@ import * as runtime from '../wailsjs/runtime'
 import { onMount, setContext } from 'svelte'
 import { GetViewState } from '../wailsjs/go/app/App'
 
-import FileUploader from './lib/components/FileUploader.svelte'
 import Dashboard from './lib/components/Dashboard.svelte'
-import Progress from './lib/components/Progress.svelte'
 import Overlay from './lib/components/Overlay.svelte'
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
@@ -42,14 +40,7 @@ setContext('overlay', { openOverlay })
 <Overlay bind:this={overlayComponent} />
 <main class="app-main">
   <header></header>
-  <!-- Routing -->
-  {#if viewState === "loading"}
-    <Progress />
-  {:else if viewState === "setup"}
-    <FileUploader />
-  {:else if viewState === "dashboard"}
     <Dashboard />
-  {/if}
   <footer></footer>
 </main>
 

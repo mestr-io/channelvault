@@ -7,7 +7,7 @@ let { fileId, alt, url } = $props()
 let shouldLoad = $state(false)
 let container: HTMLDivElement
 
-const delay = 250
+const delay = 100
 const threshold = 0.05 // Load when 5% of the image is visible
 const { openOverlay } = getContext<{ openOverlay: (src: string) => void }>('overlay')
 
@@ -89,8 +89,8 @@ onMount(() => {
 
   .placeholder > img {
     display: block;
-    max-width: 100%;
+    max-width: 90%;
     height: 300px;
-    object-fit: scale-down;
+    object-fit: contain;
   }
 </style>

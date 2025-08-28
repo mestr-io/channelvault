@@ -2,7 +2,13 @@ package app
 
 import (
 	"context" // For the context.Context type
+	"fmt"
+	"path/filepath"
+	"strings"
+	"sync"
+
 	// For embedding frontend assets
+	// For formatting output, like in LogPrintf
 	// For formatting output, like in LogPrintf
 	"time"
 
@@ -10,6 +16,7 @@ import (
 	_ "github.com/mattn/go-sqlite3" // For checking the build mode
 	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
+	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 
 	// Ensure this is imported for assetserver.Options
@@ -69,23 +76,35 @@ func (a *App) onFileDrop(x, y int, paths []string) {
 		ah.Fatalf("internal error. import part incorrect: %v", paths)
 	}
 
-	a.processImport(paths[0])
-}
-
-func (a *App) processImport(path string) {
-	a.setViewState(ViewStateLoading)
-	record, err := a.repository.StoreImport(a.ctx, path)
+	record, err := a.repository.CreateImport(a.ctx, paths[0], defaultImportName(paths[0]))
 	if err != nil {
 		ah.Errorf("Import failed: %v", err)
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
 		return
 	}
+	a.processImport(record)
+}
 
-	progressChan := make(chan importer.Progress)
-	imp := importer.NewImporter(a.ctx, path, a.repository)
+func defaultImportName(path string) string {
+	name, _ := strings.CutSuffix(filepath.Base(path), ".zip")
+	return name
+}
+
+func (a *App) processImport(record *models.SlackImport) {
+	// notify the FE
+	record.Error = ""
+	record.NumFiles = 0
+	runtime.EventsEmit(a.ctx, "startImport", record)
+
+	progressChan := make(chan models.Progress)
+	imp := importer.NewImporter(a.ctx, record.Path, a.repository, record.ID)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
 
 	var importErr error
 	go func() {
+		defer wg.Done()
 		importErr = imp.Import(progressChan)
 	}()
 
@@ -96,19 +115,23 @@ func (a *App) processImport(path string) {
 			runtime.EventsEmit(a.ctx, "importProgress", p)
 			lastUpdateTime = time.Now()
 		}
-		ah.Infof("processed: %v\n", p)
+		record.NumFiles++
 	}
+
+	// wait for completion or error
+	wg.Wait()
 
 	if importErr != nil {
 		ah.Errorf("Import failed: %v", importErr)
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
-		a.setViewState(ViewStateSetup) // Go back to setup on failure
-		return
+		record.Error = fmt.Sprintf("%v", importErr)
+		// update the import
+		a.repository.FinishedImportUpdateWithError(a.ctx, record)
+	} else {
+		ah.Infof("Import completed successfully!!")
+		runtime.EventsEmit(a.ctx, "importComplete")
+		// update the import
+		a.repository.FinishedImportUpdate(a.ctx, record)
 	}
 
-	ah.Infof("Import completed successfully!!")
-	runtime.EventsEmit(a.ctx, "importComplete")
-	a.repository.FinishedImport(a.ctx, record.ID)
-
-	a.setViewState(ViewStateDashboard) // Move to the dashboard
 }

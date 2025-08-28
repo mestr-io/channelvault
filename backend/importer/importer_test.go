@@ -43,7 +43,7 @@ func (m *MockRepository) GetChannels() (channels []models.Channel, err error) {
 }
 
 // imports
-func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.Import, error) {
+func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.SlackImport, error) {
 	panic("StoreImport not defined in mock")
 }
 func (m *MockRepository) FinishedImport(ctx context.Context, ID int64) error {
