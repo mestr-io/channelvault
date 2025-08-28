@@ -1,13 +1,14 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"reflect"
 	"testing"
 
-	"github.com/mestr-io/slack-export-viewer/backend/models"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
 func setup(t *testing.T) *RepositorySql {
@@ -27,13 +28,15 @@ func setup(t *testing.T) *RepositorySql {
 func TestBulkInsertChannels(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "importId", int64(66))
 
 	channels := []models.Channel{
 		{ID: "C1", Name: "channel1", Members: []string{"U1"}, Pins: []models.ChannelPin{{ID: "p1"}}},
 		{ID: "C2", Name: "channel2", Topic: models.ChannelTopic{Value: "topic2"}, Purpose: models.ChannelPurpose{Value: "purpose2"}},
 	}
 
-	if err := repo.BulkInsertChannels(channels); err != nil {
+	if err := repo.BulkInsertChannels(ctx, channels); err != nil {
 		t.Fatalf("BulkInsertChannels() error = %v", err)
 	}
 
@@ -69,12 +72,14 @@ func TestBulkInsertChannels(t *testing.T) {
 func TestGetChannels(t *testing.T) {
 	repo := setup(t)
 	defer repo.db.Close()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "importId", int64(66))
 
 	channels := []models.Channel{
 		{ID: "C1", Name: "channel1"},
 		{ID: "C2", Name: "channel2"},
 	}
-	if err := repo.BulkInsertChannels(channels); err != nil {
+	if err := repo.BulkInsertChannels(ctx, channels); err != nil {
 		t.Fatalf("failed to insert channels for testing: %v", err)
 	}
 

@@ -22,14 +22,56 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) BulkInsertUsers(users []models.User) error {
-	args := m.Called(users)
+// channels
+func (m *MockRepository) GetChannels() (channels []models.Channel, err error) {
+	panic("GetChannels not defined in mock")
+}
+
+func (m *MockRepository) BulkInsertChannels(ctx context.Context, channels []models.Channel) error {
+	args := m.Called(ctx, channels)
 	return args.Error(0)
 }
 
-func (m *MockRepository) BulkInsertChannels(channels []models.Channel) error {
-	args := m.Called(channels)
+func (m *MockRepository) MarkCheckpointAsCompleted(ctx context.Context, importID int64, path string, errMsg string) error {
+	args := m.Called(ctx, importID, path, errMsg)
 	return args.Error(0)
+}
+
+func (m *MockRepository) CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) error {
+	args := m.Called(ctx, importID, paths)
+	return args.Error(0)
+}
+
+func (m *MockRepository) GetImport(ctx context.Context, id int64) (*models.SlackImport, error) {
+	panic("GetImport not defined in mock")
+}
+
+func (m *MockRepository) FinishedImportUpdate(ctx context.Context, imp *models.SlackImport) error {
+	panic("FinishedImportUpdate not defined in mock")
+}
+
+func (m *MockRepository) FinishedImportUpdateWithError(ctx context.Context, imp *models.SlackImport) error {
+	panic("FinishedImportUpdateWithError not defined in mock")
+}
+
+func (m *MockRepository) DeleteImport(ctx context.Context, id int64) error {
+	panic("DeleteImport not defined in mock")
+}
+
+func (m *MockRepository) RenameImport(ctx context.Context, importID int64, name string) error {
+	panic("RenameImport not defined in mock")
+}
+
+func (m *MockRepository) CreateImport(ctx context.Context, path string, name string) (*models.SlackImport, error) {
+	panic("CreateImport not defined in mock")
+}
+
+func (m *MockRepository) NoFinishedImports(ctx context.Context) (bool, error) {
+	panic("NoFinishedImports not defined in mock")
+}
+
+func (m *MockRepository) ListImports(ctx context.Context) ([]models.SlackImport, error) {
+	panic("ListImports not defined in mock")
 }
 
 func (m *MockRepository) BulkInsertMessages(ctx context.Context, channelID string, messages []models.Message) error {
@@ -37,23 +79,6 @@ func (m *MockRepository) BulkInsertMessages(ctx context.Context, channelID strin
 	return args.Error(0)
 }
 
-// channels
-func (m *MockRepository) GetChannels() (channels []models.Channel, err error) {
-	panic("GetChannels not defined in mock")
-}
-
-// imports
-func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.SlackImport, error) {
-	panic("StoreImport not defined in mock")
-}
-func (m *MockRepository) FinishedImport(ctx context.Context, ID int64) error {
-	panic("FinishedImport not defined in mock")
-}
-func (m *MockRepository) NoFinishedImports(ctx context.Context) (bool, error) {
-	panic("NotFinishedImports not defined in mock")
-}
-
-// messages
 func (m *MockRepository) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
 	panic("GetMessages not defined in mock")
 }
@@ -68,14 +93,25 @@ func (m *MockRepository) GetFileById(ctx context.Context, fileId string) (*model
 	panic("GetFileById not defined in mock")
 }
 
-// setup
 func (m *MockRepository) SetupSchemas() error {
 	panic("SetupSchemas not defined in mock")
 }
 
-// users
+func (m *MockRepository) BulkInsertUsers(ctx context.Context, users []models.User) error {
+	args := m.Called(users)
+	return args.Error(0)
+}
+
 func (m *MockRepository) GetUserAvatar(ctx context.Context, userId string) (string, error) {
 	panic("GetUserAvatar nor defined in mock")
+}
+
+func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.SlackImport, error) {
+	panic("StoreImport not defined in mock")
+}
+
+func (m *MockRepository) FinishedImport(ctx context.Context, id int64) error {
+	panic("FinishedImport not defined in mock")
 }
 
 // Helper function to create a test zip file in memory.
@@ -131,9 +167,11 @@ func TestImporter_Imports(t *testing.T) {
 		{
 			name: "Successful import",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
-				mockRepo.On("BulkInsertUsers", mock.Anything).Return(nil).Once()
-				mockRepo.On("BulkInsertChannels", mock.Anything).Return(nil).Once()
+				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
+				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertMessages", mock.Anything, "C1", mock.Anything).Return(nil).Once()
+				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
 
 				zipPath := createTestZip(t, map[string]string{
 					"users.json":                    validUsersJSON,
@@ -159,6 +197,8 @@ func TestImporter_Imports(t *testing.T) {
 		{
 			name: "Missing users.json",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
+				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
 				zipPath := createTestZip(t, map[string]string{
 					"channels.json": validChannelsJSON,
 				})
@@ -170,7 +210,9 @@ func TestImporter_Imports(t *testing.T) {
 		{
 			name: "Missing channels.json",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
-				mockRepo.On("BulkInsertUsers", mock.Anything).Return(nil).Once()
+				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
+				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
 				zipPath := createTestZip(t, map[string]string{
 					"users.json": validUsersJSON,
 				})
@@ -182,7 +224,9 @@ func TestImporter_Imports(t *testing.T) {
 		{
 			name: "Error processing users",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
-				mockRepo.On("BulkInsertUsers", mock.Anything).Return(errors.New("db error")).Once()
+				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(errors.New("db error")).Once()
+				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
 				zipPath := createTestZip(t, map[string]string{
 					"users.json": validUsersJSON,
 				})
@@ -191,14 +235,16 @@ func TestImporter_Imports(t *testing.T) {
 			wantErr:       true,
 			expectedError: "fail to process users: db error",
 			checkMock: func(t *testing.T, mockRepo *MockRepository) {
-				mockRepo.AssertCalled(t, "BulkInsertUsers", mock.Anything)
+				mockRepo.AssertCalled(t, "BulkInsertUsers", mock.Anything, mock.Anything)
 			},
 		},
 		{
 			name: "Error processing channels",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
-				mockRepo.On("BulkInsertUsers", mock.Anything).Return(nil).Once()
-				mockRepo.On("BulkInsertChannels", mock.Anything).Return(errors.New("db error")).Once()
+				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
+				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(errors.New("db error")).Once()
+				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
 				zipPath := createTestZip(t, map[string]string{
 					"users.json":    validUsersJSON,
 					"channels.json": validChannelsJSON,
@@ -208,16 +254,18 @@ func TestImporter_Imports(t *testing.T) {
 			wantErr:       true,
 			expectedError: "fail to process channels: db error",
 			checkMock: func(t *testing.T, mockRepo *MockRepository) {
-				mockRepo.AssertCalled(t, "BulkInsertUsers", mock.Anything)
-				mockRepo.AssertCalled(t, "BulkInsertChannels", mock.Anything)
+				mockRepo.AssertCalled(t, "BulkInsertUsers", mock.Anything, mock.Anything)
+				mockRepo.AssertCalled(t, "BulkInsertChannels", mock.Anything, mock.Anything)
 			},
 		},
 		{
 			name: "Error processing messages",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
-				mockRepo.On("BulkInsertUsers", mock.Anything).Return(nil).Once()
-				mockRepo.On("BulkInsertChannels", mock.Anything).Return(nil).Once()
+				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
+				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertMessages", mock.Anything, "C1", mock.Anything).Return(errors.New("db error")).Once()
+				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				zipPath := createTestZip(t, map[string]string{
 					"users.json":         validUsersJSON,
 					"channels.json":      validChannelsJSON,
@@ -228,16 +276,18 @@ func TestImporter_Imports(t *testing.T) {
 			wantErr:       true,
 			expectedError: "fail to process messages for channel C1: db error",
 			checkMock: func(t *testing.T, mockRepo *MockRepository) {
-				mockRepo.AssertCalled(t, "BulkInsertUsers", mock.Anything)
-				mockRepo.AssertCalled(t, "BulkInsertChannels", mock.Anything)
+				mockRepo.AssertCalled(t, "BulkInsertUsers", mock.Anything, mock.Anything)
+				mockRepo.AssertCalled(t, "BulkInsertChannels", mock.Anything, mock.Anything)
 				mockRepo.AssertCalled(t, "BulkInsertMessages", mock.Anything, "C1", mock.Anything)
 			},
 		},
 		{
 			name: "Context cancelled",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
-				mockRepo.On("BulkInsertUsers", mock.Anything).Return(nil).Once()
-				mockRepo.On("BulkInsertChannels", mock.Anything).Return(nil).Once()
+				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
+				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(nil).Once()
+				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
 				// No call to BulkInsertMessages is expected as it should be cancelled before.
 
 				zipPath := createTestZip(t, map[string]string{
@@ -263,8 +313,8 @@ func TestImporter_Imports(t *testing.T) {
 				defer os.Remove(zipPath) // Clean up the temp file
 			}
 
-			importer := NewImporter(ctx, zipPath, mockRepo)
-			progressChan := make(chan Progress, 10)
+			importer := NewImporter(ctx, zipPath, mockRepo, 66)
+			progressChan := make(chan models.Progress, 10)
 
 			var wg sync.WaitGroup
 			wg.Add(1)
