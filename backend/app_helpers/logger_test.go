@@ -8,15 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAppLoggerIsNilBeforeInitLog(t *testing.T) {
-	t.Skip()
+func TestAppLoggerIsNilBeforeInitLog(t *testing.T) {	
 	assert := assert.New(t)
 	var nilPtr *WailsAppLogger
 	assert.EqualValues(appLogger, nilPtr)
 }
 
 func TestCoreLogfCallsRightFunction(t *testing.T) {
-	t.Skip()
 	assert := assert.New(t)
 	var nilPtr *WailsAppLogger
 	assert.EqualValues(appLogger, nilPtr)

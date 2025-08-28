@@ -14,9 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitWailsLog_InitializesLogger(t *testing.T) {
-	//TODO Fix this test
-	t.Skip()
+func TestInitWailsLog_InitializesLogger(t *testing.T) {		
 	waitTeardown, ctx, err, _ := GetSomeWailsContext(t, "")
 	if err != nil {
 		t.Fatalf("Error getting Wails context: %s", err.Error())
