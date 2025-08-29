@@ -112,8 +112,17 @@ type File struct {
 
 // Attachment represents a URL attachment with a preview.
 type Attachment struct {
-	Title     string `json:"title"`
-	TitleLink string `json:"title_link"`
-	Text      string `json:"text"`
-	ImageURL  string `json:"image_url"`
+    ID           int    `json:"id"`
+    FromURL      string `json:"from_url"`
+    OriginalURL  string `json:"original_url"`
+    Fallback     string `json:"fallback"`
+    Text         string `json:"text"`
+    Title        string `json:"title"`
+    TitleLink    string `json:"title_link"`
+    ImageURL     string `json:"image_url"`
+    ImageWidth   int    `json:"image_width"`
+    ImageHeight  int    `json:"image_height"`
+    ImageBytes   int    `json:"image_bytes"`
+    ServiceIcon  string `json:"service_icon"`
+    ServiceName  string `json:"service_name"`
 }

@@ -141,7 +141,8 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 			latest_reply,
 			reply_users_json,
 			reply_users_count,
-			files_json
+			files_json,
+			attachments_json
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = channel_id AND c.import_id = m.import_id
@@ -173,8 +174,9 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 		var msg models.Message
 		var usersJson sql.NullString
 		var filesJson sql.NullString
+		var attachmentsJson sql.NullString
 
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson); err != nil {
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson, &attachmentsJson); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %v", err)
 		}
@@ -189,6 +191,12 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 			err = json.Unmarshal([]byte(filesJson.String), &msg.Files)
 			if err != nil {
 				return nil, fmt.Errorf("could not deserialize files: %v", err)
+			}
+		}
+		if attachmentsJson.Valid {
+			err = json.Unmarshal([]byte(attachmentsJson.String), &msg.Attachments)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize attachments: %w", err)
 			}
 		}
 
