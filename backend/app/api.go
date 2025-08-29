@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -115,4 +116,31 @@ func (a *App) ResumeImport(importID int64) error {
 
 func (a *App) RenameImport(importID int64, name string) error {
 	return a.repository.RenameImport(a.ctx, importID, name)
+}
+
+func (a *App) DownloadBinaries(importID int64) error {
+	selection, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+		Type:          runtime.QuestionDialog,
+		Title:         "Download binaries",
+		Message:       "Are you sure you want to download all workspace binaries? This action can take a lot of disk space.",
+		Buttons:       []string{"Cancel", "OK"},
+		DefaultButton: "OK",
+	})
+	if err != nil {
+		return err
+	}
+	if selection != "OK" {
+		return fmt.Errorf("user cancelled deletion")
+	}
+
+	currentImport, err := a.repository.GetImport(a.ctx, importID)
+	if err != nil {
+		return fmt.Errorf("cannot find import %d: %v", importID, err)
+	}
+
+	// run this in background
+	go func() {
+		importer.DownloadBinaries(a.ctx, a.filesFolder, a.repository, currentImport)
+	}()
+	return nil
 }

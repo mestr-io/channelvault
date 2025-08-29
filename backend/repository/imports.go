@@ -47,9 +47,9 @@ func (r *RepositorySql) MarkCheckpointAsCompleted(ctx context.Context, importID 
 	return nil
 }
 
-func (r *RepositorySql) ListPendingFiles(ctx context.Context) (checkpoints []string, err error) {
-	query := `SELECT path FROM checkpoints WHERE processed_at IS NULL;`
-	rows, err := r.db.Query(query)
+func (r *RepositorySql) ListPendingFiles(ctx context.Context, importID int64) ([]string, error) {
+	query := `SELECT path FROM checkpoints WHERE processed_at IS NULL AND import_id = ?;`
+	rows, err := r.db.Query(query, importID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,6 @@ func (r *RepositorySql) ListPendingFiles(ctx context.Context) (checkpoints []str
 		return nil, err
 	}
 	return checkpoints, nil
-
 }
 
 func (r *RepositorySql) GetImport(ctx context.Context, id int64) (*models.SlackImport, error) {
@@ -183,6 +182,11 @@ func (r *RepositorySql) ListImports(ctx context.Context) (imports []models.Slack
 		}
 		if errorMsg.Valid {
 			imp.Error = errorMsg.String
+		}
+
+		imp.PendingBinaries, err = r.CountPendingBinaries(ctx, imp.ID)
+		if err != nil {
+			return nil, fmt.Errorf("couldnt query pending files for import %d: %v", imp.ID, err)
 		}
 
 		imports = append(imports, imp)

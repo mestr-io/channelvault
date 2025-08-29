@@ -97,7 +97,7 @@ func (a *App) processImport(currentImport *models.SlackImport) {
 	runtime.EventsEmit(a.ctx, "startImport", currentImport)
 
 	progressChan := make(chan models.Progress)
-	imp := importer.NewImporter(a.ctx, currentImport.Path, a.repository, currentImport)
+	imp := importer.NewImporter(a.ctx, a.repository, currentImport)
 
 	var wg sync.WaitGroup
 	wg.Add(1)

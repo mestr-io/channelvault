@@ -108,6 +108,7 @@ type File struct {
 	Mimetype string `json:"mimetype"`
 	FileURL  string `json:"url_private"`
 	User     string `json:"user"`
+	Ts       string
 }
 
 // Attachment represents a URL attachment with a preview.

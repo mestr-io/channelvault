@@ -2,7 +2,7 @@
 import { onMount } from 'svelte'
 import * as runtime from '../../../wailsjs/runtime'
 import { models } from '../../../wailsjs/go/models'
-import { RenameImport } from '../../../wailsjs/go/app/App'
+import { RenameImport, DownloadBinaries } from '../../../wailsjs/go/app/App'
 import Prompt from './Prompt.svelte'
 
 let {
@@ -26,8 +26,11 @@ onMount(() => {
     console.log(p)
   })
 
-  runtime.EventsOn('importError', err => {})
-  runtime.EventsOn('importComplete', () => {})
+  runtime.EventsOn('downloadBinariesDone', () => {})
+  runtime.EventsOn('downloadBinariesStarted', () => {})
+  runtime.EventsOn('downloadedBinary', file => {
+    console.log(file)
+  })
 })
 
 function formatDate(dateString: string): string {
@@ -71,6 +74,10 @@ async function confirmRename(newName: string) {
 
 async function handleDelete(importId: number, importName: string) {
   await DeleteImportHandle(importId)
+}
+
+async function handleDownload(importId: number, importName: string) {
+  await DownloadBinaries(importId)
 }
 
 async function handleRetry(importId: number) {
@@ -140,21 +147,47 @@ function toggleCollapse() {
                     />
                 </svg>
             </button>
-                <button
-                    aria-label="delete import"
-                    class="action-button delete-button"
-                    onclick={() =>
-                        handleDelete(slackImportcard.ID, slackImportcard.Name)}
-                    title="Delete import"
+            {#if slackImportcard.Finished}
+            <button
+                aria-label="download binaries"
+                class="action-button download-button"
+                onclick={() =>
+                    handleDownload(slackImportcard.ID, slackImportcard.Name)}
+                title="Download binaries"
+            >
+                <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
                 >
-                    <svg viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                            fill-rule="evenodd"
-                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
-                </button>
+                    <path
+                        d="M11 5C11 4.44772 11.4477 4 12 4C12.5523 4 13 4.44772 13 5V12.1578L16.2428 8.91501L17.657 10.3292L12.0001 15.9861L6.34326 10.3292L7.75748 8.91501L11 12.1575V5Z"
+                        fill="currentColor"
+                    />
+                    <path
+                        d="M4 14H6V18H18V14H20V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V14Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            </button>
+            {/if}
+            <button
+                aria-label="delete import"
+                class="action-button delete-button"
+                onclick={() =>
+                    handleDelete(slackImportcard.ID, slackImportcard.Name)}
+                title="Delete import"
+            >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                        fill-rule="evenodd"
+                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        clip-rule="evenodd"
+                    />
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -299,6 +332,23 @@ function toggleCollapse() {
                     <div class="info-text">
                         <span class="info-label">Import ID</span>
                         <span class="info-value">{slackImportcard.ID}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <svg
+                        class="info-icon"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    <div class="info-text">
+                        <span class="info-label">Pending downloads</span>
+                        <span class="info-value">{slackImportcard.PendingBinaries}</span>
                     </div>
                 </div>
             </div>

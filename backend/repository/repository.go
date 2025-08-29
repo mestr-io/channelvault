@@ -24,7 +24,7 @@ type Repository interface {
 	CreateImport(ctx context.Context, path string, name string) (*models.SlackImport, error)
 	NoFinishedImports(ctx context.Context) (bool, error)
 	ListImports(ctx context.Context) (imports []models.SlackImport, err error)
-	ListPendingFiles(ctx context.Context) ([]string, error)
+	ListPendingFiles(ctx context.Context, importID int64) ([]string, error)
 
 	//messages
 	BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error)
@@ -32,6 +32,9 @@ type Repository interface {
 	ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error)
 	GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error)
 	GetFileById(ctx context.Context, fileId string) (*models.File, error)
+	ListPendingBinaries(ctx context.Context, importID int64, pageSize int) ([]models.File, error)
+	MarkFileAsDownloaded(ctx context.Context, importID int64, fileID string) error
+	CountPendingBinaries(ctx context.Context, importID int64) (int64, error)
 
 	//setup
 	SetupSchemas() error

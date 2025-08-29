@@ -24,14 +24,13 @@ type Progress struct {
 
 type Importer struct {
 	ctx           context.Context
-	path          string
 	repository    repository.Repository
 	currentImport *models.SlackImport
 }
 
-func NewImporter(ctx context.Context, path string, repository repository.Repository, currentImport *models.SlackImport) *Importer {
+func NewImporter(ctx context.Context, repository repository.Repository, currentImport *models.SlackImport) *Importer {
 	ctx = context.WithValue(ctx, "import", currentImport)
-	return &Importer{ctx: ctx, path: path, repository: repository, currentImport: currentImport}
+	return &Importer{ctx: ctx, repository: repository, currentImport: currentImport}
 }
 
 func (i *Importer) processUsers(zf *zip.File) (err error) {
@@ -120,7 +119,7 @@ func findFile(filename string, files []*zip.File) (*zip.File, error) {
 func (i *Importer) Import(c chan models.Progress) error {
 	defer close(c)
 
-	r, err := zip.OpenReader(i.path)
+	r, err := zip.OpenReader(i.currentImport.Path)
 	if err != nil {
 		return fmt.Errorf("fail to open the zip export file: %w", err)
 	}
@@ -131,7 +130,7 @@ func (i *Importer) Import(c chan models.Progress) error {
 
 	totalFiles := len(r.File)
 
-	files, err := i.repository.ListPendingFiles(i.ctx)
+	files, err := i.repository.ListPendingFiles(i.ctx, i.currentImport.ID)
 	// checkpoints
 	if err != nil {
 		return fmt.Errorf("fail to list checkpoints: %v", err)

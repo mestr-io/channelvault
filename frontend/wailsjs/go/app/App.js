@@ -6,6 +6,10 @@ export function DeleteImport(arg1) {
   return window['go']['app']['App']['DeleteImport'](arg1);
 }
 
+export function DownloadBinaries(arg1) {
+  return window['go']['app']['App']['DownloadBinaries'](arg1);
+}
+
 export function GetBase64Image(arg1) {
   return window['go']['app']['App']['GetBase64Image'](arg1);
 }

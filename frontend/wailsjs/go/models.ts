@@ -217,6 +217,7 @@ export namespace models {
 	    mimetype: string;
 	    url_private: string;
 	    user: string;
+	    Ts: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new File(source);
@@ -230,6 +231,7 @@ export namespace models {
 	        this.mimetype = source["mimetype"];
 	        this.url_private = source["url_private"];
 	        this.user = source["user"];
+	        this.Ts = source["Ts"];
 	    }
 	}
 	export class Reply {
@@ -386,6 +388,7 @@ export namespace models {
 	    NumFiles: number;
 	    Name: string;
 	    Error: string;
+	    PendingBinaries: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new SlackImport(source);
@@ -400,6 +403,7 @@ export namespace models {
 	        this.NumFiles = source["NumFiles"];
 	        this.Name = source["Name"];
 	        this.Error = source["Error"];
+	        this.PendingBinaries = source["PendingBinaries"];
 	    }
 	}
 

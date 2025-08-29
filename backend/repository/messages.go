@@ -294,3 +294,48 @@ func (r *RepositorySql) GetFileById(ctx context.Context, fileId string) (*models
 	}
 	return &file, nil
 }
+
+func (r *RepositorySql) ListPendingBinaries(ctx context.Context, importID int64, pageSize int) ([]models.File, error) {
+	query := `SELECT id, name, title, mimetype, url_private, ts FROM files WHERE  downloaded = 0 AND import_id = ? AND url_private != '' ORDER BY ts DESC LIMIT ?;`
+	rows, err := r.db.QueryContext(ctx, query, importID, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	files := []models.File{}
+	for rows.Next() {
+		var file models.File
+		if err := rows.Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.Ts); err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+func (r *RepositorySql) CountPendingBinaries(ctx context.Context, importID int64) (int64, error) {
+	query := `SELECT COUNT(*) FROM files WHERE downloaded = 0 AND import_id = ? AND url_private != '';`
+	row := r.db.QueryRowContext(ctx, query, importID)
+
+	var count int64
+	err := row.Scan(&count)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (r *RepositorySql) MarkFileAsDownloaded(ctx context.Context, importID int64, fileID string) error {
+	query := `UPDATE files SET downloaded = 1 WHERE import_id = ? AND id = ?;`
+	if _, err := r.db.ExecContext(ctx, query, importID, fileID); err != nil {
+		return fmt.Errorf("failed update file for import %d and id %s failed: %v", importID, fileID, err)
+	}
+	return nil
+}
