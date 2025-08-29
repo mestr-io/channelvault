@@ -89,6 +89,14 @@ func (m *MockRepository) ListImports(ctx context.Context) ([]models.SlackImport,
 	return args.Get(0).([]models.SlackImport), args.Error(1)
 }
 
+func (m *MockRepository) ListPendingFiles(ctx context.Context) ([]string, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]string), args.Error(1)
+}
+
 func (m *MockRepository) BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) error {
 	args := m.Called(ctx, ChannelID, messages)
 	return args.Error(0)
