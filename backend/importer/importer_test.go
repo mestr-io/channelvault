@@ -189,8 +189,6 @@ func TestImporter_Imports(t *testing.T) {
 					"ignore_this_dir/some_file.txt": "data",
 				})
 
-
-
 				return zipPath, context.Background()
 			},
 			wantErr: false,
