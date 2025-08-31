@@ -1,11 +1,9 @@
 <script lang="ts">
-    const { attachment } = $props();
-    function getYouTubeId(url: string): string | null {
-        const match = url.match(
-            /(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
-        );
-        return match ? match[1] : null;
-    }
+const { attachment } = $props()
+function getYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return match ? match[1] : null
+}
 </script>
 
 <div class="attachment">
