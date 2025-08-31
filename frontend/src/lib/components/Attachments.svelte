@@ -1,9 +1,11 @@
 <script lang="ts">
-const { files } = $props()
-
-import LazyImage from './AttachmentLazyImage.svelte'
-import AttachmentFile from './AttachmentFile.svelte'
 import type { models } from '../../../wailsjs/go/models'
+import LazyImage from './attachments/LazyImage.svelte'
+import GenericFile from './attachments/File.svelte'
+import ExternalImage from './attachments/ExternalImage.svelte'
+import ExternalVideo from './attachments/ExternalVideo.svelte'
+
+const { message } = $props()
 
 function detectFileType(file: models.File) {
   if (file.mimetype.startsWith('image/')) {
@@ -16,23 +18,53 @@ function detectFileType(file: models.File) {
     return 'generic'
   }
 }
+function detectAttachment(attachment: models.Attachment) {
+  if (attachment.image_url) {
+    return 'image'
+  }
+  if (attachment.service_name.toLowerCase() === 'youtube') {
+    return 'youtube'
+  }
+
+  return 'generic'
+}
+
+function showAttachments(msg) {
+  $inspect(msg.attachments)
+  return msg.attachments
+}
 </script>
 
-{#if files}
-    <div>
-        {#each files as file}
-            {@const filetype = detectFileType(file)}
-            {#if filetype === "image"}
-                <LazyImage
-                    url={file.url_private}
-                    fileId={file.id}
-                    alt={file.title || file.name}
-                />
-            {:else if filetype === "generic"}
-                <AttachmentFile {file} />
-            {/if}
-        {/each}
-    </div>
+{#if message.files}
+  <div>
+    {#each message.files as file}
+      {@const filetype = detectFileType(file)}
+      {#if filetype === "image"}
+        <LazyImage
+          url={file.url_private}
+          fileId={file.id}
+          alt={file.title || file.name}
+        />
+      {:else if filetype === "generic"}
+        <GenericFile {file} />
+      {/if}
+    {/each}
+  </div>
+{/if}
+
+{#if message.attachments}
+  <div>
+    {#each message.attachments as attachment}
+      {@const attachmentType = detectAttachment(attachment)}
+      {#if attachmentType === "image"}
+        <ExternalImage {attachment} />
+      {:else if attachmentType === "youtube"}
+        <ExternalVideo {attachment} />
+      {:else}
+        <GenericFile {attachment} />
+      {/if}
+    {/each}
+  </div>
 {/if}
 
 <style>

@@ -1,15 +1,15 @@
 <script lang="ts">
-import { models } from '../../../wailsjs/go/models'
-import ThreadInfo from './ThreadInfo.svelte'
-import Attachments from './Attachments.svelte'
-import Reactions from './Reactions.svelte'
+import { component } from '@cartamd/plugin-component'
+import { initializeComponents, svelte } from '@cartamd/plugin-component/svelte'
+import { emoji } from '@cartamd/plugin-emoji'
 import { Carta, Markdown, type Options } from 'carta-md'
 import DOMPurify from 'isomorphic-dompurify'
-
-import { emoji } from '@cartamd/plugin-emoji'
-import { component } from '@cartamd/plugin-component'
-import { svelte, initializeComponents } from '@cartamd/plugin-component/svelte'
+import type { models } from '../../../wailsjs/go/models'
+import Attachments from './Attachments.svelte'
 import Link from './Link.svelte'
+import Reactions from './Reactions.svelte'
+import ThreadInfo from './ThreadInfo.svelte'
+
 type Props = {
   msg: models.Message
   selectedThread: string | null
@@ -24,11 +24,6 @@ const options: Options = {
   sanitizer: DOMPurify.sanitize,
 }
 export const carta = new Carta(options)
-
-function showAttachments(msg) {
-  $inspect(msg.attachments[0])
-  return msg.attachments
-}
 /**
  * Formats the message timestamp to show only the time (e.g., "2:03 PM").
  */
@@ -52,14 +47,7 @@ const formatMessageTime = (ts: string): string => {
             </span>
         </div>
         <Markdown {carta} value={msg.text || ""} />
-        {#each msg.attachments as attachment}
-            <div>-> {attachment.image_url}</div>
-        {/each}
-
-        <div>Attachments: {showAttachments(msg)}</div>
-
-        <Attachments files={msg.files} />
-
+        <Attachments message={msg} />
         {#if msg.thread_ts}
             <ThreadInfo
                 replyUsers={msg.reply_users}

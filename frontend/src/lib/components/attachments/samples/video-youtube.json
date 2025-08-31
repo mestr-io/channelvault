@@ -1,0 +1,15 @@
+{
+	"id": 1,
+	"from_url": "https://www.youtube.com/watch?v=7NPIENPr-zk",
+	"original_url": "https://www.youtube.com/watch?v=7NPIENPr-zk",
+	"fallback": "YouTube Video: #01 - Relational Model & Algebra (CMU Intro to Database Systems)",
+	"text": "",
+	"title": "#01 - Relational Model &amp; Algebra (CMU Intro to Database Systems)",
+	"title_link": "https://www.youtube.com/watch?v=7NPIENPr-zk",
+	"image_url": "",
+	"image_width": 0,
+	"image_height": 0,
+	"image_bytes": 0,
+	"service_icon": "https://a.slack-edge.com/80588/img/unfurl_icons/youtube.png",
+	"service_name": "YouTube"
+}
