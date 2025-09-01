@@ -10,15 +10,12 @@ import (
 )
 
 func TestBulkInsertUsers(t *testing.T) {
-	//TODO FIX
-	t.Skip()
-
 	repo := setup(t)
 	defer repo.db.Close()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
-	ctx = context.WithValue(ctx, "import", imp)
+	ctx = context.WithValue(ctx, "import", &imp)
 	users := []models.User{
 		{ID: "U1", Name: "user1", RealName: "User One", Profile: models.Profile{Image32: "http://example.com/avatar1.png"}},
 		{ID: "U2", Name: "user2", RealName: "User Two", IsBot: true},
@@ -50,15 +47,12 @@ func TestBulkInsertUsers(t *testing.T) {
 }
 
 func TestGetUserAvatar(t *testing.T) {
-	//TODO FIX
-	t.Skip()
-
 	repo := setup(t)
 	defer repo.db.Close()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
-	ctx = context.WithValue(ctx, "import", imp)
+	ctx = context.WithValue(ctx, "import", &imp)
 
 	users := []models.User{
 		{ID: "U1", Name: "user1", Profile: models.Profile{Image32: "http://example.com/avatar1.png"}},
