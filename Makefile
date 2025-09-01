@@ -69,6 +69,8 @@ clean: ##                        Clean build
 	rm -Rf $(TOP)/build/bin
 	rm -Rf $(TOP)/frontend/dist
 	rm -Rf $(TOP)/frontend/node_modules
+	mkdir -p $(TOP)/frontend/dist
+	touch $(TOP)/frontend/dist/index.html
 
 fmt:
 	$(info) ">>> Format JS/TS code $(VERSION)-$(RELEASE) ..."
