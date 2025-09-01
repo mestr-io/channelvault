@@ -9,7 +9,7 @@ on:
       - "main.go"
       - "main_test.go"
       - "backend/**"
-      - ".github/workflows/build-backend.yaml"
+      - ".github/workflows/run-be-unittests.yaml"
 
 jobs:
   generate-binaries:
