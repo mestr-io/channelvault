@@ -17,10 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: quit this action
-        run: sudo apt search libgio-unix
-
-      - name: dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
