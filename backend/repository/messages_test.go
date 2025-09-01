@@ -14,7 +14,7 @@ func TestBulkInsertMessages(t *testing.T) {
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
-	ctx = context.WithValue(ctx, "import", imp)
+	ctx = context.WithValue(ctx, "import", &imp)
 
 	// Pre-insert a user and a channel for foreign key constraints
 	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1"}})
@@ -45,7 +45,7 @@ func TestGetMessages(t *testing.T) {
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
-	ctx = context.WithValue(ctx, "import", imp)
+	ctx = context.WithValue(ctx, "import", &imp)
 
 	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
 	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
@@ -82,7 +82,7 @@ func TestGetThreadByTs(t *testing.T) {
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
-	ctx = context.WithValue(ctx, "import", imp)
+	ctx = context.WithValue(ctx, "import", &imp)
 
 	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
 	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
@@ -116,7 +116,7 @@ func TestGetFileById(t *testing.T) {
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
-	ctx = context.WithValue(ctx, "import", imp)
+	ctx = context.WithValue(ctx, "import", &imp)
 
 	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
 	messages := []models.Message{

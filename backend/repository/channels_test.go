@@ -31,7 +31,7 @@ func TestBulkInsertChannels(t *testing.T) {
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
-	ctx = context.WithValue(ctx, "import", imp)
+	ctx = context.WithValue(ctx, "import", &imp)
 
 	channels := []models.Channel{
 		{ID: "C1", Name: "channel1", Members: []string{"U1"}, Pins: []models.ChannelPin{{ID: "p1"}}},
@@ -77,7 +77,7 @@ func TestGetChannels(t *testing.T) {
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
-	ctx = context.WithValue(ctx, "import", imp)
+	ctx = context.WithValue(ctx, "import", &imp)
 
 	channels := []models.Channel{
 		{ID: "C1", Name: "channel1"},
