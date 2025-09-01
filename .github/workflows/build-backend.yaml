@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: quit this action
-        run: sudo apt-search libgio-unix
+        run: sudo apt search libgio-unix
 
       - name: dependencies
         run: |
