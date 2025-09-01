@@ -9,16 +9,16 @@ func (r *RepositorySql) SetupSchemas() error {
 		CREATE TABLE IF NOT EXISTS imports (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT,
-			path TEXT,
-			created DATETIME DEFAULT CURRENT_TIMESTAMP,
-			finished DATETIME,
-			num_messages INTEGER DEFAULT 0,
-			error TEXT
+			zip_filepath TEXT,
+			processing_started DATETIME DEFAULT CURRENT_TIMESTAMP,
+			processing_finished DATETIME,
+			download_started DATETIME,
+			download_finished DATETIME,
 		);
-		CREATE TABLE IF NOT EXISTS checkpoints (
+		CREATE TABLE IF NOT EXISTS json_files (
 			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
 			path TEXT,
-			processed_at DATETIME,
+			processed INTEGER DEFAULT 0,
 			error TEXT,
 			PRIMARY KEY(import_id, path)
 		);
@@ -33,6 +33,7 @@ func (r *RepositorySql) SetupSchemas() error {
 			ts TEXT,
 			channel_id TEXT,
 			downloaded INTEGER DEFAULT 0,
+			error TEXT,
 			PRIMARY KEY (import_id, id)
 		);
 		CREATE TABLE IF NOT EXISTS messages (
@@ -76,6 +77,10 @@ func (r *RepositorySql) SetupSchemas() error {
 		);`
 	if _, err := r.db.Exec(createTableSQL); err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
+	}
+
+	if _, err := r.db.Exec("VACUUM;"); err != nil {
+		return fmt.Errorf("failed to vacuum: %v", err)
 	}
 	return nil
 }

@@ -31,11 +31,21 @@ const (
 	ViewStateLoading   ViewState = "loading"
 )
 
+type ImportTaskStatus struct {
+	ImportID int64
+}
+
+type DownloadTaskStatus struct {
+	ImportID int64
+}
+
 type App struct {
-	ctx         context.Context
-	repository  repository.Repository
-	state       ViewState
-	filesFolder string
+	ctx          context.Context
+	repository   repository.Repository
+	state        ViewState
+	filesFolder  string
+	importTask   *ImportTaskStatus
+	downloadTask *DownloadTaskStatus
 }
 
 func New(repository repository.Repository, filesFolder string) *App {

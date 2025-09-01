@@ -389,6 +389,8 @@ export namespace models {
 	    Name: string;
 	    Error: string;
 	    PendingBinaries: number;
+	    BinariesDownloadStarted: string;
+	    BinariesDownloadFinished: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new SlackImport(source);
@@ -404,6 +406,8 @@ export namespace models {
 	        this.Name = source["Name"];
 	        this.Error = source["Error"];
 	        this.PendingBinaries = source["PendingBinaries"];
+	        this.BinariesDownloadStarted = source["BinariesDownloadStarted"];
+	        this.BinariesDownloadFinished = source["BinariesDownloadFinished"];
 	    }
 	}
 

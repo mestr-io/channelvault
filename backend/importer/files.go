@@ -14,6 +14,7 @@ import (
 )
 
 func DownloadBinaries(ctx context.Context, filesFolder string, repository repository.Repository, currentImport *models.SlackImport) error {
+	repository.FinishedImportUpdate()
 	runtime.EventsEmit(ctx, "downloadBinariesStarted", currentImport.ID)
 
 	pageSize := 20
