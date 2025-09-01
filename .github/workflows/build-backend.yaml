@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: dependencies
+        uses: apt install -y gtk+-3.0 gio-unix-2.0 webkit2gtk-4.1 gtk+-3.0 gio-unix-2.0 webkit2gtk-4.1 gtk+-3.0 webkit2gtk-4.1 libsoup-3.0 gtk+-3.0 gio-unix-2.0 webkit2gtk-4.1
       - name: Checkout code
         uses: actions/checkout@v4
 
