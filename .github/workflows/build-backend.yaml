@@ -17,12 +17,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: quit this action
+      - run: sudo apt-search libgio-unix
+
       - name: dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             libgtk-3-dev \
-            libgio-unix-2.0-dev \
             libwebkit2gtk-4.1-dev \
             libsoup-3.0-dev
 
