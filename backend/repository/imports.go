@@ -9,14 +9,14 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *RepositorySql) CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) error {
+func (r *RepositorySql) CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) (err error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("starting transaction failed: %w", err)
 	}
 	defer func() {
 		if err != nil {
-			_ = tx.Rollback()
+			err = errors.Join(err, tx.Rollback())
 		}
 	}()
 
@@ -24,7 +24,7 @@ func (r *RepositorySql) CreateCheckpointPlaceHolders(ctx context.Context, import
 	if err != nil {
 		return fmt.Errorf("creating prepare statement failed: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { err = errors.Join(err, stmt.Close()) }()
 
 	for _, path := range paths {
 		if _, err = stmt.ExecContext(ctx, importID, path); err != nil {
@@ -47,15 +47,16 @@ func (r *RepositorySql) MarkCheckpointAsCompleted(ctx context.Context, importID 
 	return nil
 }
 
-func (r *RepositorySql) ListPendingFiles(ctx context.Context) ([]string, error) {
+func (r *RepositorySql) ListPendingFiles(ctx context.Context) (checkpoints []string, err error) {
 	query := `SELECT path FROM checkpoints WHERE processed_at IS NULL;`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		err = errors.Join(err, rows.Close())
+	}()
 
-	var checkpoints []string
 	for rows.Next() {
 		var path string
 		if err := rows.Scan(&path); err != nil {

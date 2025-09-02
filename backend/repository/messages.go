@@ -90,7 +90,8 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 		if filesNullable.Valid {
 			// insert into files table
 			for _, file := range msg.Files {
-				stmt2.ExecContext(ctx, imp.ID, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
+				_, e := stmt2.ExecContext(ctx, imp.ID, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
+				err = errors.Join(err, e)
 			}
 		}
 
@@ -207,7 +208,7 @@ func (r *RepositorySql) ListChannelFiles(ctx context.Context, channelID string, 
 	panic("not implemented")
 }
 
-func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
+func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string) (messages []models.Message, err error) {
 	query := `
         SELECT 
 			distinct(ts), text, 
@@ -236,9 +237,10 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
 	if err != nil {
 		return nil, fmt.Errorf("could not query messages for channel %s: %v", channelID, err)
 	}
-	defer rows.Close()
+	defer func() {
+		err = errors.Join(err, rows.Close())
+	}()
 
-	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
 		var usersJson sql.NullString

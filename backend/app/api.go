@@ -2,13 +2,15 @@ package app
 
 import (
 	"encoding/base64"
+	"path/filepath"	
+	"net/http"
+	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/mestr-io/slack-export-viewer/backend/models"
+
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -28,7 +30,7 @@ func (a *App) GetThreadByTs(threadTs string, channelID string) ([]models.Message
 	return a.repository.GetThreadByTs(a.ctx, threadTs, channelID)
 }
 
-func (a *App) GetBase64Image(fileId string) (string, error) {
+func (a *App) GetBase64Image(fileId string) (img string, err error) {
 	//TODO: move this?
 	file, err := a.repository.GetFileById(a.ctx, fileId)
 	if err != nil {
@@ -42,14 +44,20 @@ func (a *App) GetBase64Image(fileId string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("fail downloading file %s : %v", file.FileURL, err)
 		}
-		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("failed to download file %s : got http status code %v", file.FileURL, resp.StatusCode)
+		}
+		defer func() {
+			err = errors.Join(resp.Body.Close(), err)
+		}()
 
 		dest, err := os.Create(destPath)
-
 		if err != nil {
 			return "", fmt.Errorf("failed to create destination file %s : %v", destPath, err)
 		}
-		defer dest.Close()
+		defer func() {
+			err = errors.Join(dest.Close(), err)
+		}()
 
 		_, err = io.Copy(dest, resp.Body)
 		if err != nil {
