@@ -15,14 +15,25 @@ func TestGetSqliteDatabasePath(t *testing.T) {
 	oldXDGDataHome := os.Getenv("XDG_DATA_HOME")
 	tempDir, err := os.MkdirTemp("", "test-xdg-")
 	assert.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer func(){
+		err = os.RemoveAll(tempDir)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
-	os.Setenv("XDG_DATA_HOME", tempDir)
+	err = os.Setenv("XDG_DATA_HOME", tempDir)
+	if err != nil {
+		panic(err)
+	}
 	// Reset XDG base directories to pick up the new environment variable
 	xdg.Reload()
 
 	defer func() {
-		os.Setenv("XDG_DATA_HOME", oldXDGDataHome)
+		err = os.Setenv("XDG_DATA_HOME", oldXDGDataHome)
+		if err != nil {
+			panic(err)
+		}
 		xdg.Reload()
 	}()
 

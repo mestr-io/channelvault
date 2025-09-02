@@ -10,7 +10,11 @@ import (
 
 func TestStoreImport(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func(){
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	imp, err := repo.CreateImport(context.Background(), "/path/to/import", "an import")
 	if err != nil {
@@ -33,7 +37,11 @@ func TestStoreImport(t *testing.T) {
 
 func TestFinishedImport(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func(){
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	imp, err := repo.CreateImport(context.Background(), "/path/to/import", "an import")
 	if err != nil {
@@ -56,7 +64,11 @@ func TestFinishedImport(t *testing.T) {
 
 func TestNoFinishedImports(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func(){
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	t.Run("No imports", func(t *testing.T) {
 		any, err := repo.NoFinishedImports(context.Background())

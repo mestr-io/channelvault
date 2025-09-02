@@ -77,7 +77,7 @@ func TestGetBase64Image(t *testing.T) {
 	// Create a temporary directory for files
 	tempDir, err := os.MkdirTemp("", "test-files")
 	assert.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer func(){_ = os.RemoveAll(tempDir)}()
 
 	mockRepo := new(MockRepository)
 	app := New(mockRepo, tempDir)
@@ -110,7 +110,10 @@ func TestGetBase64Image(t *testing.T) {
 		// Setup a mock HTTP server
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// NOTE: "downloaded data" in base64 is ZG93bmxvYWRlZCBkYXRh
-			fmt.Fprint(w, "downloaded data")
+			_, err := fmt.Fprint(w, "downloaded data")
+			if err != nil {
+				t.Fatalf("Failed to write response: %v", err)
+			}
 		}))
 		defer server.Close()
 
