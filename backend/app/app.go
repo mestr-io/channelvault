@@ -36,6 +36,8 @@ type App struct {
 	repository  repository.Repository
 	state       ViewState
 	filesFolder string
+	//current tasks
+	isImporting bool
 }
 
 func New(repository repository.Repository, filesFolder string) *App {
@@ -71,6 +73,10 @@ func (a *App) Startup(ctx context.Context) {
 }
 
 func (a *App) onFileDrop(x, y int, paths []string) {
+	if a.isImporting {
+		ah.Fatalf("import already in progress")
+		return
+	}
 	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", paths, x, y)
 	if len(paths) != 1 {
 		ah.Fatalf("internal error. import part incorrect: %v", paths)
@@ -91,6 +97,10 @@ func defaultImportName(path string) string {
 }
 
 func (a *App) processImport(currentImport *models.SlackImport) {
+	a.isImporting = true
+	defer func() {
+		a.isImporting = false
+	}()
 	// notify the FE
 	currentImport.Error = ""
 	currentImport.NumFiles = 0
@@ -139,5 +149,4 @@ func (a *App) processImport(currentImport *models.SlackImport) {
 			ah.Errorf("Failed to update import status: %v", err)
 		}
 	}
-
 }
