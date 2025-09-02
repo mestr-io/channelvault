@@ -166,7 +166,10 @@ func (i *Importer) Import(c chan models.Progress) error {
 		if err != nil {
 			return fmt.Errorf("fail to process users: %w", err)
 		}
-		i.repository.MarkCheckpointAsCompleted(i.ctx, i.currentImport.ID, f.Name, "")
+		err = i.repository.MarkCheckpointAsCompleted(i.ctx, i.currentImport.ID, f.Name, "")
+		if err != nil {
+			return fmt.Errorf("fail to mark checkpoint as completed: %w", err)
+		}
 	}
 
 	// channels.json
@@ -185,7 +188,10 @@ func (i *Importer) Import(c chan models.Progress) error {
 		if err != nil {
 			return fmt.Errorf("fail to process channels: %w", err)
 		}
-		i.repository.MarkCheckpointAsCompleted(i.ctx, i.currentImport.ID, f.Name, "")
+		err = i.repository.MarkCheckpointAsCompleted(i.ctx, i.currentImport.ID, f.Name, "")
+		if err != nil {
+			return fmt.Errorf("fail to mark checkpoint as completed: %w", err)
+		}
 	}
 	// messages & threads
 	for idx, f := range r.File {
@@ -217,11 +223,14 @@ func (i *Importer) Import(c chan models.Progress) error {
 				}
 				err = i.processMessages(channelID, f)
 				if err != nil {
-					i.repository.MarkCheckpointAsCompleted(i.ctx, i.currentImport.ID, f.Name, fmt.Sprintf("%v", err))
+					err = errors.Join(err, i.repository.MarkCheckpointAsCompleted(i.ctx, i.currentImport.ID, f.Name, fmt.Sprintf("%v", err)))
 					return fmt.Errorf("fail to process messages for channel %s: %w", channelID, err)
 				}
 			}
-			i.repository.MarkCheckpointAsCompleted(i.ctx, i.currentImport.ID, f.Name, "")
+			err = i.repository.MarkCheckpointAsCompleted(i.ctx, i.currentImport.ID, f.Name, "")
+			if err != nil {
+				return fmt.Errorf("fail to mark checkpoint as completed: %w", err)
+			}
 		}
 	}
 	return nil

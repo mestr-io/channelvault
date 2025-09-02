@@ -65,6 +65,10 @@ coverh: goversion ##                       Launch headless app tests just cover 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
 
+lint: ##                         launch go lint
+	$(info) ">>> Launch lint for app $(VERSION)-$(RELEASE) ..."
+	@golangci-lint run
+
 clean: ##                        Clean build
 	rm -Rf $(TOP)/build/bin
 	rm -Rf $(TOP)/frontend/dist

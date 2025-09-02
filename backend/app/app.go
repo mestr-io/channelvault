@@ -126,12 +126,18 @@ func (a *App) processImport(currentImport *models.SlackImport) {
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
 		currentImport.Error = fmt.Sprintf("%v", importErr)
 		// update the import
-		a.repository.FinishedImportUpdateWithError(a.ctx, currentImport)
+		err := a.repository.FinishedImportUpdateWithError(a.ctx, currentImport)
+		if err != nil {
+			ah.Errorf("Failed to update import status: %v", err)
+		}
 	} else {
 		ah.Infof("Import completed successfully!!")
 		runtime.EventsEmit(a.ctx, "importComplete")
 		// update the import
-		a.repository.FinishedImportUpdate(a.ctx, currentImport)
+		err := a.repository.FinishedImportUpdate(a.ctx, currentImport)
+		if err != nil {
+			ah.Errorf("Failed to update import status: %v", err)
+		}
 	}
 
 }
