@@ -66,7 +66,7 @@ jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
 
 lint: ##                         launch go lint
-	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
+	$(info) ">>> Launch lint for app $(VERSION)-$(RELEASE) ..."
 	@golangci-lint run
 
 clean: ##                        Clean build
