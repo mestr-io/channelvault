@@ -50,7 +50,7 @@ test: goversion ##                         Launch app tests
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
 	@go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
 
-cover: goversion ##                         Launch app tests just cover report
+cover: goversion ##                        Launch app tests just cover report
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
 	@go test -cover -count=1 -tags=dev,webkit2_41 ./...
 
@@ -58,7 +58,7 @@ testh: goversion ##                        Launch headless app tests
 	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
 	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -v -tags=dev,headless,webkit2_41 ./...
 
-coverh: goversion ##                        Launch headless app tests just cover report
+coverh: goversion ##                       Launch headless app tests just cover report
 	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
 	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -tags=dev,headless,webkit2_41 ./...
 
