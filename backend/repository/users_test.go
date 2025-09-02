@@ -11,7 +11,11 @@ import (
 
 func TestBulkInsertUsers(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func() {
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
@@ -48,7 +52,12 @@ func TestBulkInsertUsers(t *testing.T) {
 
 func TestGetUserAvatar(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func() {
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()	
+	
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
