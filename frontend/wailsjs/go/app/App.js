@@ -6,8 +6,8 @@ export function DeleteImport(arg1) {
   return window['go']['app']['App']['DeleteImport'](arg1);
 }
 
-export function DownloadBinaries(arg1) {
-  return window['go']['app']['App']['DownloadBinaries'](arg1);
+export function DownloadBinaries(arg1, arg2) {
+  return window['go']['app']['App']['DownloadBinaries'](arg1, arg2);
 }
 
 export function GetBase64Image(arg1) {

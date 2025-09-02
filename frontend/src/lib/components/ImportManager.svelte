@@ -33,6 +33,11 @@ onMount(async () => {
     isImporting = false
   })
 
+  runtime.EventsOn('downloadBinariesDone', async _ => {
+    const fresh = await ListImports()
+    imports = [...fresh]
+  })
+
   // load imports
   const fresh = await ListImports()
   imports = [...fresh]
@@ -101,29 +106,31 @@ function handleDrop(event: DragEvent): void {
 
 <main>
   <div class="drop-zone-container">
-    <button 
-      class="collapse-toggle" 
+    <button
+      class="collapse-toggle"
       onclick={toggleDropZone}
-      aria-label={isDropZoneCollapsed ? "Expand drop zone" : "Collapse drop zone"}
+      aria-label={isDropZoneCollapsed
+        ? "Expand drop zone"
+        : "Collapse drop zone"}
     >
-      <svg 
-        class="chevron" 
+      <svg
+        class="chevron"
         class:collapsed={isDropZoneCollapsed}
-        xmlns="http://www.w3.org/2000/svg" 
-        width="20" 
-        height="20" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        stroke-width="2" 
-        stroke-linecap="round" 
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
         stroke-linejoin="round"
       >
-        <path d="m6 9 6 6 6-6"/>
+        <path d="m6 9 6 6 6-6" />
       </svg>
       <span>Add import</span>
     </button>
-    
+
     <div
       class="drop-zone"
       class:is-dragging={isDragging}
@@ -181,14 +188,22 @@ function handleDrop(event: DragEvent): void {
               )}>link</a
           > for more information about the export process.
         </div>
-        <div><small>*Only public channels are supported for the moment</small></div>
+        <div>
+          <small>*Only public channels are supported for the moment</small>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="imports">
     {#each imports as slackImportcard (slackImportcard.ID)}
-      <SlackImport {RetryImportHandle} {slackImportcard} isCollapsed={slackImportcard.Finished !== "" && slackImportcard.Error === ""} {DeleteImportHandle}/>
+      <SlackImport
+        {RetryImportHandle}
+        {slackImportcard}
+        isCollapsed={slackImportcard.Finished !== "" &&
+          slackImportcard.Error === ""}
+        {DeleteImportHandle}
+      />
     {/each}
   </div>
 </main>
@@ -325,12 +340,12 @@ function handleDrop(event: DragEvent): void {
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
-    
+
     .drop-zone {
       min-width: 300px;
     }
   }
-  
+
   a {
     color: #768998;
     text-decoration: none;

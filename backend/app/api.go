@@ -2,12 +2,12 @@ package app
 
 import (
 	"encoding/base64"
-	"path/filepath"	
-	"net/http"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
@@ -65,7 +65,10 @@ func (a *App) GetBase64Image(fileId string) (img string, err error) {
 			return "", fmt.Errorf("failed to download file %s : %v", destPath, err)
 		}
 
-		// generate thumbnails 400x?
+		// mark as downloaded
+		if err = a.repository.MarkFileAsDownloaded(a.ctx, file.ImportID, file.ID); err != nil {
+			return "", fmt.Errorf("failed to modify file with id %d: %v", file.ImportID, err)
+		}
 	}
 
 	data, err := os.ReadFile(destPath) // os.ReadFile is simpler than Open + ReadAll
@@ -118,25 +121,32 @@ func (a *App) RenameImport(importID int64, name string) error {
 	return a.repository.RenameImport(a.ctx, importID, name)
 }
 
-func (a *App) DownloadBinaries(importID int64) error {
-	selection, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
-		Type:          runtime.QuestionDialog,
-		Title:         "Download binaries",
-		Message:       "Are you sure you want to download all workspace binaries? This action can take a lot of disk space.",
-		Buttons:       []string{"Cancel", "OK"},
-		DefaultButton: "OK",
-	})
-	if err != nil {
-		return err
-	}
-	if selection != "OK" {
-		return fmt.Errorf("user cancelled deletion")
+func (a *App) DownloadBinaries(importID int64, confirm bool) error {
+	if confirm {
+		selection, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+			Type:          runtime.QuestionDialog,
+			Title:         "Download binaries",
+			Message:       "Are you sure you want to download all workspace binaries? This action can take a lot of disk space.",
+			Buttons:       []string{"Cancel", "OK"},
+			DefaultButton: "OK",
+		})
+		if err != nil {
+			return err
+		}
+		if selection != "OK" {
+			return fmt.Errorf("user cancelled deletion")
+		}
 	}
 
 	currentImport, err := a.repository.GetImport(a.ctx, importID)
 	if err != nil {
 		return fmt.Errorf("cannot find import %d: %v", importID, err)
 	}
+
+	// TODO: check the task correctly, keep a task list on the app struct
+	//if currentImport.DownloadStarted.Valid {
+	//	return fmt.Errorf("download already in progress")
+	//}
 
 	// run this in background
 	go func() {

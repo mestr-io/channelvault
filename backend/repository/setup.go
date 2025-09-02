@@ -9,13 +9,15 @@ func (r *RepositorySql) SetupSchemas() error {
 		CREATE TABLE IF NOT EXISTS imports (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT,
-			zip_filepath TEXT,
-			processing_started DATETIME DEFAULT CURRENT_TIMESTAMP,
-			processing_finished DATETIME,
+			path TEXT,
+			created DATETIME DEFAULT CURRENT_TIMESTAMP,
+			finished DATETIME,
 			download_started DATETIME,
 			download_finished DATETIME,
+			num_messages INTEGER DEFAULT 0,
+			error TEXT
 		);
-		CREATE TABLE IF NOT EXISTS json_files (
+		CREATE TABLE IF NOT EXISTS checkpoints (
 			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
 			path TEXT,
 			processed INTEGER DEFAULT 0,

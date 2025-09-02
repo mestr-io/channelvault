@@ -78,6 +78,31 @@ func (a *App) Startup(ctx context.Context) {
 	runtime.OnFileDrop(ctx, a.onFileDrop)
 	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
+
+	// start here any pending task
+	imports, err := a.repository.ListImports(a.ctx)
+	if err != nil {
+		panic(err)
+	}
+	for _, imp := range imports {
+		// check for pending import
+		if imp.Finished == "" {
+			// import has not finished
+			err = a.ResumeImport(imp.ID)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		// check for pending downloads
+		if imp.DownloadStarted.Valid && !imp.DownloadFinished.Valid {
+			err = a.DownloadBinaries(imp.ID, false)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
 }
 
 func (a *App) onFileDrop(x, y int, paths []string) {

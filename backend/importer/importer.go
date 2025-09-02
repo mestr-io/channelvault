@@ -129,7 +129,6 @@ func (i *Importer) Import(c chan models.Progress) error {
 	}()
 
 	totalFiles := len(r.File)
-
 	files, err := i.repository.ListPendingFiles(i.ctx, i.currentImport.ID)
 	// checkpoints
 	if err != nil {

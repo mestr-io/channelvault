@@ -4,7 +4,7 @@ import {models} from '../models';
 
 export function DeleteImport(arg1:number):Promise<void>;
 
-export function DownloadBinaries(arg1:number):Promise<void>;
+export function DownloadBinaries(arg1:number,arg2:boolean):Promise<void>;
 
 export function GetBase64Image(arg1:string):Promise<string>;
 

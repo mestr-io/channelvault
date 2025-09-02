@@ -281,14 +281,15 @@ func (r *RepositorySql) GetFileById(ctx context.Context, fileId string) (*models
 			title,
 			mimetype,
 			url_private,
-			user
+			user,
+			import_id
         FROM files 
         WHERE id = ?; 
     `
 	args := []interface{}{fileId}
 
 	file := models.File{}
-	err := r.db.QueryRowContext(ctx, query, args...).Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.User)
+	err := r.db.QueryRowContext(ctx, query, args...).Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.User, &file.ImportID)
 	if err != nil {
 		return nil, fmt.Errorf("could not query file with id %s: %v", fileId, err)
 	}

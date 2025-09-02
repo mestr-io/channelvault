@@ -14,7 +14,15 @@ import (
 )
 
 func DownloadBinaries(ctx context.Context, filesFolder string, repository repository.Repository, currentImport *models.SlackImport) error {
-	repository.FinishedImportUpdate()
+	pending, err := repository.CountPendingBinaries(ctx, currentImport.ID)
+	if err != nil {
+		return fmt.Errorf("cannot retrieve info for import with id %d: %v", currentImport.ID, err)
+	}
+	// update import status
+	err = repository.StartDownload(ctx, currentImport.ID)
+	if err != nil {
+		return fmt.Errorf("cannot update import with id %d: %v", currentImport.ID, err)
+	}
 	runtime.EventsEmit(ctx, "downloadBinariesStarted", currentImport.ID)
 
 	pageSize := 20
@@ -27,9 +35,13 @@ func DownloadBinaries(ctx context.Context, filesFolder string, repository reposi
 			return err
 		}
 		for _, file := range page {
-			// download file
 			destPath := filepath.Join(filesFolder, fmt.Sprintf("%s_%s", file.ID, file.Name))
-
+			// check local FS for the image
+			if _, err := os.Stat(destPath); err != nil {
+				pending -= 1
+				continue
+			}
+			// download file
 			resp, err := http.Get(file.FileURL)
 			if err != nil {
 				return fmt.Errorf("fail downloading file %s : %v", file.FileURL, err)
@@ -53,10 +65,14 @@ func DownloadBinaries(ctx context.Context, filesFolder string, repository reposi
 				return fmt.Errorf("failed to modify file with id %s: %v", file.ID, err)
 			}
 			// notify progress
-			runtime.EventsEmit(ctx, "downloadedBinary", currentImport.ID, file)
+			runtime.EventsEmit(ctx, "downloadedBinary", currentImport.ID, pending)
+			pending -= 1
 		}
 	}
 
+	if err := repository.FinishDownload(ctx, currentImport.ID); err != nil {
+
+	}
 	runtime.EventsEmit(ctx, "downloadBinariesDone", currentImport.ID)
 	return nil
 }
