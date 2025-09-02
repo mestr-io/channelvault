@@ -33,7 +33,10 @@ func TestNewCustomTextHandler_CleanLogLine(t *testing.T) {
 	debugLine := "Oh! attaboy! library should not change this line at all"
 	record := slog.NewRecord(time.Now(), slog.LevelDebug, debugLine, 0)
     handler := NewCustomTextHandler(&buf, nil)
-	handler.Handle(ctx, record)
+	err := handler.Handle(ctx, record)
+	if err != nil {
+		t.Fatalf("Failed to handle log record: %v", err)
+	}
 
 	all, err := io.ReadAll(&buf)
 	if err != nil {

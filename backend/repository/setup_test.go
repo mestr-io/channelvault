@@ -11,7 +11,11 @@ func TestSetupSchemas(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to open in-memory database: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	repo := &RepositorySql{db: db}
 

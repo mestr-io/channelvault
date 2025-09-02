@@ -149,7 +149,12 @@ func createTestZip(t *testing.T, files map[string]string) string {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer tmpFile.Close()
+	defer func(){
+		err = tmpFile.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	_, err = tmpFile.Write(buf.Bytes())
 	if err != nil {
@@ -326,9 +331,13 @@ func TestImporter_Imports(t *testing.T) {
 			mockRepo := new(MockRepository)
 			zipPath, ctx := tt.setup(t, mockRepo)
 			if zipPath != "nonexistent.zip" {
-				defer os.Remove(zipPath) // Clean up the temp file
+				defer func() {
+					err := os.Remove(zipPath)
+					if err != nil {
+						panic(err)
+					}
+				}()
 			}
-
 			importIt := models.SlackImport{ID: 66, Path: zipPath}
 			importer := NewImporter(ctx, zipPath, mockRepo, &importIt)
 			progressChan := make(chan models.Progress, 10)

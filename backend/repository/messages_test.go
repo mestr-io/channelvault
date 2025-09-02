@@ -10,15 +10,25 @@ import (
 
 func TestBulkInsertMessages(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func() {
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
 	ctx = context.WithValue(ctx, "import", &imp)
 
 	// Pre-insert a user and a channel for foreign key constraints
-	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1"}})
-	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	err := repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1"}})
+	if err != nil {
+		t.Fatalf("BulkInsertUsers() error = %v", err)
+	}
+	err = repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	if err != nil {
+		t.Fatalf("BulkInsertChannels() error = %v", err)
+	}
 
 	messages := []models.Message{
 		{Ts: "123.456", UserId: "U1", Text: "Hello", ThreadTs: "123.456"},
@@ -30,7 +40,7 @@ func TestBulkInsertMessages(t *testing.T) {
 	}
 
 	var count int
-	err := repo.db.QueryRow("SELECT COUNT(*) FROM messages").Scan(&count)
+	err = repo.db.QueryRow("SELECT COUNT(*) FROM messages").Scan(&count)
 	if err != nil {
 		t.Fatalf("failed to query message count: %v", err)
 	}
@@ -41,21 +51,34 @@ func TestBulkInsertMessages(t *testing.T) {
 
 func TestGetMessages(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func() {
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
 	ctx = context.WithValue(ctx, "import", &imp)
 
-	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
-	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	err := repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
+	if err != nil {
+		t.Fatalf("BulkInsertUsers() error = %v", err)
+	}
+	err = repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	if err != nil {
+		t.Fatalf("BulkInsertChannels() error = %v", err)
+	}
 	messages := []models.Message{
 		{Ts: "123.457", UserId: "U1", Text: "Not in thread"},
 		{Ts: "123.456", UserId: "U1", Text: "In thread", ThreadTs: "123.456"},
 	}
 
 	//note channel name is used on the insert and not channel ID
-	repo.BulkInsertMessages(ctx, "channel1", messages)
+	err = repo.BulkInsertMessages(ctx, "channel1", messages)
+	if err != nil {
+		t.Fatalf("BulkInsertMessages() error = %v", err)
+	}
 
 	retrieved, err := repo.GetMessages(context.Background(), "C1", "", 10)
 	if err != nil {
@@ -78,14 +101,24 @@ func TestGetMessages(t *testing.T) {
 
 func TestGetThreadByTs(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func() {
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
 	ctx = context.WithValue(ctx, "import", &imp)
 
-	repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
-	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	err := repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
+	if err != nil {
+		t.Fatalf("BulkInsertUsers() error = %v", err)
+	}
+	err = repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	if err != nil {
+		t.Fatalf("BulkInsertChannels() error = %v", err)
+	}
 	messages := []models.Message{
 		{Ts: "123.455", UserId: "U1", Text: "Outside thread"},
 		{Ts: "123.457", UserId: "U1", Text: "Reply", ThreadTs: "123.456"},
@@ -94,7 +127,10 @@ func TestGetThreadByTs(t *testing.T) {
 	}
 
 	//note channel name is used on the insert and not channel ID
-	repo.BulkInsertMessages(ctx, "channel1", messages)
+	err = repo.BulkInsertMessages(ctx, "channel1", messages)
+	if err != nil {
+		t.Fatalf("BulkInsertMessages() error = %v", err)
+	}
 
 	retrieved, err := repo.GetThreadByTs(context.Background(), "123.456", "C1")
 	if err != nil {
@@ -112,17 +148,27 @@ func TestGetThreadByTs(t *testing.T) {
 
 func TestGetFileById(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func() {
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
 	ctx = context.WithValue(ctx, "import", &imp)
 
-	repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	err := repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	if err != nil {
+		t.Fatalf("BulkInsertChannels() error = %v", err)
+	}
 	messages := []models.Message{
 		{Ts: "123.456", Files: []models.File{{ID: "F1", Name: "file1.txt"}}},
 	}
-	repo.BulkInsertMessages(ctx, "C1", messages)
+	err = repo.BulkInsertMessages(ctx, "C1", messages)
+	if err != nil {
+		t.Fatalf("BulkInsertMessages() error = %v", err)
+	}
 
 	file, err := repo.GetFileById(ctx, "F1")
 	if err != nil {

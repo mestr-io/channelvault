@@ -27,7 +27,12 @@ func setup(t *testing.T) *RepositorySql {
 
 func TestBulkInsertChannels(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func(){
+		err := repo.db.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
@@ -73,7 +78,12 @@ func TestBulkInsertChannels(t *testing.T) {
 
 func TestGetChannels(t *testing.T) {
 	repo := setup(t)
-	defer repo.db.Close()
+	defer func(){
+		err := repo.db.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66
