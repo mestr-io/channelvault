@@ -235,6 +235,8 @@ export namespace models {
 	    mimetype: string;
 	    url_private: string;
 	    user: string;
+	    Ts: string;
+	    ImportID: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new File(source);
@@ -248,6 +250,8 @@ export namespace models {
 	        this.mimetype = source["mimetype"];
 	        this.url_private = source["url_private"];
 	        this.user = source["user"];
+	        this.Ts = source["Ts"];
+	        this.ImportID = source["ImportID"];
 	    }
 	}
 	export class Reply {
@@ -324,6 +328,7 @@ export namespace models {
 	    latest_reply?: string;
 	    reply_users_count?: number;
 	    reply_users?: string[];
+	    ImportID: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Message(source);
@@ -354,6 +359,7 @@ export namespace models {
 	        this.latest_reply = source["latest_reply"];
 	        this.reply_users_count = source["reply_users_count"];
 	        this.reply_users = source["reply_users"];
+	        this.ImportID = source["ImportID"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -404,6 +410,9 @@ export namespace models {
 	    NumFiles: number;
 	    Name: string;
 	    Error: string;
+	    PendingBinaries: number;
+	    DownloadStarted: sql.NullString;
+	    DownloadFinished: sql.NullString;
 	
 	    static createFrom(source: any = {}) {
 	        return new SlackImport(source);
@@ -418,6 +427,46 @@ export namespace models {
 	        this.NumFiles = source["NumFiles"];
 	        this.Name = source["Name"];
 	        this.Error = source["Error"];
+	        this.PendingBinaries = source["PendingBinaries"];
+	        this.DownloadStarted = this.convertValues(source["DownloadStarted"], sql.NullString);
+	        this.DownloadFinished = this.convertValues(source["DownloadFinished"], sql.NullString);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace sql {
+	
+	export class NullString {
+	    String: string;
+	    Valid: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new NullString(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.String = source["String"];
+	        this.Valid = source["Valid"];
 	    }
 	}
 

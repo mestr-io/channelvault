@@ -169,7 +169,7 @@ function handleScroll(offset: number) {
           <VList
             bind:this={vlist_messages}
             data={messages}
-            getKey={(msg: models.Message, _) => msg.ts}
+            getKey={(msg: models.Message, _) => `${msg.ts}${msg.ImportID}`}
             overscan={10}
             shift={true}
             onscroll={handleScroll}
@@ -216,7 +216,7 @@ function handleScroll(offset: number) {
           <VList
             bind:this={vlist_thread}
             data={threadMessages}
-            getKey={(msg: models.Message, _) => msg.ts}
+            getKey={(msg: models.Message, _) => `${msg.ts}${msg.ImportID}`}
             overscan={10}
             shift={true}
             onscroll={handleScroll}

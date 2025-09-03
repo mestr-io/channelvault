@@ -2,13 +2,16 @@ package app
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
+
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -28,7 +31,7 @@ func (a *App) GetThreadByTs(threadTs string, channelID string) ([]models.Message
 	return a.repository.GetThreadByTs(a.ctx, threadTs, channelID)
 }
 
-func (a *App) GetBase64Image(fileId string) (string, error) {
+func (a *App) GetBase64Image(fileId string) (img string, err error) {
 	//TODO: move this?
 	file, err := a.repository.GetFileById(a.ctx, fileId)
 	if err != nil {
@@ -42,21 +45,25 @@ func (a *App) GetBase64Image(fileId string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("fail downloading file %s : %v", file.FileURL, err)
 		}
-		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("failed to download file %s : got http status code %v", file.FileURL, resp.StatusCode)
+		}
+		defer func() {
+			err = errors.Join(resp.Body.Close(), err)
+		}()
 
 		dest, err := os.Create(destPath)
-
 		if err != nil {
 			return "", fmt.Errorf("failed to create destination file %s : %v", destPath, err)
 		}
-		defer dest.Close()
+		defer func() {
+			err = errors.Join(dest.Close(), err)
+		}()
 
 		_, err = io.Copy(dest, resp.Body)
 		if err != nil {
 			return "", fmt.Errorf("failed to download file %s : %v", destPath, err)
 		}
-
-		// generate thumbnails 400x?
 	}
 
 	data, err := os.ReadFile(destPath) // os.ReadFile is simpler than Open + ReadAll
@@ -107,4 +114,38 @@ func (a *App) ResumeImport(importID int64) error {
 
 func (a *App) RenameImport(importID int64, name string) error {
 	return a.repository.RenameImport(a.ctx, importID, name)
+}
+
+func (a *App) DownloadBinaries(importID int64, confirm bool) error {
+	if confirm {
+		selection, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+			Type:          runtime.QuestionDialog,
+			Title:         "Download binaries",
+			Message:       "Are you sure you want to download all workspace binaries? This action can take a lot of disk space.",
+			Buttons:       []string{"Cancel", "OK"},
+			DefaultButton: "OK",
+		})
+		if err != nil {
+			return err
+		}
+		if selection != "OK" {
+			return fmt.Errorf("user cancelled deletion")
+		}
+	}
+
+	currentImport, err := a.repository.GetImport(a.ctx, importID)
+	if err != nil {
+		return fmt.Errorf("cannot find import %d: %v", importID, err)
+	}
+
+	// TODO: check the task correctly, keep a task list on the app struct
+	//if currentImport.DownloadStarted.Valid {
+	//	return fmt.Errorf("download already in progress")
+	//}
+
+	// run this in background
+	go func() {
+		importer.DownloadBinaries(a.ctx, a.filesFolder, a.repository, currentImport)
+	}()
+	return nil
 }

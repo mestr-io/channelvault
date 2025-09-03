@@ -22,6 +22,18 @@ type MockRepository struct {
 	mock.Mock
 }
 
+func (m *MockRepository) CountPendingBinaries(ctx context.Context, importID int64) (int64, error) {
+	return 10, nil
+}
+
+func (m *MockRepository) StartDownload(ctx context.Context, importID int64) error {
+	return nil
+}
+
+func (m *MockRepository) FinishDownload(ctx context.Context, importID int64) error {
+	return nil
+}
+
 // channels
 func (m *MockRepository) GetChannels() (channels []models.Channel, err error) {
 	panic("GetChannels not defined in mock")
@@ -72,6 +84,22 @@ func (m *MockRepository) NoFinishedImports(ctx context.Context) (bool, error) {
 
 func (m *MockRepository) ListImports(ctx context.Context) ([]models.SlackImport, error) {
 	panic("ListImports not defined in mock")
+}
+
+func (m *MockRepository) ListPendingBinaries(context.Context, int64, int) ([]models.File, error) {
+	return []models.File{}, nil
+}
+
+func (m *MockRepository) MarkFileAsDownloaded(ctx context.Context, importID int64, fileID string) error {
+	return nil
+}
+
+func (m *MockRepository) ListPendingFiles(ctx context.Context, importID int64) ([]string, error) {
+	args := m.Called(ctx, importID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]string), args.Error(1)
 }
 
 func (m *MockRepository) BulkInsertMessages(ctx context.Context, channelID string, messages []models.Message) error {
@@ -141,7 +169,12 @@ func createTestZip(t *testing.T, files map[string]string) string {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer tmpFile.Close()
+	defer func() {
+		err = tmpFile.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	_, err = tmpFile.Write(buf.Bytes())
 	if err != nil {
@@ -167,6 +200,7 @@ func TestImporter_Imports(t *testing.T) {
 		{
 			name: "Successful import",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
+				mockRepo.On("ListPendingFiles", mock.Anything, mock.Anything).Return(nil, nil)
 				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(nil).Once()
@@ -179,6 +213,7 @@ func TestImporter_Imports(t *testing.T) {
 					"C1/2022-01-01.json":            validMessagesJSON,
 					"ignore_this_dir/some_file.txt": "data",
 				})
+
 				return zipPath, context.Background()
 			},
 			wantErr: false,
@@ -199,6 +234,7 @@ func TestImporter_Imports(t *testing.T) {
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
 				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
+				mockRepo.On("ListPendingFiles", mock.Anything, mock.Anything).Return(nil, nil)
 				zipPath := createTestZip(t, map[string]string{
 					"channels.json": validChannelsJSON,
 				})
@@ -213,6 +249,7 @@ func TestImporter_Imports(t *testing.T) {
 				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
+				mockRepo.On("ListPendingFiles", mock.Anything, mock.Anything).Return(nil, nil)
 				zipPath := createTestZip(t, map[string]string{
 					"users.json": validUsersJSON,
 				})
@@ -227,6 +264,7 @@ func TestImporter_Imports(t *testing.T) {
 				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(errors.New("db error")).Once()
 				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
+				mockRepo.On("ListPendingFiles", mock.Anything, mock.Anything).Return(nil, nil)
 				zipPath := createTestZip(t, map[string]string{
 					"users.json": validUsersJSON,
 				})
@@ -245,6 +283,7 @@ func TestImporter_Imports(t *testing.T) {
 				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(errors.New("db error")).Once()
 				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
+				mockRepo.On("ListPendingFiles", mock.Anything, mock.Anything).Return(nil, nil)
 				zipPath := createTestZip(t, map[string]string{
 					"users.json":    validUsersJSON,
 					"channels.json": validChannelsJSON,
@@ -266,6 +305,7 @@ func TestImporter_Imports(t *testing.T) {
 				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertMessages", mock.Anything, "C1", mock.Anything).Return(errors.New("db error")).Once()
 				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				mockRepo.On("ListPendingFiles", mock.Anything, mock.Anything).Return(nil, nil)
 				zipPath := createTestZip(t, map[string]string{
 					"users.json":         validUsersJSON,
 					"channels.json":      validChannelsJSON,
@@ -288,6 +328,7 @@ func TestImporter_Imports(t *testing.T) {
 				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
+				mockRepo.On("ListPendingFiles", mock.Anything, mock.Anything).Return(nil, nil)
 				// No call to BulkInsertMessages is expected as it should be cancelled before.
 
 				zipPath := createTestZip(t, map[string]string{
@@ -310,10 +351,15 @@ func TestImporter_Imports(t *testing.T) {
 			mockRepo := new(MockRepository)
 			zipPath, ctx := tt.setup(t, mockRepo)
 			if zipPath != "nonexistent.zip" {
-				defer os.Remove(zipPath) // Clean up the temp file
+				defer func() {
+					err := os.Remove(zipPath)
+					if err != nil {
+						panic(err)
+					}
+				}()
 			}
-
-			importer := NewImporter(ctx, zipPath, mockRepo, 66)
+			importIt := models.SlackImport{ID: 66, Path: zipPath}
+			importer := NewImporter(ctx, mockRepo, &importIt)
 			progressChan := make(chan models.Progress, 10)
 
 			var wg sync.WaitGroup

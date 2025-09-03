@@ -9,14 +9,14 @@ import (
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 )
 
-func (r *RepositorySql) CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) error {
+func (r *RepositorySql) CreateCheckpointPlaceHolders(ctx context.Context, importID int64, paths []string) (err error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("starting transaction failed: %w", err)
 	}
 	defer func() {
 		if err != nil {
-			_ = tx.Rollback()
+			err = errors.Join(err, tx.Rollback())
 		}
 	}()
 
@@ -24,7 +24,7 @@ func (r *RepositorySql) CreateCheckpointPlaceHolders(ctx context.Context, import
 	if err != nil {
 		return fmt.Errorf("creating prepare statement failed: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { err = errors.Join(err, stmt.Close()) }()
 
 	for _, path := range paths {
 		if _, err = stmt.ExecContext(ctx, importID, path); err != nil {
@@ -40,20 +40,22 @@ func (r *RepositorySql) CreateCheckpointPlaceHolders(ctx context.Context, import
 }
 
 func (r *RepositorySql) MarkCheckpointAsCompleted(ctx context.Context, importID int64, path string, errMsg string) error {
-	sql := `UPDATE checkpoints SET processed_at = CURRENT_TIMESTAMP, error = ? WHERE import_id = ? AND path = ?;`
+	sql := `UPDATE checkpoints SET processed = 1, error = ? WHERE import_id = ? AND path = ?;`
 	if _, err := r.db.ExecContext(ctx, sql, errMsg, importID, path); err != nil {
 		return fmt.Errorf("update checkpoint for import %d and path %s failed: %w", importID, path, err)
 	}
 	return nil
 }
 
-func (r *RepositorySql) ListPendingFiles(ctx context.Context) ([]string, error) {
-	query := `SELECT path FROM checkpoints WHERE processed_at IS NULL;`
-	rows, err := r.db.Query(query)
+func (r *RepositorySql) ListPendingFiles(ctx context.Context, importID int64) ([]string, error) {
+	query := `SELECT path FROM checkpoints WHERE processed = 0 AND import_id = ?;`
+	rows, err := r.db.Query(query, importID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		err = errors.Join(err, rows.Close())
+	}()
 
 	var checkpoints []string
 	for rows.Next() {
@@ -67,11 +69,10 @@ func (r *RepositorySql) ListPendingFiles(ctx context.Context) ([]string, error) 
 		return nil, err
 	}
 	return checkpoints, nil
-
 }
 
 func (r *RepositorySql) GetImport(ctx context.Context, id int64) (*models.SlackImport, error) {
-	sqlStatement := `SELECT id, name, path, created, finished, num_messages, error FROM imports WHERE id = ?`
+	sqlStatement := `SELECT id, name, path, created, finished, num_messages, error, download_started, download_finished FROM imports WHERE id = ?`
 	var imp models.SlackImport
 	var finished sql.NullString
 	err := r.db.QueryRowContext(ctx, sqlStatement, id).Scan(
@@ -82,6 +83,8 @@ func (r *RepositorySql) GetImport(ctx context.Context, id int64) (*models.SlackI
 		&finished,
 		&imp.NumFiles,
 		&imp.Error,
+		&imp.DownloadStarted,
+		&imp.DownloadFinished,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving import %d failed: %w", id, err)
@@ -101,6 +104,22 @@ func (r *RepositorySql) FinishedImportUpdate(ctx context.Context, imp *models.Sl
 		imp.ID,
 	); err != nil {
 		return fmt.Errorf("updating import %d failed: %w", imp.ID, err)
+	}
+	return nil
+}
+
+func (r *RepositorySql) StartDownload(ctx context.Context, importID int64) error {
+	sql := `UPDATE imports SET download_started = CURRENT_TIMESTAMP WHERE id = ?`
+	if _, err := r.db.ExecContext(ctx, sql, importID); err != nil {
+		return fmt.Errorf("updating import %d failed: %v", importID, err)
+	}
+	return nil
+}
+
+func (r *RepositorySql) FinishDownload(ctx context.Context, importID int64) error {
+	sql := `UPDATE imports SET download_finished = CURRENT_TIMESTAMP WHERE id = ?`
+	if _, err := r.db.ExecContext(ctx, sql, importID); err != nil {
+		return fmt.Errorf("updating import %d failed: %v", importID, err)
 	}
 	return nil
 }
@@ -160,7 +179,7 @@ func (r *RepositorySql) NoFinishedImports(ctx context.Context) (bool, error) {
 }
 
 func (r *RepositorySql) ListImports(ctx context.Context) (imports []models.SlackImport, err error) {
-	sqlStatement := `SELECT id, created, finished, num_messages, path, name, error FROM imports ORDER BY id DESC;`
+	sqlStatement := `SELECT id, created, finished, num_messages, path, name, error, download_started, download_finished FROM imports ORDER BY id DESC;`
 	rows, err := r.db.Query(sqlStatement)
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
@@ -173,7 +192,7 @@ func (r *RepositorySql) ListImports(ctx context.Context) (imports []models.Slack
 		var imp models.SlackImport
 		var finished sql.NullString
 		var errorMsg sql.NullString
-		err = rows.Scan(&imp.ID, &imp.Created, &finished, &imp.NumFiles, &imp.Path, &imp.Name, &errorMsg)
+		err = rows.Scan(&imp.ID, &imp.Created, &finished, &imp.NumFiles, &imp.Path, &imp.Name, &errorMsg, &imp.DownloadStarted, &imp.DownloadFinished)
 		if err != nil {
 			return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
 		}
@@ -182,6 +201,11 @@ func (r *RepositorySql) ListImports(ctx context.Context) (imports []models.Slack
 		}
 		if errorMsg.Valid {
 			imp.Error = errorMsg.String
+		}
+
+		imp.PendingBinaries, err = r.CountPendingBinaries(ctx, imp.ID)
+		if err != nil {
+			return nil, fmt.Errorf("couldnt query pending files for import %d: %v", imp.ID, err)
 		}
 
 		imports = append(imports, imp)

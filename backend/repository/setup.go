@@ -12,13 +12,15 @@ func (r *RepositorySql) SetupSchemas() error {
 			path TEXT,
 			created DATETIME DEFAULT CURRENT_TIMESTAMP,
 			finished DATETIME,
+			download_started DATETIME,
+			download_finished DATETIME,
 			num_messages INTEGER DEFAULT 0,
 			error TEXT
 		);
 		CREATE TABLE IF NOT EXISTS checkpoints (
 			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
 			path TEXT,
-			processed_at DATETIME,
+			processed INTEGER DEFAULT 0,
 			error TEXT,
 			PRIMARY KEY(import_id, path)
 		);
@@ -33,6 +35,7 @@ func (r *RepositorySql) SetupSchemas() error {
 			ts TEXT,
 			channel_id TEXT,
 			downloaded INTEGER DEFAULT 0,
+			error TEXT,
 			PRIMARY KEY (import_id, id)
 		);
 		CREATE TABLE IF NOT EXISTS messages (
@@ -76,6 +79,10 @@ func (r *RepositorySql) SetupSchemas() error {
 		);`
 	if _, err := r.db.Exec(createTableSQL); err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
+	}
+
+	if _, err := r.db.Exec("VACUUM;"); err != nil {
+		return fmt.Errorf("failed to vacuum: %v", err)
 	}
 	return nil
 }

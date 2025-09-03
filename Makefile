@@ -50,7 +50,7 @@ test: goversion ##                         Launch app tests
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
 	@go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
 
-cover: goversion ##                         Launch app tests just cover report
+cover: goversion ##                        Launch app tests just cover report
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
 	@go test -cover -count=1 -tags=dev,webkit2_41 ./...
 
@@ -58,17 +58,23 @@ testh: goversion ##                        Launch headless app tests
 	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
 	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -v -tags=dev,headless,webkit2_41 ./...
 
-coverh: goversion ##                        Launch headless app tests just cover report
+coverh: goversion ##                       Launch headless app tests just cover report
 	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
 	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -tags=dev,headless,webkit2_41 ./...
 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
 
+lint: ##                         launch go lint
+	$(info) ">>> Launch lint for app $(VERSION)-$(RELEASE) ..."
+	@golangci-lint run
+
 clean: ##                        Clean build
 	rm -Rf $(TOP)/build/bin
 	rm -Rf $(TOP)/frontend/dist
 	rm -Rf $(TOP)/frontend/node_modules
+	mkdir -p $(TOP)/frontend/dist
+	touch $(TOP)/frontend/dist/index.html
 
 fmt:
 	$(info) ">>> Format JS/TS code $(VERSION)-$(RELEASE) ..."

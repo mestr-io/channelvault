@@ -90,7 +90,8 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 		if filesNullable.Valid {
 			// insert into files table
 			for _, file := range msg.Files {
-				stmt2.ExecContext(ctx, imp.ID, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
+				_, e := stmt2.ExecContext(ctx, imp.ID, msg.Ts, ChannelID, file.User, file.FileURL, file.Mimetype, file.ID, file.Name, file.Title)
+				err = errors.Join(err, e)
 			}
 		}
 
@@ -132,7 +133,7 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
 	query := `
         SELECT 
-			distinct(ts), text, 
+			ts, text, 
 			user_id, 
 			u.real_name as author, 
 			u.profile_image_url as profile_url,
@@ -142,7 +143,8 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 			reply_users_json,
 			reply_users_count,
 			files_json,
-			attachments_json
+			attachments_json,
+			m.import_id
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = channel_id AND c.import_id = m.import_id
@@ -176,7 +178,7 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 		var filesJson sql.NullString
 		var attachmentsJson sql.NullString
 
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson, &attachmentsJson); err != nil {
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson, &attachmentsJson, &msg.ImportID); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %v", err)
 		}
@@ -215,10 +217,10 @@ func (r *RepositorySql) ListChannelFiles(ctx context.Context, channelID string, 
 	panic("not implemented")
 }
 
-func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
+func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string) (messages []models.Message, err error) {
 	query := `
         SELECT 
-			distinct(ts), text, 
+			ts, text, 
 			user_id, 
 			u.real_name as author, 
 			u.profile_image_url as profile_url,
@@ -227,7 +229,8 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
 			latest_reply,
 			reply_users_json,
 			reply_users_count,
-			reactions_json
+			reactions_json,
+			m.import_id
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = m.channel_id AND c.import_id = m.import_id
@@ -244,15 +247,16 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
 	if err != nil {
 		return nil, fmt.Errorf("could not query messages for channel %s: %v", channelID, err)
 	}
-	defer rows.Close()
+	defer func() {
+		err = errors.Join(err, rows.Close())
+	}()
 
-	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
 		var usersJson sql.NullString
 		var reactionsJson sql.NullString
 
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &reactionsJson); err != nil {
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &reactionsJson, &msg.ImportID); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %v", err)
 		}
@@ -287,16 +291,62 @@ func (r *RepositorySql) GetFileById(ctx context.Context, fileId string) (*models
 			title,
 			mimetype,
 			url_private,
-			user
+			user,
+			import_id
         FROM files 
         WHERE id = ?; 
     `
 	args := []interface{}{fileId}
 
 	file := models.File{}
-	err := r.db.QueryRowContext(ctx, query, args...).Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.User)
+	err := r.db.QueryRowContext(ctx, query, args...).Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.User, &file.ImportID)
 	if err != nil {
 		return nil, fmt.Errorf("could not query file with id %s: %v", fileId, err)
 	}
 	return &file, nil
+}
+
+func (r *RepositorySql) ListPendingBinaries(ctx context.Context, importID int64, pageSize int) ([]models.File, error) {
+	query := `SELECT id, name, title, mimetype, url_private, ts FROM files WHERE  downloaded = 0 AND import_id = ? AND url_private != '' ORDER BY ts DESC LIMIT ?;`
+	rows, err := r.db.QueryContext(ctx, query, importID, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	files := []models.File{}
+	for rows.Next() {
+		var file models.File
+		if err := rows.Scan(&file.ID, &file.Name, &file.Title, &file.Mimetype, &file.FileURL, &file.Ts); err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+func (r *RepositorySql) CountPendingBinaries(ctx context.Context, importID int64) (int64, error) {
+	query := `SELECT COUNT(*) FROM files WHERE downloaded = 0 AND import_id = ? AND url_private != '';`
+	row := r.db.QueryRowContext(ctx, query, importID)
+
+	var count int64
+	err := row.Scan(&count)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (r *RepositorySql) MarkFileAsDownloaded(ctx context.Context, importID int64, fileID string) error {
+	query := `UPDATE files SET downloaded = 1 WHERE import_id = ? AND id = ?;`
+	if _, err := r.db.ExecContext(ctx, query, importID, fileID); err != nil {
+		return fmt.Errorf("failed update file for import %d and id %s failed: %v", importID, fileID, err)
+	}
+	return nil
 }

@@ -31,11 +31,21 @@ const (
 	ViewStateLoading   ViewState = "loading"
 )
 
+type ImportTaskStatus struct {
+	ImportID int64
+}
+
+type DownloadTaskStatus struct {
+	ImportID int64
+}
+
 type App struct {
-	ctx         context.Context
-	repository  repository.Repository
-	state       ViewState
-	filesFolder string
+	ctx          context.Context
+	repository   repository.Repository
+	state        ViewState
+	filesFolder  string
+	importTask   *ImportTaskStatus
+	downloadTask *DownloadTaskStatus
 }
 
 func New(repository repository.Repository, filesFolder string) *App {
@@ -68,6 +78,31 @@ func (a *App) Startup(ctx context.Context) {
 	runtime.OnFileDrop(ctx, a.onFileDrop)
 	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
+
+	// start here any pending task
+	imports, err := a.repository.ListImports(a.ctx)
+	if err != nil {
+		panic(err)
+	}
+	for _, imp := range imports {
+		// check for pending import
+		if imp.Finished == "" {
+			// import has not finished
+			err = a.ResumeImport(imp.ID)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		// check for pending downloads
+		if imp.DownloadStarted.Valid && !imp.DownloadFinished.Valid {
+			err = a.DownloadBinaries(imp.ID, false)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
 }
 
 func (a *App) onFileDrop(x, y int, paths []string) {
@@ -97,7 +132,7 @@ func (a *App) processImport(currentImport *models.SlackImport) {
 	runtime.EventsEmit(a.ctx, "startImport", currentImport)
 
 	progressChan := make(chan models.Progress)
-	imp := importer.NewImporter(a.ctx, currentImport.Path, a.repository, currentImport)
+	imp := importer.NewImporter(a.ctx, a.repository, currentImport)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -126,12 +161,18 @@ func (a *App) processImport(currentImport *models.SlackImport) {
 		runtime.EventsEmit(a.ctx, "importError", importErr.Error())
 		currentImport.Error = fmt.Sprintf("%v", importErr)
 		// update the import
-		a.repository.FinishedImportUpdateWithError(a.ctx, currentImport)
+		err := a.repository.FinishedImportUpdateWithError(a.ctx, currentImport)
+		if err != nil {
+			ah.Errorf("Failed to update import status: %v", err)
+		}
 	} else {
 		ah.Infof("Import completed successfully!!")
 		runtime.EventsEmit(a.ctx, "importComplete")
 		// update the import
-		a.repository.FinishedImportUpdate(a.ctx, currentImport)
+		err := a.repository.FinishedImportUpdate(a.ctx, currentImport)
+		if err != nil {
+			ah.Errorf("Failed to update import status: %v", err)
+		}
 	}
 
 }
