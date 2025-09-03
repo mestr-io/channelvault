@@ -310,6 +310,7 @@ export namespace models {
 	    latest_reply?: string;
 	    reply_users_count?: number;
 	    reply_users?: string[];
+	    ImportID: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Message(source);
@@ -340,6 +341,7 @@ export namespace models {
 	        this.latest_reply = source["latest_reply"];
 	        this.reply_users_count = source["reply_users_count"];
 	        this.reply_users = source["reply_users"];
+	        this.ImportID = source["ImportID"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

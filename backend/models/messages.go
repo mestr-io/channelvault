@@ -53,6 +53,7 @@ type Message struct {
 	LatestReply     string         `json:"latest_reply,omitempty"`
 	ReplyUsersCount int            `json:"reply_users_count,omitempty"`
 	ReplyUsers      []string       `json:"reply_users,omitempty"`
+	ImportID        int64
 }
 
 // UserProfile contains information about the message author.

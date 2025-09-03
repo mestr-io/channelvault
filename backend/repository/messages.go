@@ -133,7 +133,7 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
 	query := `
         SELECT 
-			distinct(ts), text, 
+			ts, text, 
 			user_id, 
 			u.real_name as author, 
 			u.profile_image_url as profile_url,
@@ -142,7 +142,8 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 			latest_reply,
 			reply_users_json,
 			reply_users_count,
-			files_json
+			files_json,
+			m.import_id
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = channel_id AND c.import_id = m.import_id
@@ -175,7 +176,7 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 		var usersJson sql.NullString
 		var filesJson sql.NullString
 
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson); err != nil {
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson, &msg.ImportID); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %v", err)
 		}
@@ -211,7 +212,7 @@ func (r *RepositorySql) ListChannelFiles(ctx context.Context, channelID string, 
 func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string) (messages []models.Message, err error) {
 	query := `
         SELECT 
-			distinct(ts), text, 
+			ts, text, 
 			user_id, 
 			u.real_name as author, 
 			u.profile_image_url as profile_url,
@@ -220,7 +221,8 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
 			latest_reply,
 			reply_users_json,
 			reply_users_count,
-			reactions_json
+			reactions_json,
+			m.import_id
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = m.channel_id AND c.import_id = m.import_id
@@ -246,7 +248,7 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
 		var usersJson sql.NullString
 		var reactionsJson sql.NullString
 
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &reactionsJson); err != nil {
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &reactionsJson, &msg.ImportID); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %v", err)
 		}

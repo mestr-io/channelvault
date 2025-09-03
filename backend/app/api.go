@@ -64,11 +64,6 @@ func (a *App) GetBase64Image(fileId string) (img string, err error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to download file %s : %v", destPath, err)
 		}
-
-		// mark as downloaded
-		if err = a.repository.MarkFileAsDownloaded(a.ctx, file.ImportID, file.ID); err != nil {
-			return "", fmt.Errorf("failed to modify file with id %d: %v", file.ImportID, err)
-		}
 	}
 
 	data, err := os.ReadFile(destPath) // os.ReadFile is simpler than Open + ReadAll

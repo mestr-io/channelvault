@@ -42,9 +42,14 @@ const formatMessageTime = (ts: string): string => {
     <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
     <div class="message-content">
         <div class="message-header">
-            <strong>{msg.user_name}</strong>
-            <span class="timestamp">
-                {formatMessageTime(msg.ts)}
+            <div>
+                <strong>{msg.user_name}</strong>
+                <span class="timestamp">
+                    {formatMessageTime(msg.ts)}
+                </span>
+            </div>
+             <span class="import-id">
+                IMPORTID: {msg.ImportID}
             </span>
         </div>
         <Markdown {carta} value={msg.text || ""} />
@@ -88,6 +93,11 @@ const formatMessageTime = (ts: string): string => {
         max-width: calc(100% - 50px);
     }
 
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+    }
+
     .message-header strong {
         font-weight: 900;
     }
@@ -95,5 +105,19 @@ const formatMessageTime = (ts: string): string => {
         color: #9e9ea6;
         font-size: 0.8rem;
         margin-left: 0.5rem;
+    }
+
+    .import-id {
+        color: #b0b0b7;
+        font-size: 0.4rem; /* smaller */
+        font-style: italic;
+        margin-right: 4px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    /* Only show import-id when hovering over the entire row */
+    .message:hover .import-id {
+        opacity: 1;
     }
 </style>
