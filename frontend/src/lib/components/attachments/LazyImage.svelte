@@ -1,5 +1,5 @@
 <script lang="ts">
-import { GetBase64Image } from '../../../wailsjs/go/app/App'
+import { GetBase64Image } from '../../../../wailsjs/go/app/App'
 
 import { onMount, getContext } from 'svelte'
 let { fileId, alt, url } = $props()

@@ -1,10 +1,19 @@
 export namespace models {
 	
 	export class Attachment {
+	    id: number;
+	    from_url: string;
+	    original_url: string;
+	    fallback: string;
+	    text: string;
 	    title: string;
 	    title_link: string;
-	    text: string;
 	    image_url: string;
+	    image_width: number;
+	    image_height: number;
+	    image_bytes: number;
+	    service_icon: string;
+	    service_name: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Attachment(source);
@@ -12,10 +21,19 @@ export namespace models {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.from_url = source["from_url"];
+	        this.original_url = source["original_url"];
+	        this.fallback = source["fallback"];
+	        this.text = source["text"];
 	        this.title = source["title"];
 	        this.title_link = source["title_link"];
-	        this.text = source["text"];
 	        this.image_url = source["image_url"];
+	        this.image_width = source["image_width"];
+	        this.image_height = source["image_height"];
+	        this.image_bytes = source["image_bytes"];
+	        this.service_icon = source["service_icon"];
+	        this.service_name = source["service_name"];
 	    }
 	}
 	export class Element {
