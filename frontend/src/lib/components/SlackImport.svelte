@@ -2,7 +2,7 @@
 import { onMount } from 'svelte'
 import * as runtime from '../../../wailsjs/runtime'
 import { models } from '../../../wailsjs/go/models'
-import { RenameImport } from '../../../wailsjs/go/app/App'
+import { RenameImport, DownloadBinaries } from '../../../wailsjs/go/app/App'
 import Prompt from './Prompt.svelte'
 
 let {
@@ -16,20 +16,58 @@ let {
   DeleteImportHandle: (id: number) => Promise<void>
   RetryImportHandle: (id: number) => Promise<void>
 } = $props()
+
+// State variables
 let progress: models.Progress | null = $state(null)
+let pendingBinaries = $state(slackImportcard.PendingBinaries)
+let isDownloading: boolean = $state(false)
+let showPrompt = $state(false)
+let promptDefault = ''
+let importId: number
 
 onMount(() => {
-  runtime.EventsOn('importProgress', (p: models.Progress) => {
+  // --- Event Listeners ---
+  const unsubImportProgress = runtime.EventsOn('importProgress', (p: models.Progress) => {
     if (slackImportcard.ID == p.ImportID) {
       progress = p
     }
-    console.log(p)
   })
 
-  runtime.EventsOn('importError', err => {})
-  runtime.EventsOn('importComplete', () => {})
+  const unsubDownloadDone = runtime.EventsOn('downloadBinariesDone', (importID: number) => {
+    if (slackImportcard.ID == importID) {
+      isDownloading = false
+      pendingBinaries = 0
+    }
+  })
+
+  const unsubDownloadStarted = runtime.EventsOn('downloadBinariesStarted', (importID: number) => {
+    if (slackImportcard.ID == importID) {
+      isDownloading = true
+    }
+  })
+
+  const unsubDownloadedBinary = runtime.EventsOn('downloadedBinary', (importID: number, pending: number) => {
+    if (slackImportcard.ID == importID) {
+      pendingBinaries = pending
+    }
+  })
+
+  // Check initial download state on mount
+  if (slackImportcard.DownloadStarted.Valid && !slackImportcard.DownloadFinished.Valid) {
+    isDownloading = true
+  }
+
+  // --- Cleanup function ---
+  // This is crucial to prevent memory leaks
+  return () => {
+    unsubImportProgress()
+    unsubDownloadDone()
+    unsubDownloadStarted()
+    unsubDownloadedBinary()
+  }
 })
 
+// --- Helper Functions ---
 function formatDate(dateString: string): string {
   if (!dateString) return 'Not started'
   const date = new Date(dateString)
@@ -41,21 +79,20 @@ function getStatusColor(progress: number, error: string): string {
   if (progress === 0) return '#6B7280' // gray
   if (progress < 50) return '#D97706' // amber
   if (progress < 100) return '#2563EB' // blue
+  if (isDownloading) return '#D97706'
   return '#059669' // green
 }
 
 function getStatusText(progress: number, finished: string, error: string): string {
   if (error) return 'Error'
-  if (finished) return 'Completed'
+  if (finished && progress < 100) return 'Completed'
   if (progress === 0) return 'Pending'
   if (progress < 100) return 'In Progress'
-  return 'Processing'
+  if (isDownloading) return 'Downloading binaries'
+  return 'Completed'
 }
 
-let showPrompt = $state(false)
-let promptDefault = ''
-let importId: number
-
+// --- Action Handlers ---
 async function handleRename(importId_: number, currentName: string) {
   importId = importId_
   promptDefault = currentName
@@ -69,8 +106,12 @@ async function confirmRename(newName: string) {
   showPrompt = false
 }
 
-async function handleDelete(importId: number, importName: string) {
+async function handleDelete(importId: number) {
   await DeleteImportHandle(importId)
+}
+
+async function handleDownload(importId: number) {
+  await DownloadBinaries(importId, true)
 }
 
 async function handleRetry(importId: number) {
@@ -117,12 +158,12 @@ function toggleCollapse() {
             <div
                 class="status-badge"
                 style="background-color: {getStatusColor(
-                    progress?.Progress ?? 0,
+                    progress?.Progress ?? slackImportcard.Progress,
                     slackImportcard.Error,
                 )}"
             >
                 {getStatusText(
-                    progress?.Progress ?? 0,
+                    progress?.Progress ?? slackImportcard.Progress,
                     slackImportcard.Finished,
                     slackImportcard.Error,
                 )}
@@ -140,21 +181,41 @@ function toggleCollapse() {
                     />
                 </svg>
             </button>
+
+            {#if slackImportcard.Finished && !slackImportcard.DownloadFinished.Valid}
                 <button
-                    aria-label="delete import"
-                    class="action-button delete-button"
-                    onclick={() =>
-                        handleDelete(slackImportcard.ID, slackImportcard.Name)}
-                    title="Delete import"
+                    aria-label="download binaries"
+                    class="action-button download-button"
+                    onclick={() => handleDownload(slackImportcard.ID)}
+                    title="Download binaries"
+                    disabled={isDownloading}
                 >
-                    <svg viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                            fill-rule="evenodd"
-                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
+                    {#if isDownloading}
+                         <svg class="spinner" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M12 2.99988V5.99988M12 18V21M4.92896 4.92883L7.05028 7.05016M16.9497 16.9497L19.071 19.071M2.99994 12H5.99994M18 12H21M4.92896 19.071L7.05028 16.9497M16.9497 7.05016L19.071 4.92883" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    {:else}
+                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11 5C11 4.44772 11.4477 4 12 4C12.5523 4 13 4.44772 13 5V12.1578L16.2428 8.91501L17.657 10.3292L12.0001 15.9861L6.34326 10.3292L7.75748 8.91501L11 12.1575V5Z" fill="currentColor"/>
+                            <path d="M4 14H6V18H18V14H20V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V14Z" fill="currentColor"/>
+                        </svg>
+                    {/if}
                 </button>
+            {/if}
+            <button
+                aria-label="delete import"
+                class="action-button delete-button"
+                onclick={() => handleDelete(slackImportcard.ID)}
+                title="Delete import"
+            >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                        fill-rule="evenodd"
+                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        clip-rule="evenodd"
+                    />
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -196,19 +257,10 @@ function toggleCollapse() {
         {/if}
 
         <div class="card-content">
-            <!-- info rows -->
             <div class="info-row">
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                            clip-rule="evenodd"
-                        />
+                    <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
                     </svg>
                     <div class="info-text">
                         <span class="info-label">Source Path</span>
@@ -219,43 +271,23 @@ function toggleCollapse() {
 
             <div class="info-row">
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a1 1 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                            clip-rule="evenodd"
-                        />
+                    <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                     </svg>
                     <div class="info-text">
                         <span class="info-label">Started</span>
-                        <span class="info-value"
-                            >{formatDate(slackImportcard.Created)}</span
-                        >
+                        <span class="info-value">{formatDate(slackImportcard.Created)}</span>
                     </div>
                 </div>
 
                 {#if slackImportcard.Finished}
                     <div class="info-item">
-                        <svg
-                            class="info-icon"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd"
-                            />
+                        <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                         <div class="info-text">
                             <span class="info-label">Completed</span>
-                            <span class="info-value"
-                                >{formatDate(slackImportcard.Finished)}</span
-                            >
+                            <span class="info-value">{formatDate(slackImportcard.Finished)}</span>
                         </div>
                     </div>
                 {/if}
@@ -263,42 +295,34 @@ function toggleCollapse() {
 
             <div class="info-row">
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"
-                        />
-                        <path
-                            d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"
-                        />
+                    <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
                     </svg>
                     <div class="info-text">
-                        <span class="info-label">Files</span>
-                        <span class="info-value"
-                            >{slackImportcard.NumFiles?.toLocaleString() ||
-                                "0"}</span
-                        >
+                        <span class="info-label">JSON files</span>
+                        <span class="info-value">{slackImportcard.NumFiles?.toLocaleString() || "0"}</span>
                     </div>
                 </div>
 
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                            clip-rule="evenodd"
-                        />
+                     <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
                     </svg>
                     <div class="info-text">
                         <span class="info-label">Import ID</span>
                         <span class="info-value">{slackImportcard.ID}</span>
+                    </div>
+                </div>
+            </div>
+             <div class="info-row">
+                <div class="info-item">
+                     <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
+                        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.293 8.293l-5 5a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L11 12.586l4.293-4.293a1 1 0 011.414 1.414z" fill="currentColor"/>
+                    </svg>
+                    <div class="info-text">
+                        <span class="info-label">Pending downloads</span>
+                        <span class="info-value">{pendingBinaries}</span>
                     </div>
                 </div>
             </div>
@@ -308,16 +332,13 @@ function toggleCollapse() {
             <div class="progress-section">
                 <div class="progress-header">
                     <span class="progress-label">Progress</span>
-                    <span class="progress-percentage"
-                        >{progress?.Progress ?? 0}%</span
-                    >
+                    <span class="progress-percentage">{progress?.Progress ?? slackImportcard.Progress}%</span>
                 </div>
                 <div class="progress-bar">
                     <div
                         class="progress-fill"
-                        style="width: {progress?.Progress ??
-                            0}%; background-color: {getStatusColor(
-                            progress?.Progress ?? 0,
+                        style="width: {progress?.Progress ?? slackImportcard.Progress}%; background-color: {getStatusColor(
+                            progress?.Progress ?? slackImportcard.Progress,
                             slackImportcard.Error,
                         )}"
                     ></div>
@@ -328,6 +349,23 @@ function toggleCollapse() {
 </main>
 
 <style>
+    /* Add this keyframes rule for the spinner animation */
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Add this class for the spinner SVG */
+    .spinner {
+        animation: spin 1s linear infinite;
+        width: 1rem;
+        height: 1rem;
+    }
+
     .card {
         background: #ffffff;
         border-radius: 1rem;
@@ -340,8 +378,11 @@ function toggleCollapse() {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 1rem;
+        /* BUG FIX: Removed fixed margin-bottom to let the content inside the collapsible define the spacing*/
         gap: 1rem;
+    }
+     .collapsible:not(.collapsed) .card-header {
+        margin-bottom: 1rem;
     }
 
     .card-title {
@@ -386,6 +427,17 @@ function toggleCollapse() {
         color: #6b7280;
     }
 
+     /* Style for disabled download button */
+    .action-button:disabled {
+        cursor: not-allowed;
+        background-color: #f3f4f6;
+        color: #9ca3af;
+    }
+    .action-button:disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
     .action-button:hover,
     .chevron-button:hover {
         background-color: #f3f4f6;
@@ -407,11 +459,14 @@ function toggleCollapse() {
     .collapsible {
         max-height: 2000px;
         overflow: hidden;
-        transition: max-height 0.3s ease;
+        transition: max-height 0.3s ease-in-out;
     }
     .collapsible.collapsed {
         max-height: 0;
+        /* remove all margins from children when collapsed */
+        margin-top: -1.5rem; /* compensate for card padding */
     }
+
 
     .error-section {
         background-color: #fef2f2;
@@ -480,7 +535,6 @@ function toggleCollapse() {
         display: flex;
         flex-direction: column;
         gap: 1.25rem;
-        margin-bottom: 1.5rem;
     }
     .info-row {
         display: flex;
@@ -488,7 +542,7 @@ function toggleCollapse() {
     }
     .info-item {
         display: flex;
-        align-items: flex-end;
+        align-items: flex-start; /* Changed to flex-start for better alignment */
         gap: 0.75rem;
         flex: 1;
         min-width: 0;
@@ -498,6 +552,7 @@ function toggleCollapse() {
         height: 1.25rem;
         color: #6b7280;
         margin-top: 0.125rem;
+        flex-shrink: 0; /* Prevent icon from shrinking */
     }
     .info-text {
         display: flex;
@@ -516,12 +571,13 @@ function toggleCollapse() {
         font-size: 0.9rem;
         color: #111827;
         font-weight: 500;
-        word-break: break-word;
+        word-break: break-all; /* Changed to break-all for long paths */
     }
 
     .progress-section {
         border-top: 1px solid #e5e7eb;
-        padding-top: 1rem;
+        padding-top: 1.25rem;
+        margin-top: 1.25rem;
     }
     .progress-header {
         display: flex;
