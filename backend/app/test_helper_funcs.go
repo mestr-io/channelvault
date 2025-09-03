@@ -17,6 +17,18 @@ type MockRepository struct {
 	mock.Mock
 }
 
+func (m *MockRepository) CountPendingBinaries(ctx context.Context, importID int64) (int64, error) {
+	return 10, nil
+}
+
+func (m *MockRepository) StartDownload(ctx context.Context, importID int64) error {
+	return nil
+}
+
+func (m *MockRepository) FinishDownload(ctx context.Context, importID int64) error {
+	return nil
+}
+
 func (m *MockRepository) GetChannels() ([]models.Channel, error) {
 	args := m.Called()
 	if args.Get(0) == nil {
@@ -46,6 +58,10 @@ func (m *MockRepository) GetImport(ctx context.Context, id int64) (*models.Slack
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.SlackImport), args.Error(1)
+}
+
+func (m *MockRepository) MarkFileAsDownloaded(ctx context.Context, importID int64, fileID string) error {
+	return nil
 }
 
 func (m *MockRepository) FinishedImportUpdate(ctx context.Context, imp *models.SlackImport) error {
@@ -89,12 +105,16 @@ func (m *MockRepository) ListImports(ctx context.Context) ([]models.SlackImport,
 	return args.Get(0).([]models.SlackImport), args.Error(1)
 }
 
-func (m *MockRepository) ListPendingFiles(ctx context.Context) ([]string, error) {
-	args := m.Called(ctx)
+func (m *MockRepository) ListPendingFiles(ctx context.Context, importID int64) ([]string, error) {
+	args := m.Called(ctx, importID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]string), args.Error(1)
+}
+
+func (m *MockRepository) ListPendingBinaries(context.Context, int64, int) ([]models.File, error) {
+	return []models.File{}, nil
 }
 
 func (m *MockRepository) BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) error {

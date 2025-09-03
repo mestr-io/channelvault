@@ -39,6 +39,9 @@ func DownloadBinaries(ctx context.Context, filesFolder string, repository reposi
 			// check local FS for the image
 			if _, err := os.Stat(destPath); err != nil {
 				pending -= 1
+				if err = repository.MarkFileAsDownloaded(ctx, currentImport.ID, file.ID); err != nil {
+					return fmt.Errorf("failed to modify file with id %s: %v", file.ID, err)
+				}
 				continue
 			}
 			// download file
@@ -61,12 +64,12 @@ func DownloadBinaries(ctx context.Context, filesFolder string, repository reposi
 			}
 
 			// mark as downloaded
+			pending -= 1
 			if err = repository.MarkFileAsDownloaded(ctx, currentImport.ID, file.ID); err != nil {
 				return fmt.Errorf("failed to modify file with id %s: %v", file.ID, err)
 			}
 			// notify progress
 			runtime.EventsEmit(ctx, "downloadedBinary", currentImport.ID, pending)
-			pending -= 1
 		}
 	}
 

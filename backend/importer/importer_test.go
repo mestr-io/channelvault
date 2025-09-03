@@ -22,6 +22,18 @@ type MockRepository struct {
 	mock.Mock
 }
 
+func (m *MockRepository) CountPendingBinaries(ctx context.Context, importID int64) (int64, error) {
+	return 10, nil
+}
+
+func (m *MockRepository) StartDownload(ctx context.Context, importID int64) error {
+	return nil
+}
+
+func (m *MockRepository) FinishDownload(ctx context.Context, importID int64) error {
+	return nil
+}
+
 // channels
 func (m *MockRepository) GetChannels() (channels []models.Channel, err error) {
 	panic("GetChannels not defined in mock")
@@ -74,8 +86,16 @@ func (m *MockRepository) ListImports(ctx context.Context) ([]models.SlackImport,
 	panic("ListImports not defined in mock")
 }
 
-func (m *MockRepository) ListPendingFiles(ctx context.Context) ([]string, error) {
-	args := m.Called(ctx)
+func (m *MockRepository) ListPendingBinaries(context.Context, int64, int) ([]models.File, error) {
+	return []models.File{}, nil
+}
+
+func (m *MockRepository) MarkFileAsDownloaded(ctx context.Context, importID int64, fileID string) error {
+	return nil
+}
+
+func (m *MockRepository) ListPendingFiles(ctx context.Context, importID int64) ([]string, error) {
+	args := m.Called(ctx, importID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -149,7 +169,7 @@ func createTestZip(t *testing.T, files map[string]string) string {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer func(){
+	defer func() {
 		err = tmpFile.Close()
 		if err != nil {
 			panic(err)
@@ -180,12 +200,12 @@ func TestImporter_Imports(t *testing.T) {
 		{
 			name: "Successful import",
 			setup: func(t *testing.T, mockRepo *MockRepository) (string, context.Context) {
-				mockRepo.On("ListPendingFiles", mock.Anything).Return(nil, nil)
+				mockRepo.On("ListPendingFiles", mock.Anything, mock.Anything).Return(nil, nil)
 				mockRepo.On("CreateCheckpointPlaceHolders", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mockRepo.On("BulkInsertUsers", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertChannels", mock.Anything, mock.Anything).Return(nil).Once()
 				mockRepo.On("BulkInsertMessages", mock.Anything, "C1", mock.Anything).Return(nil).Once()
-				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)				
+				mockRepo.On("MarkCheckpointAsCompleted", mock.Anything, mock.Anything, mock.Anything, "").Return(nil)
 
 				zipPath := createTestZip(t, map[string]string{
 					"users.json":                    validUsersJSON,
@@ -339,7 +359,7 @@ func TestImporter_Imports(t *testing.T) {
 				}()
 			}
 			importIt := models.SlackImport{ID: 66, Path: zipPath}
-			importer := NewImporter(ctx, zipPath, mockRepo, &importIt)
+			importer := NewImporter(ctx, mockRepo, &importIt)
 			progressChan := make(chan models.Progress, 10)
 
 			var wg sync.WaitGroup
