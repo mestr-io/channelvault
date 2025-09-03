@@ -60,8 +60,6 @@ function showAttachments(msg) {
         <ExternalImage {attachment} />
       {:else if attachmentType === "youtube"}
         <ExternalVideo {attachment} />
-      {:else}
-        <GenericFile {attachment} />
       {/if}
     {/each}
   </div>
