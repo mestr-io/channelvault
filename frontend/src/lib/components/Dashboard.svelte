@@ -138,12 +138,13 @@ function handleScroll(offset: number) {
         {#each channels as channel (channel.id)}
           <div class="channel-item">
             <button
-              class:active={channel.id === selectedChannel?.id && currentView === 'channel'}
+              class:active={channel.id === selectedChannel?.id &&
+                currentView === "channel"}
               onclick={() => selectChannel(channel)}># {channel.name}</button
             >
           </div>
         {/each}
-        <div class="imports" onclick={() => (currentView = 'imports')}>
+        <div class="imports" onclick={() => (currentView = "imports")}>
           <svg
             fill="none"
             stroke="currentColor"
@@ -162,7 +163,7 @@ function handleScroll(offset: number) {
     </Pane>
     <Pane>
       <div class="main-content" id="main-content">
-        {#if currentView === 'channel' && selectedChannel}
+        {#if currentView === "channel" && selectedChannel}
           <header class="channel-header">
             <h2># {selectedChannel.name}</h2>
           </header>
@@ -179,8 +180,8 @@ function handleScroll(offset: number) {
               <Message {msg} bind:selectedThread />
             {/snippet}
           </VList>
-        {:else if currentView === 'imports'}
-          <ImportManager />
+          <!-- {:else if currentView === 'imports'}
+          <ImportManager /> -->
         {:else}
           <Welcome />
         {/if}

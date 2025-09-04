@@ -6,11 +6,14 @@ import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
 import { DeleteImport } from '../../../wailsjs/go/app/App'
 
+let isOverlayActive = $state(true)
 let isDragging = $state(false)
 let dragCounter = $state(0)
 let imports: models.SlackImport[] = $state([])
 let isImporting = $state(false)
 let isDropZoneCollapsed = $state(true)
+
+let overlayElement: HTMLDivElement | null = null
 
 onMount(async () => {
   // subscribe to new import notification
@@ -102,123 +105,167 @@ function handleDrop(event: DragEvent): void {
   dragCounter = 0
   isDragging = false
 }
+
+$effect(() => {
+  if (isOverlayActive && overlayElement) {
+    // to handle ESC key
+    overlayElement.focus()
+  }
+})
+function closeOverlay() {
+  isOverlayActive = false
+}
 </script>
 
-<main>
-  <div class="drop-zone-container">
-    <button
-      class="collapse-toggle"
-      onclick={toggleDropZone}
-      aria-label={isDropZoneCollapsed
-        ? "Expand drop zone"
-        : "Collapse drop zone"}
-    >
-      <svg
-        class="chevron"
-        class:collapsed={isDropZoneCollapsed}
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+<div
+  class="fullscreen-overlay"
+  class:active={isOverlayActive}
+  bind:this={overlayElement}
+  tabindex="0"
+  onclick={closeOverlay}
+  onkeyup={(event) => {
+    if (event.key === "Escape") closeOverlay();
+  }}
+>
+  <main>
+    <div class="drop-zone-container">
+      <button
+        class="collapse-toggle"
+        onclick={toggleDropZone}
+        aria-label={isDropZoneCollapsed
+          ? "Expand drop zone"
+          : "Collapse drop zone"}
       >
-        <path d="m6 9 6 6 6-6" />
-      </svg>
-      <span>Add import</span>
-    </button>
-
-    <div
-      class="drop-zone"
-      class:is-dragging={isDragging}
-      class:is-disabled={isImporting}
-      class:is-collapsed={isDropZoneCollapsed}
-      role="button"
-      tabindex={isDropZoneCollapsed ? -1 : 0}
-      ondragenter={handleDragEnter}
-      ondragleave={handleDragLeave}
-      ondragover={handleDragOver}
-      ondrop={handleDrop}
-    >
-      <div class="icons-container">
         <svg
+          class="chevron"
+          class:collapsed={isDropZoneCollapsed}
           xmlns="http://www.w3.org/2000/svg"
-          x="0px"
-          y="0px"
-          width="100"
-          height="100"
-          viewBox="0 0 48 48"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
         >
-          <path
-            fill="#33d375"
-            d="M33,8c0-2.209-1.791-4-4-4s-4,1.791-4,4c0,1.254,0,9.741,0,11c0,2.209,1.791,4,4,4s4-1.791,4-4 C33,17.741,33,9.254,33,8z"
-          ></path><path
-            fill="#33d375"
-            d="M43,19c0,2.209-1.791,4-4,4c-1.195,0-4,0-4,0s0-2.986,0-4c0-2.209,1.791-4,4-4S43,16.791,43,19z"
-          ></path><path
-            fill="#40c4ff"
-            d="M8,14c-2.209,0-4,1.791-4,4s1.791,4,4,4c1.254,0,9.741,0,11,0c2.209,0,4-1.791,4-4s-1.791-4-4-4 C17.741,14,9.254,14,8,14z"
-          ></path><path
-            fill="#40c4ff"
-            d="M19,4c2.209,0,4,1.791,4,4c0,1.195,0,4,0,4s-2.986,0-4,0c-2.209,0-4-1.791-4-4S16.791,4,19,4z"
-          ></path><path
-            fill="#e91e63"
-            d="M14,39.006C14,41.212,15.791,43,18,43s4-1.788,4-3.994c0-1.252,0-9.727,0-10.984  c0-2.206-1.791-3.994-4-3.994s-4,1.788-4,3.994C14,29.279,14,37.754,14,39.006z"
-          ></path><path
-            fill="#e91e63"
-            d="M4,28.022c0-2.206,1.791-3.994,4-3.994c1.195,0,4,0,4,0s0,2.981,0,3.994c0,2.206-1.791,3.994-4,3.994  S4,30.228,4,28.022z"
-          ></path><path
-            fill="#ffc107"
-            d="M39,33c2.209,0,4-1.791,4-4s-1.791-4-4-4c-1.254,0-9.741,0-11,0c-2.209,0-4,1.791-4,4s1.791,4,4,4  C29.258,33,37.746,33,39,33z"
-          ></path><path
-            fill="#ffc107"
-            d="M28,43c-2.209,0-4-1.791-4-4c0-1.195,0-4,0-4s2.986,0,4,0c2.209,0,4,1.791,4,4S30.209,43,28,43z"
-          ></path>
+          <path d="m6 9 6 6 6-6" />
         </svg>
-        <div>Drop here your Slack export zip file</div>
-        <div>
-          Check this <a
-            href="#"
-            onclick={() =>
-              runtime.BrowserOpenURL(
-                "https://slack.com/intl/en-gb/help/articles/201658943-Export-your-workspace-data",
-              )}>link</a
-          > for more information about the export process.
-        </div>
-        <div>
-          <small>*Only public channels are supported for the moment</small>
+        <span>Add import</span>
+      </button>
+
+      <div
+        class="drop-zone"
+        class:is-dragging={isDragging}
+        class:is-disabled={isImporting}
+        class:is-collapsed={isDropZoneCollapsed}
+        role="button"
+        tabindex={isDropZoneCollapsed ? -1 : 0}
+        ondragenter={handleDragEnter}
+        ondragleave={handleDragLeave}
+        ondragover={handleDragOver}
+        ondrop={handleDrop}
+      >
+        <div class="icons-container">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            x="0px"
+            y="0px"
+            width="100"
+            height="100"
+            viewBox="0 0 48 48"
+          >
+            <path
+              fill="#33d375"
+              d="M33,8c0-2.209-1.791-4-4-4s-4,1.791-4,4c0,1.254,0,9.741,0,11c0,2.209,1.791,4,4,4s4-1.791,4-4 C33,17.741,33,9.254,33,8z"
+            ></path><path
+              fill="#33d375"
+              d="M43,19c0,2.209-1.791,4-4,4c-1.195,0-4,0-4,0s0-2.986,0-4c0-2.209,1.791-4,4-4S43,16.791,43,19z"
+            ></path><path
+              fill="#40c4ff"
+              d="M8,14c-2.209,0-4,1.791-4,4s1.791,4,4,4c1.254,0,9.741,0,11,0c2.209,0,4-1.791,4-4s-1.791-4-4-4 C17.741,14,9.254,14,8,14z"
+            ></path><path
+              fill="#40c4ff"
+              d="M19,4c2.209,0,4,1.791,4,4c0,1.195,0,4,0,4s-2.986,0-4,0c-2.209,0-4-1.791-4-4S16.791,4,19,4z"
+            ></path><path
+              fill="#e91e63"
+              d="M14,39.006C14,41.212,15.791,43,18,43s4-1.788,4-3.994c0-1.252,0-9.727,0-10.984  c0-2.206-1.791-3.994-4-3.994s-4,1.788-4,3.994C14,29.279,14,37.754,14,39.006z"
+            ></path><path
+              fill="#e91e63"
+              d="M4,28.022c0-2.206,1.791-3.994,4-3.994c1.195,0,4,0,4,0s0,2.981,0,3.994c0,2.206-1.791,3.994-4,3.994  S4,30.228,4,28.022z"
+            ></path><path
+              fill="#ffc107"
+              d="M39,33c2.209,0,4-1.791,4-4s-1.791-4-4-4c-1.254,0-9.741,0-11,0c-2.209,0-4,1.791-4,4s1.791,4,4,4  C29.258,33,37.746,33,39,33z"
+            ></path><path
+              fill="#ffc107"
+              d="M28,43c-2.209,0-4-1.791-4-4c0-1.195,0-4,0-4s2.986,0,4,0c2.209,0,4,1.791,4,4S30.209,43,28,43z"
+            ></path>
+          </svg>
+          <div>Drop here your Slack export zip file</div>
+          <div>
+            Check this <a
+              href="#"
+              onclick={() =>
+                runtime.BrowserOpenURL(
+                  "https://slack.com/intl/en-gb/help/articles/201658943-Export-your-workspace-data",
+                )}>link</a
+            > for more information about the export process.
+          </div>
+          <div>
+            <small>*Only public channels are supported for the moment</small>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="imports">
-    {#each imports as slackImportcard (slackImportcard.ID)}
-      <SlackImport
-        {RetryImportHandle}
-        {slackImportcard}
-        isCollapsed={slackImportcard.Finished !== "" &&
-          slackImportcard.Error === ""}
-        {DeleteImportHandle}
-      />
-    {/each}
-  </div>
-</main>
+    <div class="imports">
+      {#each imports as slackImportcard (slackImportcard.ID)}
+        <SlackImport
+          {RetryImportHandle}
+          {slackImportcard}
+          isCollapsed={slackImportcard.Finished !== "" &&
+            slackImportcard.Error === ""}
+          {DeleteImportHandle}
+        />
+      {/each}
+    </div>
+  </main>
+</div>
 
 <style>
+  :global(.fullscreen-overlay) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(24, 22, 22, 0.9);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none; /* Ignore clicks when hidden */
+    transition: opacity 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: zoom-out;
+  }
+
+  :global(.fullscreen-overlay.active) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   main {
-    margin: 0;
     color: #e2e8f0;
     display: flex;
     flex-direction: column;
     place-items: center;
-    min-height: 100vh;
+    height: 80vh;
+    width: 80vw;
     background-color: #552958;
     overflow: auto;
-    padding: 0 1rem;
+    padding: 2em 4em;
+    border-radius: 1em;
   }
 
   .imports {

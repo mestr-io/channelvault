@@ -5,6 +5,7 @@ import { GetViewState } from '../wailsjs/go/app/App'
 
 import Dashboard from './lib/components/Dashboard.svelte'
 import Overlay from './lib/components/Overlay.svelte'
+import ImportManager from './lib/components/ImportManager.svelte'
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
 
@@ -34,13 +35,19 @@ function openOverlay(src: string) {
   }
 }
 
-setContext('overlay', { openOverlay })
+setContext(
+  'overlay',
+
+  { openOverlay },
+)
 </script>
 
 <Overlay bind:this={overlayComponent} />
+<ImportManager />
+
 <main class="app-main">
   <header></header>
-    <Dashboard />
+  <Dashboard />
   <footer></footer>
 </main>
 
