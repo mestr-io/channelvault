@@ -1,154 +1,144 @@
 <script lang="ts">
-  import * as runtime from "../wailsjs/runtime";
-  import { onMount, setContext, onDestroy, tick } from "svelte";
-  import {
-    GetViewState,
-    GetChannels,
-    GetMessages,
-    GetThreadByTs,
-  } from "../wailsjs/go/app/App";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { VList, type VListHandle } from "virtua/svelte";
-  import DayDivider from "./lib/components/DayDivider.svelte";
-  import Message from "./lib/components/Message.svelte";
-  import Welcome from "./lib/components/Welcome.svelte";
-  import ImportManager from "./lib/components/ImportManager.svelte";
-  import Overlay from "./lib/components/Overlay.svelte";
-  import { models } from "../wailsjs/go/models";
+import * as runtime from '../wailsjs/runtime'
+import { onMount, setContext, onDestroy, tick } from 'svelte'
+import { GetViewState, GetChannels, GetMessages, GetThreadByTs } from '../wailsjs/go/app/App'
+import { Pane, Splitpanes } from 'svelte-splitpanes'
+import { VList, type VListHandle } from 'virtua/svelte'
+import DayDivider from './lib/components/DayDivider.svelte'
+import Message from './lib/components/Message.svelte'
+import Welcome from './lib/components/Welcome.svelte'
+import ImportManager from './lib/components/ImportManager.svelte'
+import ImageOverlay from './lib/components/ImageOverlay.svelte'
+import { models } from '../wailsjs/go/models'
 
-  type ViewState = "setup" | "dashboard" | "loading";
+type ViewState = 'setup' | 'dashboard' | 'loading'
 
-  let overlayComponent: Overlay;
-  let viewState = $state<ViewState>("loading");
+let imageOverlayComponent: ImageOverlay
+let importsOverlayComponent: ImportManager
 
-  // Dashboard state
-  let channels = $state<models.Channel[]>([] as models.Channel[]);
-  let selectedChannel = $state<models.Channel | null>(null);
-  let threadMessages = $state<models.Message[]>([] as models.Message[]);
-  let messages = $state<models.Message[]>([] as models.Message[]);
-  let isLoadingMessages = $state(false);
-  let hasMoreMessages = $state(true);
-  let showThread = $state(false);
-  let selectedThread = $state<string | null>(null);
-  let currentView = $state<"welcome" | "channel" | "imports">("welcome");
-  let vlist_messages: VListHandle;
-  let vlist_thread: VListHandle;
+let viewState = $state<ViewState>('loading')
 
-  $effect(() => {
-    if (!showThread) selectedThread = null;
-  });
+// Dashboard state
+let channels = $state<models.Channel[]>([] as models.Channel[])
+let selectedChannel = $state<models.Channel | null>(null)
+let threadMessages = $state<models.Message[]>([] as models.Message[])
+let messages = $state<models.Message[]>([] as models.Message[])
+let isLoadingMessages = $state(false)
+let hasMoreMessages = $state(true)
+let showThread = $state(false)
+let selectedThread = $state<string | null>(null)
+let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
+let vlist_messages: VListHandle
+let vlist_thread: VListHandle
 
-  $effect(() => {
-    if (selectedThread && selectedChannel) {
-      const loadThread = async () => {
-        threadMessages = await GetThreadByTs(
-          selectedThread!,
-          selectedChannel!.id!,
-        );
-        if (vlist_thread && threadMessages.length > 0) {
-          await tick();
-          vlist_thread.scrollToIndex(threadMessages.length - 1, {
-            align: "end",
-          });
-        }
-      };
-      loadThread();
-      showThread = true;
-    }
-  });
+$effect(() => {
+  if (!showThread) selectedThread = null
+})
 
-  onMount(async () => {
-    try {
-      viewState = (await GetViewState()) as ViewState;
-      runtime.EventsOn("backend:viewState", (newState: string) => {
-        viewState = newState as ViewState;
-      });
-
-      channels = await GetChannels();
-      runtime.EventsOn("importComplete", async () => {
-        const fresh = await GetChannels();
-        channels = [...fresh];
-      });
-      runtime.EventsOn("importDeleted", async () => {
-        const fresh = await GetChannels();
-        channels = [...fresh];
-      });
-    } catch (error) {
-      console.error(
-        "Failed to initialize view state or set up listener:",
-        error,
-      );
-    }
-  });
-
-  onDestroy(() => {
-    document.body.classList.remove("is-resizing-panes");
-  });
-
-  setContext("cache", new Map<string, string>());
-  setContext("overlay", { openOverlay });
-
-  function openOverlay(src: string) {
-    if (overlayComponent) {
-      overlayComponent.showOverlay(src);
-    }
-  }
-
-  async function selectChannel(channel: models.Channel) {
-    if (selectedChannel?.id === channel.id && currentView === "channel") return;
-    selectedChannel = channel;
-    messages = [];
-    hasMoreMessages = true;
-    showThread = false;
-    currentView = "channel";
-    await loadMoreMessages();
-    if (vlist_messages && messages.length > 0) {
-      await tick();
-      vlist_messages.scrollToIndex(messages.length - 1, { align: "end" });
-    }
-  }
-
-  async function loadMoreMessages() {
-    if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return;
-    isLoadingMessages = true;
-    try {
-      const cursor = messages[0]?.ts || "";
-      const newMessages: models.Message[] = await GetMessages(
-        selectedChannel.id,
-        cursor,
-        100,
-      );
-      if (newMessages?.length > 0) {
-        messages = [...newMessages.reverse(), ...messages];
-      } else {
-        hasMoreMessages = false;
+$effect(() => {
+  if (selectedThread && selectedChannel) {
+    const loadThread = async () => {
+      threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
+      if (vlist_thread && threadMessages.length > 0) {
+        await tick()
+        vlist_thread.scrollToIndex(threadMessages.length - 1, {
+          align: 'end',
+        })
       }
-    } catch (error) {
-      console.error(
-        `Failed to get messages for channel ${selectedChannel.id}:`,
-        error,
-      );
-    } finally {
-      isLoadingMessages = false;
     }
+    loadThread()
+    showThread = true
   }
+})
 
-  function handleScroll(offset: number) {
-    if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
-      loadMoreMessages();
+onMount(async () => {
+  try {
+    viewState = (await GetViewState()) as ViewState
+    runtime.EventsOn('backend:viewState', (newState: string) => {
+      viewState = newState as ViewState
+    })
+
+    channels = await GetChannels()
+    runtime.EventsOn('importComplete', async () => {
+      const fresh = await GetChannels()
+      channels = [...fresh]
+    })
+    runtime.EventsOn('importDeleted', async () => {
+      const fresh = await GetChannels()
+      channels = [...fresh]
+    })
+  } catch (error) {
+    console.error('Failed to initialize view state or set up listener:', error)
+  }
+})
+
+onDestroy(() => {
+  document.body.classList.remove('is-resizing-panes')
+})
+
+setContext('cache', new Map<string, string>())
+setContext('imageOverlay', { openImageOverlay })
+
+function openImageOverlay(src: string) {
+  if (imageOverlayComponent) {
+    imageOverlayComponent.showOverlay(src)
+  }
+}
+
+function openImportsOverlay() {
+  if (importsOverlayComponent) {
+    importsOverlayComponent.showOverlay()
+  }
+}
+
+async function selectChannel(channel: models.Channel) {
+  if (selectedChannel?.id === channel.id && currentView === 'channel') return
+  selectedChannel = channel
+  messages = []
+  hasMoreMessages = true
+  showThread = false
+  currentView = 'channel'
+  await loadMoreMessages()
+  if (vlist_messages && messages.length > 0) {
+    await tick()
+    vlist_messages.scrollToIndex(messages.length - 1, { align: 'end' })
+  }
+}
+
+async function loadMoreMessages() {
+  if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
+  isLoadingMessages = true
+  try {
+    const cursor = messages[0]?.ts || ''
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 100)
+    if (newMessages?.length > 0) {
+      messages = [...newMessages.reverse(), ...messages]
+    } else {
+      hasMoreMessages = false
     }
+  } catch (error) {
+    console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
+  } finally {
+    isLoadingMessages = false
   }
+}
 
-  function startResize() {
-    document.body.classList.add("is-resizing-panes");
+function handleScroll(offset: number) {
+  if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
+    loadMoreMessages()
   }
-  function endResize() {
-    document.body.classList.remove("is-resizing-panes");
-  }
+}
+
+function startResize() {
+  document.body.classList.add('is-resizing-panes')
+}
+function endResize() {
+  document.body.classList.remove('is-resizing-panes')
+}
 </script>
 
-<Overlay bind:this={overlayComponent} />
-<ImportManager />
+<ImageOverlay bind:this={imageOverlayComponent} />
+<ImportManager bind:this={importsOverlayComponent} />
 
 <main class="slack-clone">
   <Splitpanes on:resize={startResize} on:resized={endResize}>
@@ -164,7 +154,7 @@
             >
           </div>
         {/each}
-        <div class="imports" onclick={() => (currentView = "imports")}>
+        <div class="imports" onclick={() => openImportsOverlay()}>
           <svg
             fill="none"
             stroke="currentColor"

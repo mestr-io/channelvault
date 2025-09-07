@@ -6,7 +6,8 @@ import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
 import { DeleteImport } from '../../../wailsjs/go/app/App'
 
-let isOverlayActive = $state(true)
+let isOverlayActive = $state(false)
+
 let isDragging = $state(false)
 let dragCounter = $state(0)
 let imports: models.SlackImport[] = $state([])
@@ -112,6 +113,12 @@ $effect(() => {
     overlayElement.focus()
   }
 })
+
+// note the export
+export function showOverlay() {
+  isOverlayActive = true
+}
+
 function closeOverlay() {
   isOverlayActive = false
 }
@@ -122,7 +129,6 @@ function closeOverlay() {
   class:active={isOverlayActive}
   bind:this={overlayElement}
   tabindex="0"
-  onclick={closeOverlay}
   onkeyup={(event) => {
     if (event.key === "Escape") closeOverlay();
   }}
