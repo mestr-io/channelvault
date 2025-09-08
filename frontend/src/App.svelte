@@ -11,6 +11,8 @@ import ImportManager from './lib/components/ImportManager.svelte'
 import ImageOverlay from './lib/components/ImageOverlay.svelte'
 import { models } from '../wailsjs/go/models'
 
+import IconImport from './lib/components/icons/Imports.icon.svelte'
+
 type ViewState = 'setup' | 'dashboard' | 'loading'
 
 let imageOverlayComponent: ImageOverlay
@@ -144,33 +146,26 @@ function endResize() {
   <Splitpanes on:resize={startResize} on:resized={endResize}>
     <Pane minSize={10} maxSize={30} size={25}>
       <div class="sidebar">
-        <h4>Channels</h4>
-        {#each channels as channel (channel.id)}
-          <div class="channel-item">
-            <button
-              class:active={channel.id === selectedChannel?.id &&
-                currentView === "channel"}
-              onclick={() => selectChannel(channel)}># {channel.name}</button
-            >
-          </div>
-        {/each}
-        <div class="imports" onclick={() => openImportsOverlay()}>
-          <svg
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-            ><path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-            ></path></svg
-          >
-          Imports
+        <div class="channel-list">
+          <h4>Channels</h4>
+          {#each channels as channel (channel.id)}
+            <div class="channel-item">
+              <button
+                class:active={channel.id === selectedChannel?.id &&
+                  currentView === "channel"}
+                onclick={() => selectChannel(channel)}># {channel.name}</button
+              >
+            </div>
+          {/each}
         </div>
-      </div>
-    </Pane>
+        <div class="channel-item">
+          <button onclick={() => openImportsOverlay()}>
+            <IconImport />
+            Imports
+          </button>
+        </div>
+      </div></Pane
+    >
     <Pane>
       <div class="main-content" id="main-content">
         {#if currentView === "channel" && selectedChannel}
@@ -256,12 +251,7 @@ function endResize() {
     padding: 0;
     box-sizing: border-box;
   }
-  .app-main {
-    background-color: transparent;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow: hidden;
-  }
+
   :global(body.is-resizing-panes) {
     cursor: col-resize !important;
     user-select: none !important;
@@ -281,29 +271,7 @@ function endResize() {
     background-color: #552958;
     display: flex;
     flex-direction: column;
-  }
-
-  .sidebar .imports {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #dbc9e0;
-    padding: 0.5rem 1.25rem;
-    margin: auto 0.5rem 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.1s ease-in-out;
-  }
-  .sidebar .imports:hover {
-    background-color: #663867;
-  }
-  .sidebar .imports svg {
-    height: 1rem;
-  }
-
-  .sidebar .imports:active {
-    background-color: #f9edff;
-    color: #39063a;
+    justify-content: space-between;
   }
 
   .sidebar h4 {
