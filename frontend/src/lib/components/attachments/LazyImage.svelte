@@ -9,7 +9,9 @@ let container: HTMLDivElement
 
 const delay = 100
 const threshold = 0.05 // Load when 5% of the image is visible
-const { openOverlay } = getContext<{ openOverlay: (src: string) => void }>('overlay')
+const { openImageOverlay } = getContext<{
+  openImageOverlay: (src: string) => void
+}>('imageOverlay')
 
 onMount(() => {
   // Ensure the container element is mounted before proceeding
@@ -66,7 +68,7 @@ onMount(() => {
             {src}
             {alt}
             onclick={() => {
-              openOverlay(src);
+              openImageOverlay(src);
             }}
           />
         {/await}
