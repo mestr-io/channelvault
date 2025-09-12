@@ -70,8 +70,6 @@ const selectVersion = (index: number) => {
   // Start fade out
   setTimeout(() => {
     current_version = index
-    // reset the current thread
-    selectedThread = null
     // End transition after content updates
     setTimeout(() => {
       isTransitioning = false
@@ -80,7 +78,7 @@ const selectVersion = (index: number) => {
 }
 
 $effect(() => {
-  if (selectedThread) {
+  if (selectedThread && selectedThread?.thread_ts == group[current_version].thread_ts) {
     selectedThread.import_id = group[current_version].ImportID
   }
 })
