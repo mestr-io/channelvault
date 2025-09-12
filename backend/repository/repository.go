@@ -44,6 +44,7 @@ type Repository interface {
 	//users
 	BulkInsertUsers(ctx context.Context, users []models.User) (err error)
 	GetUserAvatar(ctx context.Context, userId string) (string, error)
+	GetUserHandle(ctx context.Context, userId string) (string, error)
 }
 
 type RepositorySql struct {

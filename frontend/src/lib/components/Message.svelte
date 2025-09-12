@@ -11,7 +11,7 @@ import Reactions from './Reactions.svelte'
 import ThreadInfo from './ThreadInfo.svelte'
 import { circle } from './Icons.svelte'
 import type { ThreadID } from '../types'
-
+import { GetUserHandle } from '../../../wailsjs/go/app/App'
 type Props = {
   group: models.Message[]
   selectedThread: ThreadID | null
@@ -21,6 +21,7 @@ let { group, selectedThread = $bindable() }: Props = $props()
 let current_version = $state(0)
 let msg = $derived(group[current_version])
 let isTransitioning = $state(false)
+let message_text = $derived(replaceUserIDWithHandle(msg.text || ''))
 
 // Markdown
 const mapped = [svelte('a', Link)]
@@ -30,6 +31,21 @@ const options: Options = {
 }
 
 export const carta = new Carta(options)
+
+async function replaceUserIDWithHandle(text: string): Promise<string> {
+  // Find all user IDs
+  const matches = [...text.matchAll(/<@(U[A-Z0-9]+)>/g)]
+
+  let result = text
+
+  for (const match of matches) {
+    const userId = match[1]
+    const handle = await GetUserHandle(userId)
+    result = result.replace(match[0], handle ? `__@${handle}__` : `__@${userId}__`)
+  }
+
+  return result
+}
 
 /**
  * Formats the message timestamp to show only the time (e.g., "2:03 PM").
@@ -54,6 +70,8 @@ const selectVersion = (index: number) => {
   // Start fade out
   setTimeout(() => {
     current_version = index
+    // reset the current thread
+    selectedThread = null
     // End transition after content updates
     setTimeout(() => {
       isTransitioning = false
@@ -85,7 +103,7 @@ $effect(() => {
                             class="version-button"
                             class:active={i === current_version}
                             onclick={() => selectVersion(i)}
-                            title="Import ID = {group[i].ImportID}"
+                            title="Import ID = {version.ImportID}"
                         >
                             {@render circle("12px", i === current_version)}
                         </button>
@@ -95,7 +113,9 @@ $effect(() => {
         </div>
 
         <div class="content-wrapper" class:transitioning={isTransitioning}>
-            <Markdown {carta} value={msg.text || ""} />
+            {#await message_text then value}
+                <Markdown {carta} {value} />
+            {/await}
             <Attachments message={msg} />
             {#if msg.thread_ts}
                 <ThreadInfo

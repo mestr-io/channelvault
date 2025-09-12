@@ -16,6 +16,8 @@ export function GetThreadByTs(arg1:string,arg2:string,arg3:number):Promise<Array
 
 export function GetUserAvatar(arg1:string):Promise<string>;
 
+export function GetUserHandle(arg1:string):Promise<string>;
+
 export function GetViewState():Promise<string>;
 
 export function ListImports():Promise<Array<models.SlackImport>>;

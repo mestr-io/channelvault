@@ -41,7 +41,9 @@ $effect(() => {
   if (!showThread) selectedThread = null
 })
 
-$inspect(threadMessages)
+$effect(() => {
+  if (!selectedThread) showThread = false
+})
 
 $effect(() => {
   if (selectedThread && selectedChannel) {
