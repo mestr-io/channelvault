@@ -9,14 +9,16 @@ import Attachments from './Attachments.svelte'
 import Link from './Link.svelte'
 import Reactions from './Reactions.svelte'
 import ThreadInfo from './ThreadInfo.svelte'
+import { circle } from './Icons.svelte'
 
 type Props = {
-  msg: models.Message
+  group: models.Message[]
   selectedThread: string | null
 }
 
-let { msg, selectedThread = $bindable() }: Props = $props()
-
+let { group, selectedThread = $bindable() }: Props = $props()
+let current_version = $state(0)
+let msg = $derived(group[current_version]);
 // Markdown
 const mapped = [svelte('a', Link)]
 const options: Options = {
@@ -47,9 +49,13 @@ const formatMessageTime = (ts: string): string => {
                     {formatMessageTime(msg.ts)}
                 </span>
             </div>
-             <span class="import-id">
-                IMPORTID: {msg.ImportID}
-            </span>
+            {#if group.length > 1}
+                <div class="version-container">
+                    {#each group as version, i}
+                        {@render circle('12px', i == current_version)}
+                    {/each}
+                </div>
+            {/if}
         </div>
         <Markdown {carta} value={msg.text || ""} />
         <Attachments message={msg} />
@@ -71,7 +77,11 @@ const formatMessageTime = (ts: string): string => {
     :global(.carta-viewer > :first-child) {
         margin-top: 2px;
     }
+    .version-container {
+        padding-right: 4px;
+    }
     .message {
+        margin-left: 8px;
         display: flex;
         padding: 0.75rem 0;
         transform: translateZ(0);
@@ -97,7 +107,7 @@ const formatMessageTime = (ts: string): string => {
     }
 
     .message-header strong {
-        font-weight: 900;
+        font-weight: 700;
     }
     .timestamp {
         color: #9e9ea6;
