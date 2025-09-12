@@ -10,15 +10,13 @@ import Link from './Link.svelte'
 import Reactions from './Reactions.svelte'
 import ThreadInfo from './ThreadInfo.svelte'
 import { circle } from './Icons.svelte'
+import type { ThreadID } from '../types'
 
 type Props = {
   group: models.Message[]
-  selectedThread: string | null
+  selectedThread: ThreadID | null
 }
 
-// group: means a group or aggreation of messages with the same 'ts'
-//        either same message by importing multiples exports with overlapping
-//        or edited messages.
 let { group, selectedThread = $bindable() }: Props = $props()
 let current_version = $state(0)
 let msg = $derived(group[current_version])
@@ -62,145 +60,162 @@ const selectVersion = (index: number) => {
     }, 150)
   }, 150)
 }
+
+$effect(() => {
+  if (selectedThread) {
+    selectedThread.import_id = group[current_version].ImportID
+  }
+})
 </script>
 
 <div class="message">
-	<img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
-	<div class="message-content">
-		<div class="message-header">
-			<div>
-				<strong>{msg.user_name}</strong>
-				<span class="timestamp">
-					{formatMessageTime(msg.ts)}
-				</span>
-			</div>
-			{#if group.length > 1}
-				<div class="version-container">
-					{#each group as version, i}
-						<button 
-							class="version-button"
-							class:active={i === current_version}
-							onclick={() => selectVersion(i)}
-							title="Version {i + 1}"
-						>
-							{@render circle('12px', i === current_version)}
-						</button>
-					{/each}
-				</div>
-			{/if}
-		</div>
-		
-		<div class="content-wrapper" class:transitioning={isTransitioning}>
-			<Markdown {carta} value={msg.text || ""} />
-			<Attachments message={msg} />
-			{#if msg.thread_ts}
-				<ThreadInfo
-					replyUsers={msg.reply_users}
-					replyCount={msg.reply_count}
-					threadTs={msg.thread_ts}
-					bind:selectedThread
-				/>
-			{/if}
-			{#if msg.reactions}
-				<Reactions reactions={msg.reactions} />
-			{/if}
-		</div>
-	</div>
+    <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
+    <div class="message-content">
+        <div class="message-header">
+            <div>
+                <strong>{msg.user_name}</strong>
+                <span class="timestamp">
+                    {formatMessageTime(msg.ts)}
+                </span>
+            </div>
+            {#if group.length > 1}
+                <div class="version-container">
+                    {#each group as version, i}
+                        <button
+                            class="version-button"
+                            class:active={i === current_version}
+                            onclick={() => selectVersion(i)}
+                            title="Import ID = {group[i].ImportID}"
+                        >
+                            {@render circle("12px", i === current_version)}
+                        </button>
+                    {/each}
+                </div>
+            {/if}
+        </div>
+
+        <div class="content-wrapper" class:transitioning={isTransitioning}>
+            <Markdown {carta} value={msg.text || ""} />
+            <Attachments message={msg} />
+            {#if msg.thread_ts}
+                <ThreadInfo
+                    replyUsers={msg.reply_users}
+                    replyCount={msg.reply_count}
+                    thread={{
+                        thread_ts: msg.thread_ts,
+                        import_id: msg.ImportID,
+                    }}
+                    bind:selectedThread
+                />
+            {/if}
+            {#if msg.reactions}
+                <Reactions reactions={msg.reactions} />
+            {/if}
+        </div>
+    </div>
 </div>
 
 <style>
-	:global(.carta-viewer > :first-child) {
-		margin-top: 2px;
-	}
+    :global(.carta-viewer > :first-child) {
+        margin-top: 2px;
+    }
 
-	.version-container {
-		padding-right: 4px;
-		display: flex;
-		gap: 4px;
-		align-items: center;
-	}
+    .version-container {
+        padding-right: 4px;
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
 
-	.version-button {
-		background: none;
-		border: none;
-		padding: 4px;
-		cursor: pointer;
-		border-radius: 50%;
-		transition: all 0.2s ease;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
+    .version-button {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-	.version-button:hover {
-		background-color: rgba(255, 255, 255, 0.1);
-		transform: scale(1.1);
-	}
+    .version-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: scale(1.1);
+    }
 
-	.version-button.active {
-		background-color: rgba(255, 255, 255, 0.15);
-	}
+    .version-button.active {
+        background-color: rgba(255, 255, 255, 0.15);
+    }
 
-	.content-wrapper {
-		transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
-		transform: translateX(0);
-	}
+    .content-wrapper {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(0);
+        opacity: 1;
+    }
 
-	.content-wrapper.transitioning {
-		opacity: 0.3;
-		transform: translateX(2px);
-	}
+    .content-wrapper.transitioning {
+        opacity: 0;
+    }
 
-	.message {
-		margin-left: 8px;
-		display: flex;
-		padding: 0.75rem 0;
-		transform: translateZ(0);
-		-webkit-transform: translateZ(0);
-		/* Optimize compositing */
-		contain: layout style paint;
-	}
+    .content-wrapper.slide-right {
+        transform: translateX(30px);
+    }
 
-	.avatar {
-		width: 40px;
-		height: 40px;
-		border-radius: 6px;
-		margin-right: 1rem;
-		object-fit: cover;
-	}
+    .content-wrapper.slide-left {
+        transform: translateX(-30px);
+    }
 
-	.message-content {
-		flex: 1;
-		max-width: calc(100% - 50px);
-	}
+    .message {
+        margin-left: 8px;
+        display: flex;
+        padding: 0.75rem 0;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        /* Optimize compositing */
+        contain: layout style paint;
+    }
 
-	.message-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        margin-right: 1rem;
+        object-fit: cover;
+    }
 
-	.message-header strong {
-		font-weight: 700;
-	}
+    .message-content {
+        flex: 1;
+        max-width: calc(100% - 50px);
+    }
 
-	.timestamp {
-		color: #9e9ea6;
-		font-size: 0.8rem;
-		margin-left: 0.5rem;
-	}
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-	.import-id {
-		color: #b0b0b7;
-		font-size: 0.4rem; /* smaller */
-		font-style: italic;
-		margin-right: 4px;
-		opacity: 0;
-		transition: opacity 0.2s ease;
-	}
+    .message-header strong {
+        font-weight: 700;
+    }
 
-	/* Only show import-id when hovering over the entire row */
-	.message:hover .import-id {
-		opacity: 1;
-	}
+    .timestamp {
+        color: #9e9ea6;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+
+    .import-id {
+        color: #b0b0b7;
+        font-size: 0.4rem; /* smaller */
+        font-style: italic;
+        margin-right: 4px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    /* Only show import-id when hovering over the entire row */
+    .message:hover .import-id {
+        opacity: 1;
+    }
 </style>

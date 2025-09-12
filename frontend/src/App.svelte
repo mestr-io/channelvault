@@ -11,6 +11,7 @@ import ImportManager from './lib/components/ImportManager.svelte'
 import ImageOverlay from './lib/components/ImageOverlay.svelte'
 import { models } from '../wailsjs/go/models'
 import { import_icon } from './lib/components/Icons.svelte'
+import type { ThreadID } from './lib/types'
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
 type AggregatedMessage = models.Message[][]
@@ -29,12 +30,12 @@ let groups = $state<AggregatedMessage>([] as AggregatedMessage)
 let isLoadingMessages = $state(false)
 let hasMoreMessages = $state(true)
 let showThread = $state(false)
-let selectedThread = $state<string | null>(null)
+let selectedThread = $state<ThreadID | null>(null)
 let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
+// svelte-ignore non_reactive_update
 let vlist_messages: VListHandle
+// svelte-ignore non_reactive_update
 let vlist_thread: VListHandle
-
-$inspect(groups)
 
 $effect(() => {
   if (!showThread) selectedThread = null
@@ -43,7 +44,7 @@ $effect(() => {
 $effect(() => {
   if (selectedThread && selectedChannel) {
     const loadThread = async () => {
-      threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
+      threadMessages = await GetThreadByTs(selectedThread!.thread_ts, selectedChannel!.id!)
       if (vlist_thread && threadMessages.length > 0) {
         await tick()
         vlist_thread.scrollToIndex(threadMessages.length - 1, {
@@ -255,7 +256,7 @@ function endResize() {
           >
             {#snippet children(msg, i)}
               <DayDivider current={msg} previous={threadMessages[i - 1]} />
-              <Message {msg} bind:selectedThread />
+              <Message group={[msg]} bind:selectedThread />
             {/snippet}
           </VList>
         </div>
