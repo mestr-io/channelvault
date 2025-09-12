@@ -28,11 +28,6 @@ function detectAttachment(attachment: models.Attachment) {
 
   return 'generic'
 }
-
-function showAttachments(msg) {
-  $inspect(msg.attachments)
-  return msg.attachments
-}
 </script>
 
 {#if message.files}

@@ -10,10 +10,11 @@ import Welcome from './lib/components/Welcome.svelte'
 import ImportManager from './lib/components/ImportManager.svelte'
 import ImageOverlay from './lib/components/ImageOverlay.svelte'
 import { models } from '../wailsjs/go/models'
-
-import IconImport from './lib/components/icons/Imports.icon.svelte'
+import { import_icon } from './lib/components/Icons.svelte'
+import type { ThreadID } from './lib/types'
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
+type AggregatedMessage = models.Message[][]
 
 let imageOverlayComponent: ImageOverlay
 let importsOverlayComponent: ImportManager
@@ -25,22 +26,27 @@ let channels = $state<models.Channel[]>([] as models.Channel[])
 let selectedChannel = $state<models.Channel | null>(null)
 let threadMessages = $state<models.Message[]>([] as models.Message[])
 let messages = $state<models.Message[]>([] as models.Message[])
+let groups = $state<AggregatedMessage>([] as AggregatedMessage)
 let isLoadingMessages = $state(false)
 let hasMoreMessages = $state(true)
 let showThread = $state(false)
-let selectedThread = $state<string | null>(null)
+let selectedThread = $state<ThreadID | null>(null)
 let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
+// svelte-ignore non_reactive_update
 let vlist_messages: VListHandle
+// svelte-ignore non_reactive_update
 let vlist_thread: VListHandle
 
 $effect(() => {
   if (!showThread) selectedThread = null
 })
 
+$inspect(threadMessages)
+
 $effect(() => {
   if (selectedThread && selectedChannel) {
     const loadThread = async () => {
-      threadMessages = await GetThreadByTs(selectedThread!, selectedChannel!.id!)
+      threadMessages = await GetThreadByTs(selectedThread!.thread_ts, selectedChannel!.id!, selectedThread!.import_id)
       if (vlist_thread && threadMessages.length > 0) {
         await tick()
         vlist_thread.scrollToIndex(threadMessages.length - 1, {
@@ -107,14 +113,39 @@ async function selectChannel(channel: models.Channel) {
   }
 }
 
+function groupMessagesByDay(messages: models.Message[]): AggregatedMessage {
+  if (!messages || messages.length === 0) {
+    return []
+  }
+
+  const groups = messages.reduce((acc: AggregatedMessage, msg) => {
+    const lastGroup = acc.length > 0 ? acc[acc.length - 1] : null
+
+    if (lastGroup) {
+      const lastGroupDate = lastGroup[0].ts
+      if (lastGroupDate === msg.ts) {
+        lastGroup.push(msg)
+        return acc
+      }
+    }
+
+    acc.push([msg])
+    return acc
+  }, [])
+
+  return groups
+}
+
 async function loadMoreMessages() {
   if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
   isLoadingMessages = true
   try {
     const cursor = messages[0]?.ts || ''
     const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 100)
+
     if (newMessages?.length > 0) {
       messages = [...newMessages.reverse(), ...messages]
+      groups = groupMessagesByDay(messages)
     } else {
       hasMoreMessages = false
     }
@@ -160,7 +191,7 @@ function endResize() {
         </div>
         <div class="channel-item">
           <button onclick={() => openImportsOverlay()}>
-            <IconImport />
+            {@render import_icon('1rem')}
             Imports
           </button>
         </div>
@@ -174,15 +205,15 @@ function endResize() {
           </header>
           <VList
             bind:this={vlist_messages}
-            data={messages}
-            getKey={(msg: models.Message, _) => `${msg.ts}${msg.ImportID}`}
+            data={groups}
+            getKey={(msg: models.Message[], _) => `${msg[0].ts}${msg[0].ImportID}`}
             overscan={10}
             shift={true}
             onscroll={handleScroll}
           >
-            {#snippet children(msg, i)}
-              <DayDivider current={msg} previous={messages[i - 1]} />
-              <Message {msg} bind:selectedThread />
+            {#snippet children(group, i)}
+              <DayDivider current={group[0]} previous={groups[i - 1]?groups[i-1][0]:undefined} />
+              <Message {group} bind:selectedThread />
             {/snippet}
           </VList>
         {:else}
@@ -223,11 +254,10 @@ function endResize() {
             getKey={(msg: models.Message, _) => `${msg.ts}${msg.ImportID}`}
             overscan={10}
             shift={true}
-            onscroll={handleScroll}
           >
             {#snippet children(msg, i)}
               <DayDivider current={msg} previous={threadMessages[i - 1]} />
-              <Message {msg} bind:selectedThread />
+              <Message group={[msg]} bind:selectedThread />
             {/snippet}
           </VList>
         </div>

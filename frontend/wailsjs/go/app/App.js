@@ -22,8 +22,8 @@ export function GetMessages(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetMessages'](arg1, arg2, arg3);
 }
 
-export function GetThreadByTs(arg1, arg2) {
-  return window['go']['app']['App']['GetThreadByTs'](arg1, arg2);
+export function GetThreadByTs(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetThreadByTs'](arg1, arg2, arg3);
 }
 
 export function GetUserAvatar(arg1) {

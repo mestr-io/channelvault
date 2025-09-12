@@ -138,7 +138,7 @@ func (m *MockRepository) ListChannelFiles(ctx context.Context, channelID string,
 	return args.Get(0).([]models.File), args.Error(1)
 }
 
-func (m *MockRepository) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
+func (m *MockRepository) GetThreadByTs(ctx context.Context, threadTs string, channelID string, importID int64) ([]models.Message, error) {
 	args := m.Called(ctx, threadTs, channelID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

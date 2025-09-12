@@ -64,9 +64,9 @@ func TestGetThreadByTs(t *testing.T) {
 	app.ctx = context.Background()
 
 	expectedMessages := []models.Message{{Text: "Reply"}}
-	mockRepo.On("GetThreadByTs", mock.Anything /*ctx*/, "123.456", "C1").Return(expectedMessages, nil).Once()
+	mockRepo.On("GetThreadByTs", mock.Anything /*ctx*/, "123.456", "C1", 0).Return(expectedMessages, nil).Once()
 
-	messages, err := app.GetThreadByTs("123.456", "C1")
+	messages, err := app.GetThreadByTs("123.456", "C1", 0)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedMessages, messages)
@@ -77,7 +77,7 @@ func TestGetBase64Image(t *testing.T) {
 	// Create a temporary directory for files
 	tempDir, err := os.MkdirTemp("", "test-files")
 	assert.NoError(t, err)
-	defer func(){_ = os.RemoveAll(tempDir)}()
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	mockRepo := new(MockRepository)
 	app := New(mockRepo, tempDir)

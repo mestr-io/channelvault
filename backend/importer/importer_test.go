@@ -114,7 +114,7 @@ func (m *MockRepository) GetMessages(ctx context.Context, channelID string, curs
 func (m *MockRepository) ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error) {
 	panic("ListChannelFiles not defined in mock")
 }
-func (m *MockRepository) GetThreadByTs(ctx context.Context, threadTs string, channelID string) ([]models.Message, error) {
+func (m *MockRepository) GetThreadByTs(ctx context.Context, threadTs string, channelID string, importID int64) ([]models.Message, error) {
 	panic("GetThreadByTs not defined in mock")
 }
 func (m *MockRepository) GetFileById(ctx context.Context, fileId string) (*models.File, error) {

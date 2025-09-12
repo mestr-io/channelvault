@@ -3,7 +3,7 @@ import { LogError } from '../../../wailsjs/runtime/runtime'
 import { GetUserAvatar } from '../../../wailsjs/go/app/App'
 import { getContext } from 'svelte'
 
-let { replyUsers, replyCount, threadTs, selectedThread = $bindable() } = $props()
+let { replyUsers, replyCount, thread, selectedThread = $bindable() } = $props()
 
 let avatars: string[] = $state([])
 
@@ -51,8 +51,7 @@ $effect(() => {
     href="#"
     class="reply-link"
     onclick={() => {
-      console.log("thread", threadTs)
-      selectedThread = threadTs;
+      selectedThread =  thread;
     }}
   >
     {replyCount}
