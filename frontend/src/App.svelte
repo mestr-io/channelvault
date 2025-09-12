@@ -13,7 +13,7 @@ import { models } from '../wailsjs/go/models'
 import { import_icon } from './lib/components/Icons.svelte'
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
-type AggregatedMessage = models.Message[][];
+type AggregatedMessage = models.Message[][]
 
 let imageOverlayComponent: ImageOverlay
 let importsOverlayComponent: ImportManager
@@ -110,28 +110,27 @@ async function selectChannel(channel: models.Channel) {
   }
 }
 
-
 function groupMessagesByDay(messages: models.Message[]): AggregatedMessage {
   if (!messages || messages.length === 0) {
-    return [];
+    return []
   }
 
-  const groups = messages.reduce((acc: AggregatedMessage, msg) => {    
-    const lastGroup = acc.length > 0 ? acc[acc.length - 1] : null;
+  const groups = messages.reduce((acc: AggregatedMessage, msg) => {
+    const lastGroup = acc.length > 0 ? acc[acc.length - 1] : null
 
     if (lastGroup) {
-      const lastGroupDate = lastGroup[0].ts;
+      const lastGroupDate = lastGroup[0].ts
       if (lastGroupDate === msg.ts) {
-        lastGroup.push(msg);
-        return acc;
+        lastGroup.push(msg)
+        return acc
       }
     }
-    
-    acc.push([msg]);
-    return acc;
-  }, []);
 
-  return groups;
+    acc.push([msg])
+    return acc
+  }, [])
+
+  return groups
 }
 
 async function loadMoreMessages() {
@@ -140,7 +139,7 @@ async function loadMoreMessages() {
   try {
     const cursor = messages[0]?.ts || ''
     const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 100)
-    
+
     if (newMessages?.length > 0) {
       messages = [...newMessages.reverse(), ...messages]
       groups = groupMessagesByDay(messages)
