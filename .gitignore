@@ -5,6 +5,7 @@ frontend/dist
 .env
 .DS_Store
 .vscode
+.zed
 bin
 slack-export-viewer.code-workspace
 zips
