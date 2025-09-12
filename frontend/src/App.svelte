@@ -86,7 +86,8 @@ onDestroy(() => {
   document.body.classList.remove('is-resizing-panes')
 })
 
-setContext('cache', new Map<string, string>())
+setContext('avatar_cache', new Map<string, string>())
+setContext('userhandle_cache', new Map<string, string>())
 setContext('imageOverlay', { openImageOverlay })
 
 function openImageOverlay(src: string) {

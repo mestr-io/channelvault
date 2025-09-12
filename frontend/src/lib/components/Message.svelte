@@ -12,10 +12,14 @@ import ThreadInfo from './ThreadInfo.svelte'
 import { circle } from './Icons.svelte'
 import type { ThreadID } from '../types'
 import { GetUserHandle } from '../../../wailsjs/go/app/App'
+import { getContext } from 'svelte'
+
 type Props = {
   group: models.Message[]
   selectedThread: ThreadID | null
 }
+
+const cache: Map<string, string> = getContext('userhandle_cache')
 
 let { group, selectedThread = $bindable() }: Props = $props()
 let current_version = $state(0)
@@ -31,6 +35,20 @@ const options: Options = {
 }
 
 export const carta = new Carta(options)
+
+async function getUserHandle(userId: string): Promise<string> {
+  if (cache.has(userId)) {
+    return cache.get(userId)!
+  }
+
+  try {
+    const handle = await GetUserHandle(userId)
+    cache.set(userId, handle)
+    return handle
+  } catch (error) {
+    return userId
+  }
+}
 
 async function replaceUserIDWithHandle(text: string): Promise<string> {
   // Find all user IDs
