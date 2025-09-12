@@ -41,10 +41,12 @@ $effect(() => {
   if (!showThread) selectedThread = null
 })
 
+$inspect(threadMessages)
+
 $effect(() => {
   if (selectedThread && selectedChannel) {
     const loadThread = async () => {
-      threadMessages = await GetThreadByTs(selectedThread!.thread_ts, selectedChannel!.id!)
+      threadMessages = await GetThreadByTs(selectedThread!.thread_ts, selectedChannel!.id!, selectedThread!.import_id)
       if (vlist_thread && threadMessages.length > 0) {
         await tick()
         vlist_thread.scrollToIndex(threadMessages.length - 1, {
@@ -252,7 +254,6 @@ function endResize() {
             getKey={(msg: models.Message, _) => `${msg.ts}${msg.ImportID}`}
             overscan={10}
             shift={true}
-            onscroll={handleScroll}
           >
             {#snippet children(msg, i)}
               <DayDivider current={msg} previous={threadMessages[i - 1]} />

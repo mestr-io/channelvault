@@ -217,7 +217,7 @@ func (r *RepositorySql) ListChannelFiles(ctx context.Context, channelID string, 
 	panic("not implemented")
 }
 
-func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string) (messages []models.Message, err error) {
+func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string, importID int64) (messages []models.Message, err error) {
 	query := `
         SELECT 
 			ts, text, 
@@ -234,9 +234,9 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = m.channel_id AND c.import_id = m.import_id
-        WHERE c.id = $1 AND thread_ts = $2 
+        WHERE c.id = $1 AND thread_ts = $2 AND m.import_id = $3 
     `
-	args := []interface{}{channelID, threadTs}
+	args := []interface{}{channelID, threadTs, importID}
 
 	// Always order by timestamp to ensure consistent pagination, and limit the result size.
 	query += " ORDER BY ts ASC"
