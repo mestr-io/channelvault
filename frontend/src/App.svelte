@@ -209,7 +209,7 @@ function endResize() {
           <VList
             bind:this={vlist_messages}
             data={groups}
-            getKey={(msg: models.Message[], _) => `${msg[0].ts}${msg[0].ImportID}`}
+            getKey={(g: models.Message[], _) => `${g[0].ts}`}
             overscan={10}
             shift={true}
             onscroll={handleScroll}
