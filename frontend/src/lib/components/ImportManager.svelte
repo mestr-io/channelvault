@@ -125,7 +125,7 @@ function closeOverlay() {
 </script>
 
 <div
-    class="fullscreen-overlay"
+    class="fullscreen-overlay-import"
     class:active={isOverlayActive}
     bind:this={overlayElement}
     tabindex="0"
@@ -241,7 +241,7 @@ function closeOverlay() {
 </div>
 
 <style>
-    :global(.fullscreen-overlay) {
+    :global(.fullscreen-overlay-import) {
         position: fixed;
         top: 0;
         left: 0;
@@ -257,7 +257,7 @@ function closeOverlay() {
         align-items: center;
     }
 
-    :global(.fullscreen-overlay.active) {
+    :global(.fullscreen-overlay-import.active) {
         opacity: 1;
         pointer-events: auto;
     }

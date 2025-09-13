@@ -5,6 +5,8 @@ import { models } from '../../../wailsjs/go/models'
 import { RenameImport, DownloadBinaries } from '../../../wailsjs/go/app/App'
 import Prompt from './Prompt.svelte'
 
+import { chevron } from './Icons.svelte'
+
 let {
   slackImportCard,
   DeleteImportHandle,
@@ -144,7 +146,8 @@ function toggleCollapse() {
             onclick={toggleCollapse}
             title={isCollapsed ? "Expand" : "Collapse"}
         >
-            <svg
+            {@render chevron(!isCollapsed)}
+            <!-- <svg
                 class:rotated={!isCollapsed}
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -154,10 +157,12 @@ function toggleCollapse() {
                     d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                     clip-rule="evenodd"
                 />
-            </svg>
+            </svg> -->
         </button>
 
-        <h3 class="card-title">{slackImportCard.Name || "Untitled Import"}</h3>
+        <div class="card-title">
+            {slackImportCard.Name || "Untitled Import"}
+        </div>
 
         <div class="card-actions">
             <div
@@ -456,10 +461,11 @@ function toggleCollapse() {
 
     .card {
         background: #ffffff;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-radius: 0.5rem;
+        padding: 0.4rem;
+        /*box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);*/
         border: 1px solid #e5e7eb;
+        border: 1px solid red;
     }
 
     .card-header {
@@ -467,19 +473,24 @@ function toggleCollapse() {
         justify-content: space-between;
         align-items: flex-start;
         /* BUG FIX: Removed fixed margin-bottom to let the content inside the collapsible define the spacing*/
-        gap: 1rem;
+        /*gap: 1rem;*/
+        border: 1px solid green;
     }
     .collapsible:not(.collapsed) .card-header {
-        margin-bottom: 1rem;
+        /*margin-bottom: 1rem;*/
     }
 
     .card-title {
         color: #111827;
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         font-weight: 600;
         margin: 0;
-        line-height: 1.4;
-        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: left;
+        /* (Optional) define a width or let a flex/grid container constrain it */
+        /* max-width: 260px; */
     }
 
     .card-actions {
@@ -530,7 +541,6 @@ function toggleCollapse() {
     .chevron-button:hover {
         background-color: #f3f4f6;
         color: #111827;
-        transform: translateY(-1px);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
