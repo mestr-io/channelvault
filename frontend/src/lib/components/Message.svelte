@@ -51,12 +51,9 @@ async function getUserHandle(userId: string): Promise<string> {
 }
 
 async function replaceUserIDWithHandle(text: string): Promise<string> {
-  // Find all user IDs
-  const matches = [...text.matchAll(/<@(U[A-Z0-9]+)>/g)]
-
   let result = text
 
-  for (const match of matches) {
+  for (const match of text.matchAll(/<@(U[A-Z0-9]+)>/g)) {
     const userId = match[1]
     const handle = await GetUserHandle(userId)
     result = result.replace(match[0], handle ? `__@${handle}__` : `__@${userId}__`)
