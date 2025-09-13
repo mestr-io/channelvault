@@ -147,17 +147,6 @@ function toggleCollapse() {
             title={isCollapsed ? "Expand" : "Collapse"}
         >
             {@render chevron(!isCollapsed)}
-            <!-- <svg
-                class:rotated={!isCollapsed}
-                viewBox="0 0 20 20"
-                fill="currentColor"
-            >
-                <path
-                    fill-rule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clip-rule="evenodd"
-                />
-            </svg> -->
         </button>
 
         <div class="card-title">
@@ -513,17 +502,16 @@ function toggleCollapse() {
 
     .action-button,
     .chevron-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 2rem;
-        height: 2rem;
-        border: none;
-        border-radius: 0.5rem;
+        min-width: 30px;
+        width: 30px;
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background: #fff;
         cursor: pointer;
-        transition: all 0.2s ease;
-        background-color: #f9fafb;
-        color: #6b7280;
     }
 
     /* Style for disabled download button */
@@ -544,15 +532,15 @@ function toggleCollapse() {
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    .action-button svg,
+    /*.action-button svg,
     .chevron-button svg {
         width: 1rem;
         height: 1rem;
-    }
-
+    }*/
+    /*
     .chevron-button svg.rotated {
         transform: rotate(90deg);
-    }
+    }*/
 
     .collapsible {
         overflow: hidden;
