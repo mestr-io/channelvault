@@ -40,18 +40,18 @@ type DownloadTaskStatus struct {
 }
 
 type App struct {
-	ctx          context.Context
-	repository   repository.Repository
-	state        ViewState
-	filesFolder  string
-	importTask   *ImportTaskStatus
-	downloadTask *DownloadTaskStatus
+	ctx         context.Context
+	repository  repository.Repository
+	state       ViewState
+	filesFolder string
+	appKey      string
 }
 
 func New(repository repository.Repository, filesFolder string) *App {
 	return &App{
 		repository:  repository,
 		filesFolder: filesFolder,
+		appKey:      AppID(filesFolder),
 	}
 }
 
