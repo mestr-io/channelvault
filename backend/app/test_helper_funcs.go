@@ -139,7 +139,7 @@ func (m *MockRepository) ListChannelFiles(ctx context.Context, channelID string,
 }
 
 func (m *MockRepository) GetThreadByTs(ctx context.Context, threadTs string, channelID string, importID int64) ([]models.Message, error) {
-	args := m.Called(ctx, threadTs, channelID)
+	args := m.Called(ctx, threadTs, channelID, importID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

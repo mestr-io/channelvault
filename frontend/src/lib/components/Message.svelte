@@ -11,16 +11,21 @@ import Reactions from './Reactions.svelte'
 import ThreadInfo from './ThreadInfo.svelte'
 import { circle } from './Icons.svelte'
 import type { ThreadID } from '../types'
+import { GetUserHandle } from '../../../wailsjs/go/app/App'
+import { getContext } from 'svelte'
 
 type Props = {
   group: models.Message[]
   selectedThread: ThreadID | null
 }
 
+const cache: Map<string, string> = getContext('userhandle_cache')
+
 let { group, selectedThread = $bindable() }: Props = $props()
 let current_version = $state(0)
 let msg = $derived(group[current_version])
 let isTransitioning = $state(false)
+let message_text = $derived(replaceUserIDWithHandle(msg.text || ''))
 
 // Markdown
 const mapped = [svelte('a', Link)]
@@ -30,6 +35,32 @@ const options: Options = {
 }
 
 export const carta = new Carta(options)
+
+async function getUserHandle(userId: string): Promise<string> {
+  if (cache.has(userId)) {
+    return cache.get(userId)!
+  }
+
+  try {
+    const handle = await GetUserHandle(userId)
+    cache.set(userId, handle)
+    return handle
+  } catch (error) {
+    return userId
+  }
+}
+
+async function replaceUserIDWithHandle(text: string): Promise<string> {
+  let result = text
+
+  for (const match of text.matchAll(/<@(U[A-Z0-9]+)>/g)) {
+    const userId = match[1]
+    const handle = await GetUserHandle(userId)
+    result = result.replace(match[0], handle ? `__@${handle}__` : `__@${userId}__`)
+  }
+
+  return result
+}
 
 /**
  * Formats the message timestamp to show only the time (e.g., "2:03 PM").
@@ -62,7 +93,7 @@ const selectVersion = (index: number) => {
 }
 
 $effect(() => {
-  if (selectedThread) {
+  if (selectedThread && selectedThread?.thread_ts == group[current_version].thread_ts) {
     selectedThread.import_id = group[current_version].ImportID
   }
 })
@@ -85,7 +116,7 @@ $effect(() => {
                             class="version-button"
                             class:active={i === current_version}
                             onclick={() => selectVersion(i)}
-                            title="Import ID = {group[i].ImportID}"
+                            title="Import ID = {version.ImportID}"
                         >
                             {@render circle("12px", i === current_version)}
                         </button>
@@ -95,7 +126,9 @@ $effect(() => {
         </div>
 
         <div class="content-wrapper" class:transitioning={isTransitioning}>
-            <Markdown {carta} value={msg.text || ""} />
+            {#await message_text then value}
+                <Markdown {carta} {value} />
+            {/await}
             <Attachments message={msg} />
             {#if msg.thread_ts}
                 <ThreadInfo

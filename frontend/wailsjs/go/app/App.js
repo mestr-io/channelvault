@@ -30,6 +30,10 @@ export function GetUserAvatar(arg1) {
   return window['go']['app']['App']['GetUserAvatar'](arg1);
 }
 
+export function GetUserHandle(arg1) {
+  return window['go']['app']['App']['GetUserHandle'](arg1);
+}
+
 export function GetViewState() {
   return window['go']['app']['App']['GetViewState']();
 }

@@ -41,7 +41,9 @@ $effect(() => {
   if (!showThread) selectedThread = null
 })
 
-$inspect(threadMessages)
+$effect(() => {
+  if (!selectedThread) showThread = false
+})
 
 $effect(() => {
   if (selectedThread && selectedChannel) {
@@ -84,7 +86,8 @@ onDestroy(() => {
   document.body.classList.remove('is-resizing-panes')
 })
 
-setContext('cache', new Map<string, string>())
+setContext('avatar_cache', new Map<string, string>())
+setContext('userhandle_cache', new Map<string, string>())
 setContext('imageOverlay', { openImageOverlay })
 
 function openImageOverlay(src: string) {
@@ -206,7 +209,7 @@ function endResize() {
           <VList
             bind:this={vlist_messages}
             data={groups}
-            getKey={(msg: models.Message[], _) => `${msg[0].ts}${msg[0].ImportID}`}
+            getKey={(g: models.Message[], _) => `${g[0].ts}`}
             overscan={10}
             shift={true}
             onscroll={handleScroll}

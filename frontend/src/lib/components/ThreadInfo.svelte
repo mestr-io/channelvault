@@ -7,7 +7,7 @@ let { replyUsers, replyCount, thread, selectedThread = $bindable() } = $props()
 
 let avatars: string[] = $state([])
 
-const cache: Map<string, string> = getContext('cache')
+const cache: Map<string, string> = getContext('avatar_cache')
 
 async function getUser(userId: string): Promise<string> {
   if (cache.has(userId)) {

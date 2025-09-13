@@ -57,3 +57,14 @@ func (r *RepositorySql) GetUserAvatar(ctx context.Context, userId string) (strin
 	}
 	return url, nil
 }
+
+func (r *RepositorySql) GetUserHandle(ctx context.Context, userId string) (string, error) {
+	sql := `SELECT real_name FROM users WHERE id = ? LIMIT 1;`
+	rows := r.db.QueryRowContext(ctx, sql, userId)
+	var name string
+	err := rows.Scan(&name)
+	if err != nil {
+		return "", err
+	}
+	return name, nil
+}
