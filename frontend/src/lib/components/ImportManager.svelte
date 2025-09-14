@@ -6,6 +6,8 @@ import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
 import { DeleteImport } from '../../../wailsjs/go/app/App'
 
+import { doneIcon, closeIcon } from './icons'
+
 let isOverlayActive = $state(false)
 
 let isDragging = $state(false)
@@ -134,6 +136,13 @@ function closeOverlay() {
     }}
 >
     <main>
+        <button
+            class="close-button"
+            aria-label="Close thread"
+            onclick={() => closeOverlay()}
+        >
+            {@render closeIcon("2rem", "#fafafa")}
+        </button>
         <div class="drop-zone-container">
             <button
                 class="collapse-toggle"
@@ -271,8 +280,9 @@ function closeOverlay() {
         width: 80vw;
         background-color: #552958;
         overflow: auto;
-        padding: 2em 4em;
+        padding: 1em 4em;
         border-radius: 1em;
+        position: relative;
     }
 
     .imports {
@@ -388,21 +398,28 @@ function closeOverlay() {
         margin-bottom: 1rem;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .imports {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-
-        .drop-zone {
-            min-width: 300px;
-        }
-    }
-
-    a {
-        color: #768998;
-        text-decoration: none;
+    .close-button {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        border: none;
+        color: #e6e6e6;
+        background: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
+        border-radius: 1rem;
+        z-index: 10; /* keep it above internal content if needed */
+        transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
+    }
+    .close-button:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #dea1a1;
     }
 </style>
