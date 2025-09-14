@@ -32,6 +32,28 @@ function legacyIsCollapsed(importState: models.SlackImport): boolean {
   return importState.Finished === '' && importState.Error === ''
 }
 
+function detectPrimarySeparator(path: string): '/' | '\\' | null {
+  const lastFwd = path.lastIndexOf('/')
+  const lastBack = path.lastIndexOf('\\')
+  if (lastFwd === -1 && lastBack === -1) return null
+  return lastFwd > lastBack ? '/' : '\\'
+}
+
+function parentPathKeepingSeparator(path: string): string {
+  if (!path) return ''
+
+  const sep = detectPrimarySeparator(path)
+
+  // Remove trailing slashes/backslashes (plural)
+  path = path.replace(/[\\/]+$/, '')
+
+  const parts = path.split(/[\\/]/)
+  parts.pop()
+  const joiner = sep || '/'
+
+  return parts.join(joiner)
+}
+
 onMount(() => {
   // --- Event Listeners ---
   const unsubImportProgress = runtime.EventsOn('importProgress', (p: models.Progress) => {
@@ -149,9 +171,13 @@ function toggleCollapse() {
             {@render chevron(!isCollapsed)}
         </button>
 
-        <div class="card-title" class:truncated={isCollapsed}>
+        <button
+            class="card-title"
+            class:truncated={isCollapsed}
+            onclick={toggleCollapse}
+        >
             {slackImportCard.Name || "Untitled Import"}
-        </div>
+        </button>
 
         <div class="card-actions">
             <div
@@ -281,12 +307,16 @@ function toggleCollapse() {
         {/if}
 
         <div class="card-content">
-            <div class="info-row">
+            <div class="info-row zebra">
                 <div class="info-item">
                     {@render downloadIcon()}
                     <div class="info-text">
-                        <span class="info-label">Source Path</span>
-                        <span class="info-value">{slackImportCard.Path}</span>
+                        <span class="info-label">Original Location</span>
+                        <span title={slackImportCard.Path} class="info-value"
+                            >{parentPathKeepingSeparator(
+                                slackImportCard.Path,
+                            )}</span
+                        >
                     </div>
                 </div>
             </div>
@@ -315,7 +345,7 @@ function toggleCollapse() {
                 {/if}
             </div>
 
-            <div class="info-row">
+            <div class="info-row zebra">
                 <div class="info-item">
                     {@render envelopeIcon()}
                     <div class="info-text">
@@ -411,11 +441,16 @@ function toggleCollapse() {
         color: #111827;
         font-size: 1rem;
         font-weight: 600;
+        line-height: 1.4rem;
         /* Fine tunning title position here, tweak when changing font size/weight */
-        margin: 0.2rem 0.3rem 0 0.5rem;
+        margin: 0 0.3rem 0 0.5rem;
         min-width: 0; /* IMPORTANT so ellipsis works in flex layouts */
         white-space: normal;
         overflow: visible;
+        border: 0;
+        background-color: white;
+        text-align: left;
+        cursor: pointer;
     }
 
     .card-title.truncated {
@@ -473,16 +508,6 @@ function toggleCollapse() {
         color: #111827;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
-
-    /*.action-button svg,
-    .chevron-button svg {
-        width: 1rem;
-        height: 1rem;
-    }*/
-    /*
-    .chevron-button svg.rotated {
-        transform: rotate(90deg);
-    }*/
 
     .collapsible {
         overflow: hidden;
@@ -558,14 +583,21 @@ function toggleCollapse() {
     }
 
     .card-content {
+        /*Let's align that vertically with the title*/
+        margin: 0.5rem 0 0 2.2rem;
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
-        border: 1px solid red;
     }
+
     .info-row {
         display: flex;
-        gap: 1.25rem;
+        margin: 0.2rem;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+    }
+
+    .zebra {
+        background-color: #f3f3f3;
     }
 
     .info-item {
