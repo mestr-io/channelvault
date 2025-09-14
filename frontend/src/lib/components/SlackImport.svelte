@@ -5,7 +5,7 @@ import { models } from '../../../wailsjs/go/models'
 import { RenameImport, DownloadBinaries } from '../../../wailsjs/go/app/App'
 import Prompt from './Prompt.svelte'
 
-import { chevron, downloadIcon } from './icons'
+import { chevron, downloadIcon, calendarIcon, doneIcon, envelopeIcon, burgerMenuIcon } from './icons'
 
 let {
   slackImportCard,
@@ -293,17 +293,7 @@ function toggleCollapse() {
 
             <div class="info-row">
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
+                    {@render calendarIcon()}
                     <div class="info-text">
                         <span class="info-label">Started</span>
                         <span class="info-value"
@@ -314,17 +304,7 @@ function toggleCollapse() {
 
                 {#if slackImportCard.Finished}
                     <div class="info-item">
-                        <svg
-                            class="info-icon"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd"
-                            />
-                        </svg>
+                        {@render doneIcon()}
                         <div class="info-text">
                             <span class="info-label">Completed</span>
                             <span class="info-value"
@@ -337,18 +317,7 @@ function toggleCollapse() {
 
             <div class="info-row">
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"
-                        />
-                        <path
-                            d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"
-                        />
-                    </svg>
+                    {@render envelopeIcon()}
                     <div class="info-text">
                         <span class="info-label">JSON files</span>
                         <span class="info-value"
@@ -359,17 +328,7 @@ function toggleCollapse() {
                 </div>
 
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
+                    {@render burgerMenuIcon()}
                     <div class="info-text">
                         <span class="info-label">Import ID</span>
                         <span class="info-value">{slackImportCard.ID}</span>
@@ -378,17 +337,7 @@ function toggleCollapse() {
             </div>
             <div class="info-row">
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path
-                            d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.293 8.293l-5 5a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L11 12.586l4.293-4.293a1 1 0 011.414 1.414z"
-                            fill="currentColor"
-                        />
-                    </svg>
+                    {@render doneIcon()}
                     <div class="info-text">
                         <span class="info-label">Pending downloads</span>
                         <span class="info-value">{pendingBinaries}</span>
@@ -618,6 +567,7 @@ function toggleCollapse() {
         display: flex;
         gap: 1.25rem;
     }
+
     .info-item {
         display: flex;
         align-items: flex-start; /* Changed to flex-start for better alignment */
@@ -625,19 +575,14 @@ function toggleCollapse() {
         flex: 1;
         min-width: 0;
     }
-    .info-icon {
-        width: 1.25rem;
-        height: 1.25rem;
-        color: #6b7280;
-        margin-top: 0.125rem;
-        /*flex-shrink: 0; */
-    }
+
     .info-text {
         display: flex;
         flex-direction: column;
         flex: 1;
         min-width: 0;
     }
+
     .info-label {
         font-size: 0.75rem;
         font-weight: 500;
@@ -645,6 +590,7 @@ function toggleCollapse() {
         text-transform: uppercase;
         margin-bottom: 0.25rem;
     }
+
     .info-value {
         font-size: 0.9rem;
         color: #111827;
