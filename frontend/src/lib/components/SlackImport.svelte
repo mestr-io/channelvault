@@ -421,19 +421,15 @@ function toggleCollapse() {
         background: #ffffff;
         border-radius: 0.5rem;
         padding: 0.4rem;
-        /*box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);*/
         border: 1px solid #e5e7eb;
-        /*border: 1px solid red;*/
         width: 100%; /* if you want it to fill parent */
-        min-height: 1.5rem;
+        min-height: 1.8rem;
         overflow: visible;
     }
 
     .card-header {
         display: flex;
-        justify-content: space-between;
         align-items: flex-start;
-        /*border: 1px solid green;*/
         min-width: 0;
     }
     .card-title {
@@ -443,7 +439,7 @@ function toggleCollapse() {
         font-weight: 600;
         line-height: 1.4rem;
         /* Fine tunning title position here, tweak when changing font size/weight */
-        margin: 0 0.3rem 0 0.5rem;
+        margin: 0.2rem 0.3rem 0 0.3rem;
         min-width: 0; /* IMPORTANT so ellipsis works in flex layouts */
         white-space: normal;
         overflow: visible;
