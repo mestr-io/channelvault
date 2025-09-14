@@ -5,7 +5,8 @@ import { models } from '../../../wailsjs/go/models'
 import { RenameImport, DownloadBinaries } from '../../../wailsjs/go/app/App'
 import Prompt from './Prompt.svelte'
 
-import { chevron } from './Icons.svelte'
+// import { chevron } from './Icons.svelte'
+import { chevron } from './icons/chevron.svelte'
 
 let {
   slackImportCard,
