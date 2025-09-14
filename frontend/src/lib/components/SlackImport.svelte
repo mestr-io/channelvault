@@ -5,8 +5,7 @@ import { models } from '../../../wailsjs/go/models'
 import { RenameImport, DownloadBinaries } from '../../../wailsjs/go/app/App'
 import Prompt from './Prompt.svelte'
 
-// import { chevron } from './Icons.svelte'
-import { chevron } from './icons/chevron.svelte'
+import { chevron, downloadIcon } from './icons'
 
 let {
   slackImportCard,
@@ -284,17 +283,7 @@ function toggleCollapse() {
         <div class="card-content">
             <div class="info-row">
                 <div class="info-item">
-                    <svg
-                        class="info-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
+                    {@render downloadIcon()}
                     <div class="info-text">
                         <span class="info-label">Source Path</span>
                         <span class="info-value">{slackImportCard.Path}</span>
@@ -468,18 +457,13 @@ function toggleCollapse() {
         /*border: 1px solid green;*/
         min-width: 0;
     }
-    .collapsible:not(.collapsed) .card-header {
-        /*margin-bottom: 1rem;*/
-    }
-
     .card-title {
         flex-grow: 1;
         color: #111827;
         font-size: 1rem;
         font-weight: 600;
-        /* Fine tunning title position here tweak when changing font size/weight*/
+        /* Fine tunning title position here, tweak when changing font size/weight */
         margin: 0.2rem 0.3rem 0 0.5rem;
-        /*flex: 1 1 auto;*/
         min-width: 0; /* IMPORTANT so ellipsis works in flex layouts */
         white-space: normal;
         overflow: visible;
@@ -628,6 +612,7 @@ function toggleCollapse() {
         display: flex;
         flex-direction: column;
         gap: 1.25rem;
+        border: 1px solid red;
     }
     .info-row {
         display: flex;
@@ -645,7 +630,7 @@ function toggleCollapse() {
         height: 1.25rem;
         color: #6b7280;
         margin-top: 0.125rem;
-        flex-shrink: 0; /* Prevent icon from shrinking */
+        /*flex-shrink: 0; */
     }
     .info-text {
         display: flex;
