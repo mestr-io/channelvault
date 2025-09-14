@@ -150,7 +150,7 @@ function toggleCollapse() {
             {@render chevron(!isCollapsed)}
         </button>
 
-        <div class="card-title">
+        <div class="card-title" class:truncated={isCollapsed}>
             {slackImportCard.Name || "Untitled Import"}
         </div>
 
@@ -455,32 +455,40 @@ function toggleCollapse() {
         padding: 0.4rem;
         /*box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);*/
         border: 1px solid #e5e7eb;
-        border: 1px solid red;
+        /*border: 1px solid red;*/
+        width: 100%; /* if you want it to fill parent */
+        min-height: 1.5rem;
+        overflow: visible;
     }
 
     .card-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        /* BUG FIX: Removed fixed margin-bottom to let the content inside the collapsible define the spacing*/
-        /*gap: 1rem;*/
-        border: 1px solid green;
+        /*border: 1px solid green;*/
+        min-width: 0;
     }
     .collapsible:not(.collapsed) .card-header {
         /*margin-bottom: 1rem;*/
     }
 
     .card-title {
+        flex-grow: 1;
         color: #111827;
-        font-size: 1.2rem;
+        font-size: 1rem;
         font-weight: 600;
-        margin: 0;
+        /* Fine tunning title position here tweak when changing font size/weight*/
+        margin: 0.2rem 0.3rem 0 0.5rem;
+        /*flex: 1 1 auto;*/
+        min-width: 0; /* IMPORTANT so ellipsis works in flex layouts */
+        white-space: normal;
+        overflow: visible;
+    }
+
+    .card-title.truncated {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        text-align: left;
-        /* (Optional) define a width or let a flex/grid container constrain it */
-        /* max-width: 260px; */
     }
 
     .card-actions {
