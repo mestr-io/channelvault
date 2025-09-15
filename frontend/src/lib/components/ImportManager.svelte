@@ -107,6 +107,7 @@ function handleDrop(event: DragEvent): void {
 
   dragCounter = 0
   isDragging = false
+  isDropZoneCollapsed = true
 }
 
 $effect(() => {

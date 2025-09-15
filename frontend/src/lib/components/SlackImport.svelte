@@ -26,10 +26,16 @@ let isCollapsed = $state(true)
 let promptDefault = ''
 let importId: number
 
+$inspect(isCollapsed)
+
+$effect(() => {
+  isCollapsed = legacyIsCollapsed(slackImportCard)
+})
+
 function legacyIsCollapsed(importState: models.SlackImport): boolean {
   // Legacy mode assings isCollapsed to =>  slackImportCard.Finished !== "" && slackImportCard.Error === ""
 
-  return importState.Finished === '' && importState.Error === ''
+  return importState.Finished !== '' && importState.Error === ''
 }
 
 function detectPrimarySeparator(path: string): '/' | '\\' | null {
@@ -183,12 +189,12 @@ function toggleCollapse() {
             <div
                 class="status-badge"
                 style="background-color: {getStatusColor(
-                    progress?.Progress ?? slackImportCard.Progress,
+                    progress?.Progress ?? 0,
                     slackImportCard.Error,
                 )}"
             >
                 {getStatusText(
-                    progress?.Progress ?? slackImportCard.Progress,
+                    progress?.Progress ?? 0,
                     slackImportCard.Finished,
                     slackImportCard.Error,
                 )}
@@ -387,9 +393,8 @@ function toggleCollapse() {
                 <div class="progress-bar">
                     <div
                         class="progress-fill"
-                        style="width: {progress?.Progress ??
-                            slackImportCard.Progress}%; background-color: {getStatusColor(
-                            progress?.Progress ?? slackImportCard.Progress,
+                        style="width: {progress?.Progress ?? 0}%; background-color: {getStatusColor(
+                            progress?.Progress ?? 0,
                             slackImportCard.Error,
                         )}"
                     ></div>
