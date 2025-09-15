@@ -1,0 +1,7 @@
+export { chevron } from './chevron.svelte'
+export { downloadIcon } from './download.svelte'
+export { calendarIcon } from './calendar.svelte'
+export { doneIcon } from './done.svelte'
+export { envelopeIcon } from './envelope.svelte'
+export { burgerMenuIcon } from './burger-menu.svelte'
+export { closeIcon } from './close.svelte'
