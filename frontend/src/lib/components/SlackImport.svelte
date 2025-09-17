@@ -45,21 +45,6 @@ function detectPrimarySeparator(path: string): '/' | '\\' | null {
   return lastFwd > lastBack ? '/' : '\\'
 }
 
-function parentPathKeepingSeparator(path: string): string {
-  if (!path) return ''
-
-  const sep = detectPrimarySeparator(path)
-
-  // Remove trailing slashes/backslashes (plural)
-  path = path.replace(/[\\/]+$/, '')
-
-  const parts = path.split(/[\\/]/)
-  parts.pop()
-  const joiner = sep || '/'
-
-  return parts.join(joiner)
-}
-
 onMount(() => {
   // --- Event Listeners ---
   const unsubImportProgress = runtime.EventsOn('importProgress', (p: models.Progress) => {
@@ -222,39 +207,9 @@ function toggleCollapse() {
                     disabled={isDownloading}
                 >
                     {#if isDownloading}
-                        <svg
-                            class="spinner"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                d="M12 2.99988V5.99988M12 18V21M4.92896 4.92883L7.05028 7.05016M16.9497 16.9497L19.071 19.071M2.99994 12H5.99994M18 12H21M4.92896 19.071L7.05028 16.9497M16.9497 7.05016L19.071 4.92883"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
+                        <div class="spinner"></div>
                     {:else}
-                        <svg
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                d="M11 5C11 4.44772 11.4477 4 12 4C12.5523 4 13 4.44772 13 5V12.1578L16.2428 8.91501L17.657 10.3292L12.0001 15.9861L6.34326 10.3292L7.75748 8.91501L11 12.1575V5Z"
-                                fill="currentColor"
-                            />
-                            <path
-                                d="M4 14H6V18H18V14H20V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V14Z"
-                                fill="currentColor"
-                            />
-                        </svg>
+                        {@render downloadIcon()}
                     {/if}
                 </button>
             {/if}
@@ -319,9 +274,7 @@ function toggleCollapse() {
                     <div class="info-text">
                         <span class="info-label">Original Location</span>
                         <span title={slackImportCard.Path} class="info-value"
-                            >{parentPathKeepingSeparator(
-                                slackImportCard.Path,
-                            )}</span
+                            >{slackImportCard.Path}</span
                         >
                     </div>
                 </div>
@@ -393,7 +346,8 @@ function toggleCollapse() {
                 <div class="progress-bar">
                     <div
                         class="progress-fill"
-                        style="width: {progress?.Progress ?? 0}%; background-color: {getStatusColor(
+                        style="width: {progress?.Progress ??
+                            0}%; background-color: {getStatusColor(
                             progress?.Progress ?? 0,
                             slackImportCard.Error,
                         )}"
@@ -403,55 +357,89 @@ function toggleCollapse() {
         {/if}
     </div>
 </main>
-
 <style>
-    /* Add this keyframes rule for the spinner animation */
-    @keyframes spin {
-        from {
-            transform: rotate(0deg);
-        }
-        to {
-            transform: rotate(360deg);
-        }
+    /* * =============================================
+     * Design System: Variables (Design Tokens)
+     * =============================================
+     * Using variables makes the design consistent and easy to change.
+    */
+    main {
+        --c-surface: #ffffff;
+        --c-surface-soft: #f9fafb; /* Softer background for zebra stripes */
+        --c-border: #e5e7eb;
+        
+        --c-text-primary: #1f2937;
+        --c-text-secondary: #6b7280;
+        --c-text-label: #9ca3af;
+
+        --c-brand-blue: #3b82f6;
+
+        --c-status-error-bg: #fef2f2;
+        --c-status-error-border: #fecaca;
+        --c-status-error-text: #b91c1c;
+        --c-status-error-icon: #ef4444;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --radius: 0.75rem; /* A more generous border radius */
+        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Add this class for the spinner SVG */
+    /* * =============================================
+     * Spinner Animation
+     * =============================================
+    */
     .spinner {
+        width: 1.125rem; /* 18px */
+        height: 1.125rem;
+        border: 2px solid var(--c-brand-blue);
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        display: inline-block;
+        box-sizing: border-box;
         animation: spin 1s linear infinite;
-        width: 1rem;
-        height: 1rem;
     }
 
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* * =============================================
+     * Main Card Structure
+     * =============================================
+    */
     .card {
-        background: #ffffff;
-        border-radius: 0.5rem;
-        padding: 0.4rem;
-        border: 1px solid #e5e7eb;
-        width: 100%; /* if you want it to fill parent */
-        min-height: 1.8rem;
-        overflow: visible;
+        background: var(--c-surface);
+        border-radius: var(--radius);
+        border: 1px solid var(--c-border);
+        box-shadow: var(--shadow-sm);
+        padding: 1rem; /* More breathing room */
+        width: 100%;
+        overflow: hidden; /* Important for child border-radius */
     }
 
     .card-header {
         display: flex;
-        align-items: flex-start;
+        align-items: center; /* Better vertical alignment */
+        gap: 0.75rem; /* Consistent spacing */
         min-width: 0;
     }
+
     .card-title {
         flex-grow: 1;
-        color: #111827;
+        color: var(--c-text-primary);
         font-size: 1rem;
         font-weight: 600;
-        line-height: 1.4rem;
-        /* Fine tunning title position here, tweak when changing font size/weight */
-        margin: 0.2rem 0.3rem 0 0.3rem;
-        min-width: 0; /* IMPORTANT so ellipsis works in flex layouts */
+        line-height: 1.5;
+        margin: 0; /* Reset margin */
+        min-width: 0;
         white-space: normal;
-        overflow: visible;
         border: 0;
-        background-color: white;
+        background-color: transparent;
         text-align: left;
         cursor: pointer;
+        padding: 0;
     }
 
     .card-title.truncated {
@@ -467,65 +455,88 @@ function toggleCollapse() {
         flex-shrink: 0;
     }
 
+    /* * =============================================
+     * Status Badge & Action Buttons
+     * =============================================
+    */
     .status-badge {
         color: #fff;
         font-size: 0.75rem;
-        font-weight: 600;
+        font-weight: 500;
         padding: 0.25rem 0.75rem;
         border-radius: 9999px;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-        flex-shrink: 0;
+        line-height: 1.25;
     }
 
     .action-button,
     .chevron-button {
-        min-width: 30px;
-        width: 30px;
-        aspect-ratio: 1;
+        width: 2.25rem; /* 36px */
+        height: 2.25rem;
         display: grid;
         place-items: center;
-        padding: 0;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        background: #fff;
+        border: 1px solid var(--c-border);
+        border-radius: 0.5rem;
+        background: var(--c-surface);
+        color: var(--c-text-secondary);
         cursor: pointer;
+        transition: var(--transition);
     }
-
-    /* Style for disabled download button */
-    .action-button:disabled {
-        cursor: not-allowed;
-        background-color: #f3f4f6;
-        color: #9ca3af;
-    }
-    .action-button:disabled:hover {
-        transform: none;
-        box-shadow: none;
+    
+    .action-button :global(svg),
+    .chevron-button :global(svg) {
+        width: 1.25rem;
+        height: 1.25rem;
     }
 
     .action-button:hover,
     .chevron-button:hover {
-        background-color: #f3f4f6;
-        color: #111827;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        background-color: var(--c-surface-soft);
+        color: var(--c-text-primary);
+        border-color: #d1d5db;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .action-button:disabled {
+        cursor: not-allowed;
+        background-color: var(--c-surface-soft);
+        color: #d1d5db;
+        transform: none;
+        box-shadow: none;
     }
 
+    /* * =============================================
+     * Collapsible Section & Animation
+     * =============================================
+    */
     .collapsible {
         overflow: hidden;
+        display: grid;
+        grid-template-rows: 1fr;
+        transition: grid-template-rows 0.3s ease-out, margin-top 0.3s ease-out;
+        margin-top: 1rem;
     }
 
     .collapsible.collapsed {
-        max-height: 0;
-        /* remove all margins from children when collapsed */
-        margin-top: -1.5rem; /* compensate for card padding */
+        grid-template-rows: 0fr;
+        margin-top: 0;
     }
 
+    /* This direct child is necessary for the grid animation to work correctly */
+    .collapsible > * {
+        min-height: 0;
+    }
+    
+    /* * =============================================
+     * Error Section
+     * =============================================
+    */
     .error-section {
-        background-color: #fef2f2;
-        border: 1px solid #fecaca;
-        border-radius: 0.5rem;
+        background-color: var(--c-status-error-bg);
+        border: 1px solid var(--c-status-error-border);
+        border-radius: var(--radius);
         padding: 1rem;
-        margin-bottom: 1.25rem;
+        margin-bottom: 1rem;
     }
     .error-header {
         display: flex;
@@ -536,77 +547,81 @@ function toggleCollapse() {
     .error-icon {
         width: 1.25rem;
         height: 1.25rem;
-        color: #dc2626;
+        color: var(--c-status-error-icon);
         flex-shrink: 0;
     }
     .error-title {
         font-size: 0.875rem;
         font-weight: 600;
-        color: #b91c1c;
+        color: var(--c-status-error-text);
     }
     .error-message {
         font-size: 0.875rem;
-        color: #7f1d1d;
-        margin: 0 0 0.75rem 0;
+        color: #991b1b;
+        margin: 0 0 1rem 0;
         line-height: 1.5;
+        padding-left: 1.75rem;
     }
-
     .error-actions {
         display: flex;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
+        justify-content: flex-end; /* Align button to the right */
     }
-
     .retry-button {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.5rem 0.75rem;
-        background-color: #dc2626;
+        padding: 0.5rem 1rem;
+        background-color: var(--c-status-error-icon);
         color: white;
         border: none;
-        border-radius: 0.375rem;
+        border-radius: 0.5rem;
         font-size: 0.875rem;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: var(--transition);
     }
-
     .retry-button:hover {
-        background-color: #b91c1c;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        background-color: var(--c-status-error-text);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
     }
+    .retry-button svg { width: 1rem; height: 1rem; }
 
-    .retry-button svg {
-        width: 1rem;
-        height: 1rem;
-    }
-
+    /* * =============================================
+     * Card Content Details
+     * =============================================
+    */
     .card-content {
-        /*Let's align that vertically with the title*/
-        margin: 0.5rem 0 0 2.2rem;
+        margin: 0;
         display: flex;
         flex-direction: column;
+        gap: 0.5rem; /* Space out the rows */
     }
 
     .info-row {
         display: flex;
-        margin: 0.2rem;
-        padding: 0.5rem;
+        gap: 1rem; /* More space between items */
+        padding: 0.75rem 1rem;
         border-radius: 0.5rem;
     }
 
     .zebra {
-        background-color: #f3f3f3;
+        background-color: var(--c-surface-soft);
     }
-
+    
     .info-item {
         display: flex;
-        align-items: flex-start; /* Changed to flex-start for better alignment */
+        align-items: center;
         gap: 0.75rem;
         flex: 1;
         min-width: 0;
+    }
+    
+    .info-item :global(svg) {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--c-text-secondary);
+        flex-shrink: 0;
     }
 
     .info-text {
@@ -619,22 +634,32 @@ function toggleCollapse() {
     .info-label {
         font-size: 0.75rem;
         font-weight: 500;
-        color: #6b7280;
+        color: var(--c-text-label);
         text-transform: uppercase;
-        margin-bottom: 0.25rem;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.125rem;
     }
 
     .info-value {
-        font-size: 0.9rem;
-        color: #111827;
+        font-size: 0.875rem;
+        color: var(--c-text-secondary);
         font-weight: 500;
-        word-break: break-all; /* Changed to break-all for long paths */
+        word-break: break-all;
+        line-height: 1.4;
+    }
+    
+    .info-value[title] { /* Add subtle indicator for truncated text */
+       cursor: help;
     }
 
+    /* * =============================================
+     * Progress Bar
+     * =============================================
+    */
     .progress-section {
-        border-top: 1px solid #e5e7eb;
-        padding-top: 1.25rem;
-        margin-top: 1.25rem;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 1px solid var(--c-border);
     }
     .progress-header {
         display: flex;
@@ -645,18 +670,20 @@ function toggleCollapse() {
     .progress-label {
         font-size: 0.75rem;
         font-weight: 500;
-        color: #6b7280;
+        color: var(--c-text-label);
         text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
     .progress-percentage {
         font-size: 0.875rem;
         font-weight: 600;
-        color: #111827;
+        color: var(--c-text-primary);
     }
     .progress-bar {
         width: 100%;
-        height: 0.625rem;
-        background-color: #f3f4f6;
+        height: 0.5rem;
+        background-color: var(--c-surface-soft);
+        border: 1px solid var(--c-border);
         border-radius: 9999px;
         overflow: hidden;
     }
