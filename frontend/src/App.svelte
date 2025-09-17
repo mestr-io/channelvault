@@ -192,7 +192,7 @@ function endResize() {
             </div>
           {/each}
         </div>
-        <div class="channel-item">
+        <div class="channel-item" style="padding-bottom: 12px;">
           <button onclick={() => openImportsOverlay()}>
             {@render import_icon('1rem')}
             Imports
