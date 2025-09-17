@@ -35,7 +35,7 @@ func (r *RepositorySql) BulkInsertUsers(ctx context.Context, users []models.User
 	// 5. Iterate over users, filter, and execute the prepared statement.
 	insertCount := 0
 	for _, user := range users {
-		_, err := stmt.Exec(imp.ID, user.ID, user.Name, user.Profile.Image32, user.RealName, user.Deleted, user.IsBot)
+		_, err := stmt.Exec(imp.ID, user.ID, user.Name, user.Profile.Image72, user.RealName, user.Deleted, user.IsBot)
 		if err != nil {
 			return fmt.Errorf("failed to insert user %s: %w", user.ID, err)
 		}

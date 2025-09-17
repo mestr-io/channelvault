@@ -46,6 +46,15 @@ func DownloadBinaries(ctx context.Context, filesFolder string, repository reposi
 			}
 			// download file
 			resp, err := http.Get(file.FileURL)
+			if resp.StatusCode == 302 {
+				pending -= 1
+				if err = repository.MarkFileAsDownloaded(ctx, currentImport.ID, file.ID); err != nil {
+					return fmt.Errorf("failed to modify file with id %s: %v", file.ID, err)
+				}
+				// notify progress
+				runtime.EventsEmit(ctx, "downloadedBinary", currentImport.ID, pending)
+				continue
+			}
 			if err != nil {
 				return fmt.Errorf("fail downloading file %s : %v", file.FileURL, err)
 			}
