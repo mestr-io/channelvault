@@ -220,6 +220,7 @@ function closeOverlay() {
                     <div>Drop here your Slack export zip file</div>
                     <div>
                         Check this <a
+                            class="info-link"
                             href="#"
                             onclick={() =>
                                 runtime.BrowserOpenURL(
@@ -374,6 +375,9 @@ function closeOverlay() {
         background-color: #1f2937;
     }
 
+    .info-link {
+        color: lightblue;
+    }
     .drop-zone.is-collapsed.is-disabled {
         opacity: 0;
     }
