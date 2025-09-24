@@ -1,130 +1,130 @@
 <script lang="ts">
-import { onMount } from 'svelte'
-import { ListImports, ResumeImport } from '../../../wailsjs/go/app/App'
-import { models } from '../../../wailsjs/go/models'
-import SlackImport from './SlackImport.svelte'
-import * as runtime from '../../../wailsjs/runtime/runtime'
-import { DeleteImport } from '../../../wailsjs/go/app/App'
+    import { onMount } from "svelte";
+    import { ListImports, ResumeImport } from "../../../wailsjs/go/app/App";
+    import { models } from "../../../wailsjs/go/models";
+    import SlackImport from "./SlackImport.svelte";
+    import * as runtime from "../../../wailsjs/runtime/runtime";
+    import { DeleteImport } from "../../../wailsjs/go/app/App";
 
-import { doneIcon, closeIcon } from './icons'
+    import { doneIcon, closeIcon } from "./icons";
 
-let isOverlayActive = $state(false)
+    let isOverlayActive = $state(false);
 
-let isDragging = $state(false)
-let dragCounter = $state(0)
-let imports: models.SlackImport[] = $state([])
-let isImporting = $state(false)
-let isDropZoneCollapsed = $state(true)
+    let isDragging = $state(false);
+    let dragCounter = $state(0);
+    let imports: models.SlackImport[] = $state([]);
+    let isImporting = $state(false);
+    let isDropZoneCollapsed = $state(true);
 
-let overlayElement: HTMLDivElement | null = null
+    let overlayElement: HTMLDivElement | null = null;
 
-onMount(async () => {
-  // subscribe to new import notification
-  runtime.EventsOn('startImport', async (imp: models.SlackImport) => {
-    const fresh = await ListImports()
-    imports = [...fresh]
-    isImporting = true
-  })
+    onMount(async () => {
+        // subscribe to new import notification
+        runtime.EventsOn("startImport", async (imp: models.SlackImport) => {
+            const fresh = await ListImports();
+            imports = [...fresh];
+            isImporting = true;
+        });
 
-  // reload the
-  runtime.EventsOn('importComplete', async () => {
-    const fresh = await ListImports()
-    imports = [...fresh]
-    isImporting = false
-  })
+        // reload the
+        runtime.EventsOn("importComplete", async () => {
+            const fresh = await ListImports();
+            imports = [...fresh];
+            isImporting = false;
+        });
 
-  runtime.EventsOn('importError', async () => {
-    const fresh = await ListImports()
-    imports = [...fresh]
-    isImporting = false
-  })
+        runtime.EventsOn("importError", async () => {
+            const fresh = await ListImports();
+            imports = [...fresh];
+            isImporting = false;
+        });
 
-  runtime.EventsOn('downloadBinariesDone', async _ => {
-    const fresh = await ListImports()
-    imports = [...fresh]
-  })
+        runtime.EventsOn("downloadBinariesDone", async (_) => {
+            const fresh = await ListImports();
+            imports = [...fresh];
+        });
 
-  // load imports
-  const fresh = await ListImports()
-  imports = [...fresh]
+        // load imports
+        const fresh = await ListImports();
+        imports = [...fresh];
 
-  if (imports.length === 0) {
-    isDropZoneCollapsed = false
-  }
-})
+        if (imports.length === 0) {
+            isDropZoneCollapsed = false;
+        }
+    });
 
-let DeleteImportHandle = async (importID: number) => {
-  try {
-    await DeleteImport(importID)
-    const fresh = await ListImports()
-    imports = [...fresh]
-  } catch (error) {}
-}
+    let DeleteImportHandle = async (importID: number) => {
+        try {
+            await DeleteImport(importID);
+            const fresh = await ListImports();
+            imports = [...fresh];
+        } catch (error) {}
+    };
 
-let RetryImportHandle = async (importID: number) => {
-  await ResumeImport(importID)
-}
+    let RetryImportHandle = async (importID: number) => {
+        await ResumeImport(importID);
+    };
 
-function toggleDropZone() {
-  isDropZoneCollapsed = !isDropZoneCollapsed
-}
-
-// --- Drag & Drop Event Handlers ---
-function handleDragEnter(event: DragEvent): void {
-  event.preventDefault()
-  dragCounter++
-  if (dragCounter === 1) {
-    isDragging = true
-    // Auto-expand when dragging over collapsed zone
-    if (isDropZoneCollapsed) {
-      isDropZoneCollapsed = false
+    function toggleDropZone() {
+        isDropZoneCollapsed = !isDropZoneCollapsed;
     }
-  }
-}
 
-function handleDragOver(event: DragEvent): void {
-  event.preventDefault()
-  if (!isDragging) {
-    isDragging = true
-    // Auto-expand when dragging over collapsed zone
-    if (isDropZoneCollapsed) {
-      isDropZoneCollapsed = false
+    // --- Drag & Drop Event Handlers ---
+    function handleDragEnter(event: DragEvent): void {
+        event.preventDefault();
+        dragCounter++;
+        if (dragCounter === 1) {
+            isDragging = true;
+            // Auto-expand when dragging over collapsed zone
+            if (isDropZoneCollapsed) {
+                isDropZoneCollapsed = false;
+            }
+        }
     }
-  }
-}
 
-function handleDragLeave(event: DragEvent): void {
-  event.preventDefault()
-  dragCounter--
-  if (dragCounter === 0) {
-    isDragging = false
-  }
-}
+    function handleDragOver(event: DragEvent): void {
+        event.preventDefault();
+        if (!isDragging) {
+            isDragging = true;
+            // Auto-expand when dragging over collapsed zone
+            if (isDropZoneCollapsed) {
+                isDropZoneCollapsed = false;
+            }
+        }
+    }
 
-function handleDrop(event: DragEvent): void {
-  event.preventDefault()
-  if (isImporting) return
+    function handleDragLeave(event: DragEvent): void {
+        event.preventDefault();
+        dragCounter--;
+        if (dragCounter === 0) {
+            isDragging = false;
+        }
+    }
 
-  dragCounter = 0
-  isDragging = false
-  isDropZoneCollapsed = true
-}
+    function handleDrop(event: DragEvent): void {
+        event.preventDefault();
+        if (isImporting) return;
 
-$effect(() => {
-  if (isOverlayActive && overlayElement) {
-    // to handle ESC key
-    overlayElement.focus()
-  }
-})
+        dragCounter = 0;
+        isDragging = false;
+        isDropZoneCollapsed = true;
+    }
 
-// note the export
-export function showOverlay() {
-  isOverlayActive = true
-}
+    $effect(() => {
+        if (isOverlayActive && overlayElement) {
+            // to handle ESC key
+            overlayElement.focus();
+        }
+    });
 
-function closeOverlay() {
-  isOverlayActive = false
-}
+    // note the export
+    export function showOverlay() {
+        isOverlayActive = true;
+    }
+
+    function closeOverlay() {
+        isOverlayActive = false;
+    }
 </script>
 
 <div
@@ -132,6 +132,8 @@ function closeOverlay() {
     class:active={isOverlayActive}
     bind:this={overlayElement}
     tabindex="0"
+    role="dialog"
+    aria-modal="true"
     onkeyup={(event) => {
         if (event.key === "Escape") closeOverlay();
     }}
