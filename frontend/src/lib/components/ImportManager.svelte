@@ -138,14 +138,14 @@
         if (event.key === "Escape") closeOverlay();
     }}
 >
+    <button
+        class="close-button"
+        aria-label="Close thread"
+        onclick={() => closeOverlay()}
+    >
+        {@render closeIcon("2rem")}
+    </button>
     <main>
-        <button
-            class="close-button"
-            aria-label="Close thread"
-            onclick={() => closeOverlay()}
-        >
-            {@render closeIcon("2rem", "#fafafa")}
-        </button>
         <div class="drop-zone-container">
             <button
                 class="collapse-toggle"
@@ -350,7 +350,7 @@
         box-shadow:
             0 10px 15px -3px rgba(0, 0, 0, 0.1),
             0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        transition: all 300ms ease-in-out;
+        transition: all 150ms ease-in-out;
         border: 2px dashed #6b7280;
         background-color: #2d3748;
         min-width: 350px;
