@@ -1,4 +1,6 @@
 <script lang="ts">
+import { closeIcon } from './icons'
+
 let isOverlayActive = $state(false)
 let overlayImageSrc = $state('')
 
@@ -33,6 +35,13 @@ $effect(() => {
         if (event.key === "Escape") closeOverlay();
     }}
 >
+    <button
+        class="close-button"
+        aria-label="Close thread"
+        onclick={() => closeOverlay()}
+    >
+        {@render closeIcon("2rem")}
+    </button>
     <img alt="Fullscreen Image" src={overlayImageSrc} />
 </div>
 
@@ -51,7 +60,7 @@ $effect(() => {
         display: flex;
         justify-content: center;
         align-items: center;
-        cursor: zoom-out;
+        cursor: pointer;
     }
 
     :global(.fullscreen-overlay.active) {
@@ -69,5 +78,30 @@ $effect(() => {
 
     :global(.fullscreen-overlay.active img) {
         transform: scale(1);
+    }
+
+    .close-button {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        border: none;
+        color: #e6e6e6;
+        background: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 1rem;
+        z-index: 10; /* keep it above internal content if needed */
+        transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
+    }
+    .close-button:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #dea1a1;
     }
 </style>

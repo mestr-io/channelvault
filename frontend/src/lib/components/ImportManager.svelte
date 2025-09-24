@@ -6,7 +6,7 @@ import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
 import { DeleteImport } from '../../../wailsjs/go/app/App'
 
-import { doneIcon, closeIcon } from './icons'
+import { closeIcon } from './icons'
 
 let isOverlayActive = $state(false)
 
