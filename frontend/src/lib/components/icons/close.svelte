@@ -1,5 +1,5 @@
 <script lang="ts" module>
-    export { closeIcon };
+export { closeIcon }
 </script>
 
 {#snippet closeIcon(size = "1.25rem")}

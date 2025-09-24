@@ -9,7 +9,7 @@ import Attachments from './Attachments.svelte'
 import Link from './Link.svelte'
 import Reactions from './Reactions.svelte'
 import ThreadInfo from './ThreadInfo.svelte'
-import { circle } from './Icons.svelte'
+import { circle } from './icons'
 import type { ThreadID } from '../types'
 import { GetUserHandle } from '../../../wailsjs/go/app/App'
 import { getContext } from 'svelte'
@@ -116,9 +116,9 @@ $effect(() => {
                             class="version-button"
                             class:active={i === current_version}
                             onclick={() => selectVersion(i)}
-                            title="Import ID = {version.ImportID}"
+                            title="Import ID: {version.ImportID}"
                         >
-                            {@render circle("12px", i === current_version)}
+                            {@render circle("1rem", i === current_version)}
                         </button>
                     {/each}
                 </div>
@@ -154,9 +154,8 @@ $effect(() => {
     }
 
     .version-container {
-        padding-right: 4px;
+        padding-right: 20px;
         display: flex;
-        gap: 4px;
         align-items: center;
     }
 
@@ -165,15 +164,11 @@ $effect(() => {
         border: none;
         padding: 0;
         cursor: pointer;
-        border-radius: 50%;
         transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        color: rgba(134, 134, 134, 0.8);
     }
 
     .version-button:hover {
-        background-color: rgba(255, 255, 255, 0.1);
         transform: scale(1.1);
     }
 
@@ -189,14 +184,6 @@ $effect(() => {
 
     .content-wrapper.transitioning {
         opacity: 0;
-    }
-
-    .content-wrapper.slide-right {
-        transform: translateX(30px);
-    }
-
-    .content-wrapper.slide-left {
-        transform: translateX(-30px);
     }
 
     .message {
@@ -236,19 +223,5 @@ $effect(() => {
         color: #9e9ea6;
         font-size: 0.8rem;
         margin-left: 0.5rem;
-    }
-
-    .import-id {
-        color: #b0b0b7;
-        font-size: 0.4rem; /* smaller */
-        font-style: italic;
-        margin-right: 4px;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-    }
-
-    /* Only show import-id when hovering over the entire row */
-    .message:hover .import-id {
-        opacity: 1;
     }
 </style>
