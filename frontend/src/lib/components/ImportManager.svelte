@@ -103,11 +103,10 @@ function handleDragLeave(event: DragEvent): void {
 
 function handleDrop(event: DragEvent): void {
   event.preventDefault()
-  if (isImporting) return
-
   dragCounter = 0
   isDragging = false
   isDropZoneCollapsed = true
+  if (isImporting) return
 }
 
 $effect(() => {
