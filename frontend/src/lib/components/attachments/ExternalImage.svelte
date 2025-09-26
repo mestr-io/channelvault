@@ -26,7 +26,11 @@ async function loadImage() {
     objectUrl = URL.createObjectURL(blob)
     if (imgEl) imgEl.src = objectUrl
   } catch (e) {
-    if (e instanceof DOMException && (e as any).name !== 'AbortError') console.error('Image load failed:', e)
+    if (e instanceof DOMException && (e as any).name !== 'AbortError') {
+      console.error('Image load failed:', e)
+    }
+    // fallback: due to CORS or multiple redirections
+    imgEl.src = attachment.image_url
   }
 }
 
