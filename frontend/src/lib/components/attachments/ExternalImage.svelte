@@ -1,12 +1,15 @@
 <script lang="ts">
-import type { models } from '../../../../wailsjs/go/models'
-import LazyImage from './LazyImage.svelte'
-import GenericFile from './File.svelte'
 import { onMount, onDestroy } from 'svelte'
 
 const { attachment } = $props()
 
 const src = $derived(attachment.image_url)
+const maxWidth = 400
+const ratio = attachment.image_width > 0 ? attachment.image_height / attachment.image_width : 1
+
+const displayWidth = Math.min(attachment.image_width, maxWidth)
+const displayHeight = Math.round(displayWidth * ratio)
+
 let imgEl: HTMLImageElement
 let observer: IntersectionObserver
 let controller: AbortController | null = null
@@ -14,7 +17,7 @@ let objectUrl: string | null = null
 let visible = false
 
 async function loadImage() {
-  if (src || objectUrl) return
+  if (!attachment.image_url || objectUrl) return
   controller = new AbortController()
 
   try {
@@ -22,9 +25,8 @@ async function loadImage() {
     const blob = await res.blob()
     objectUrl = URL.createObjectURL(blob)
     if (imgEl) imgEl.src = objectUrl
-    console.log(objectUrl)
   } catch (e) {
-    if (e instanceof Error && (e as any).name !== 'AbortError') console.error('Image load failed:', e)
+    if (e instanceof DOMException && (e as any).name !== 'AbortError') console.error('Image load failed:', e)
   }
 }
 
@@ -46,7 +48,7 @@ onMount(() => {
         const t = setTimeout(() => {
           visible = true
           loadImage()
-        }, 150)
+        }, 200)
 
         return () => clearTimeout(t)
       } else {
@@ -54,7 +56,7 @@ onMount(() => {
         unloadImage()
       }
     },
-    { rootMargin: '200px' },
+    { rootMargin: '100px' },
   )
 
   observer.observe(imgEl)
@@ -71,6 +73,7 @@ onDestroy(() => {
 </script>
 
 <div class="attachment">
+    Attachment
     <div class="attachment-header">
         <img
             class="service-icon"
@@ -93,11 +96,9 @@ onDestroy(() => {
         <img
             bind:this={imgEl}
             class="external-image"
-            src={attachment.image_url}
             alt={attachment.title || attachment.fallback}
-            width={Math.min(attachment.image_width, 400)}
-            height="auto"
-            loading="lazy"
+            width={displayWidth}
+            height={displayHeight}
         />
     </div>
 </div>
