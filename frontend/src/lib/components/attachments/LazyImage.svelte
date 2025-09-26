@@ -7,7 +7,7 @@ let { fileId, alt, url } = $props()
 let shouldLoad = $state(false)
 let container: HTMLDivElement
 
-const delay = 100
+const delay = 250
 const threshold = 0.05 // Load when 5% of the image is visible
 const { openImageOverlay } = getContext<{
   openImageOverlay: (src: string) => void

@@ -157,11 +157,12 @@ async function loadMoreMessages() {
   } finally {
     isLoadingMessages = false
   }
+  await tick()
 }
 
 function handleScroll(offset: number) {
   if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
-    loadMoreMessages()
+    loadMoreMessages().then(() => {})
   }
 }
 
