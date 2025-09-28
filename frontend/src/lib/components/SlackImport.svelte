@@ -5,7 +5,18 @@ import { models } from '../../../wailsjs/go/models'
 import { RenameImport, DownloadBinaries } from '../../../wailsjs/go/app/App'
 import Prompt from './Prompt.svelte'
 
-import { chevron, downloadIcon, calendarIcon, doneIcon, envelopeIcon, burgerMenuIcon } from './icons'
+import {
+  chevron,
+  downloadIcon,
+  calendarIcon,
+  doneIcon,
+  envelopeIcon,
+  burgerMenuIcon,
+  renameIcon,
+  deleteIcon,
+  errorIcon,
+  retryIcon,
+} from './icons'
 
 let {
   slackImportCard,
@@ -191,11 +202,7 @@ function toggleCollapse() {
                     handleRename(slackImportCard.ID, slackImportCard.Name)}
                 title="Rename import"
             >
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path
-                        d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
-                    />
-                </svg>
+                {@render renameIcon()}
             </button>
 
             {#if slackImportCard.Finished && !slackImportCard.DownloadFinished.Valid}
@@ -219,13 +226,7 @@ function toggleCollapse() {
                 onclick={() => handleDelete(slackImportCard.ID)}
                 title="Delete import"
             >
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path
-                        fill-rule="evenodd"
-                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
+                {@render deleteIcon()}
             </button>
         </div>
     </div>
@@ -234,17 +235,7 @@ function toggleCollapse() {
         {#if slackImportCard.Error}
             <div class="error-section">
                 <div class="error-header">
-                    <svg
-                        class="error-icon"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
+                    {@render errorIcon({ class: "error-icon" })}
                     <span class="error-title">Import Error</span>
                 </div>
                 <p class="error-message">{slackImportCard.Error}</p>
@@ -254,13 +245,7 @@ function toggleCollapse() {
                         onclick={() => handleRetry(slackImportCard.ID)}
                         title="Retry import"
                     >
-                        <svg viewBox="0 0 20 20" fill="currentColor">
-                            <path
-                                fill-rule="evenodd"
-                                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                                clip-rule="evenodd"
-                            />
-                        </svg>
+                        {@render retryIcon()}
                         Retry Import
                     </button>
                 </div>
@@ -357,6 +342,7 @@ function toggleCollapse() {
         {/if}
     </div>
 </main>
+
 <style>
     /* * =============================================
      * Design System: Variables (Design Tokens)
@@ -367,7 +353,7 @@ function toggleCollapse() {
         --c-surface: #ffffff;
         --c-surface-soft: #f9fafb; /* Softer background for zebra stripes */
         --c-border: #e5e7eb;
-        
+
         --c-text-primary: #1f2937;
         --c-text-secondary: #6b7280;
         --c-text-label: #9ca3af;
@@ -380,7 +366,8 @@ function toggleCollapse() {
         --c-status-error-icon: #ef4444;
 
         --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-md:
+            0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         --radius: 0.75rem; /* A more generous border radius */
         --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -401,8 +388,12 @@ function toggleCollapse() {
     }
 
     @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     /* * =============================================
@@ -481,7 +472,7 @@ function toggleCollapse() {
         cursor: pointer;
         transition: var(--transition);
     }
-    
+
     .action-button :global(svg),
     .chevron-button :global(svg) {
         width: 1.25rem;
@@ -496,7 +487,7 @@ function toggleCollapse() {
         transform: translateY(-1px);
         box-shadow: var(--shadow-sm);
     }
-    
+
     .action-button:disabled {
         cursor: not-allowed;
         background-color: var(--c-surface-soft);
@@ -513,7 +504,9 @@ function toggleCollapse() {
         overflow: hidden;
         display: grid;
         grid-template-rows: 1fr;
-        transition: grid-template-rows 0.3s ease-out, margin-top 0.3s ease-out;
+        transition:
+            grid-template-rows 0.3s ease-out,
+            margin-top 0.3s ease-out;
         margin-top: 1rem;
     }
 
@@ -526,7 +519,7 @@ function toggleCollapse() {
     .collapsible > * {
         min-height: 0;
     }
-    
+
     /* * =============================================
      * Error Section
      * =============================================
@@ -585,7 +578,10 @@ function toggleCollapse() {
         box-shadow: var(--shadow-md);
         transform: translateY(-2px);
     }
-    .retry-button svg { width: 1rem; height: 1rem; }
+    .retry-button svg {
+        width: 1rem;
+        height: 1rem;
+    }
 
     /* * =============================================
      * Card Content Details
@@ -608,7 +604,7 @@ function toggleCollapse() {
     .zebra {
         background-color: var(--c-surface-soft);
     }
-    
+
     .info-item {
         display: flex;
         align-items: center;
@@ -616,7 +612,7 @@ function toggleCollapse() {
         flex: 1;
         min-width: 0;
     }
-    
+
     .info-item :global(svg) {
         width: 1.25rem;
         height: 1.25rem;
@@ -647,9 +643,10 @@ function toggleCollapse() {
         word-break: break-all;
         line-height: 1.4;
     }
-    
-    .info-value[title] { /* Add subtle indicator for truncated text */
-       cursor: help;
+
+    .info-value[title] {
+        /* Add subtle indicator for truncated text */
+        cursor: help;
     }
 
     /* * =============================================

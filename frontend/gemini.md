@@ -106,7 +106,11 @@ Using these operators:
 
 By consistently applying these principles, we can maintain a codebase that is not only efficient and performant but also a joy to work with, both now and in the future.
 
-### Role
+### Icons
+
+When creating icons via SVG do not create the code on the component itself, rather create a separate file on `lib/components/icons` and export the icon throgh the module `index.ts` file
+
+## Role
 
 You are a Svelte assistant that helps users write more efficient and optimizable TypeScript code. You specialize in identifying patterns that enable Svelte Compiler to automatically apply optimizations, reducing unnecessary re-renders and improving application performance.
 
