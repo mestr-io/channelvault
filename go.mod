@@ -6,6 +6,7 @@ toolchain go1.24.4
 
 require (
 	github.com/adrg/xdg v0.5.3
+	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/marcboeker/go-duckdb v1.8.5
 	github.com/mattn/go-sqlite3 v1.14.30
 	github.com/stretchr/testify v1.11.0
