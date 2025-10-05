@@ -1,204 +1,182 @@
 <script lang="ts">
-    import * as runtime from "../wailsjs/runtime";
-    import { onMount, setContext, onDestroy, tick } from "svelte";
-    import {
-        GetViewState,
-        GetChannels,
-        GetMessages,
-        GetThreadByTs,
-    } from "../wailsjs/go/app/App";
-    import { Pane, Splitpanes } from "svelte-splitpanes";
-    import { VList, type VListHandle } from "virtua/svelte";
-    import DayDivider from "./lib/components/DayDivider.svelte";
-    import Message from "./lib/components/Message.svelte";
-    import Welcome from "./lib/components/Welcome.svelte";
-    import ImportManager from "./lib/components/ImportManager.svelte";
-    import ImageOverlay from "./lib/components/ImageOverlay.svelte";
-    import { models } from "../wailsjs/go/models";
-    import { import_icon } from "./lib/components/Icons.svelte";
-    import type { ThreadID } from "./lib/types";
+import * as runtime from '../wailsjs/runtime'
+import { onMount, setContext, onDestroy, tick } from 'svelte'
+import { GetViewState, GetChannels, GetMessages, GetThreadByTs } from '../wailsjs/go/app/App'
+import { Pane, Splitpanes } from 'svelte-splitpanes'
+import { VList, type VListHandle } from 'virtua/svelte'
+import DayDivider from './lib/components/DayDivider.svelte'
+import Message from './lib/components/Message.svelte'
+import Welcome from './lib/components/Welcome.svelte'
+import ImportManager from './lib/components/ImportManager.svelte'
+import ImageOverlay from './lib/components/ImageOverlay.svelte'
+import { models } from '../wailsjs/go/models'
+import { import_icon } from './lib/components/Icons.svelte'
+import type { ThreadID } from './lib/types'
 
-    type ViewState = "setup" | "dashboard" | "loading";
-    type AggregatedMessage = models.Message[][];
+type ViewState = 'setup' | 'dashboard' | 'loading'
+type AggregatedMessage = models.Message[][]
 
-    let imageOverlayComponent: ImageOverlay;
-    let importsOverlayComponent: ImportManager;
+let imageOverlayComponent: ImageOverlay
+let importsOverlayComponent: ImportManager
 
-    let viewState = $state<ViewState>("loading");
+let viewState = $state<ViewState>('loading')
 
-    // Dashboard state
-    let channels = $state<models.Channel[]>([] as models.Channel[]);
-    let selectedChannel = $state<models.Channel | null>(null);
-    let threadMessages = $state<models.Message[]>([] as models.Message[]);
-    let messages = $state<models.Message[]>([] as models.Message[]);
-    let groups = $state<AggregatedMessage>([] as AggregatedMessage);
-    let isLoadingMessages = $state(false);
-    let hasMoreMessages = $state(true);
-    let showThread = $state(false);
-    let selectedThread = $state<ThreadID | null>(null);
-    let currentView = $state<"welcome" | "channel" | "imports">("welcome");
-    let channelFilter = $state(""); // New state variable for channel filter
-    // svelte-ignore non_reactive_update
-    let vlist_messages: VListHandle;
-    // svelte-ignore non_reactive_update
-    let vlist_thread: VListHandle;
+// Dashboard state
+let channels = $state<models.Channel[]>([] as models.Channel[])
+let selectedChannel = $state<models.Channel | null>(null)
+let threadMessages = $state<models.Message[]>([] as models.Message[])
+let messages = $state<models.Message[]>([] as models.Message[])
+let groups = $state<AggregatedMessage>([] as AggregatedMessage)
+let isLoadingMessages = $state(false)
+let hasMoreMessages = $state(true)
+let showThread = $state(false)
+let selectedThread = $state<ThreadID | null>(null)
+let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
+let channelFilter = $state('') // New state variable for channel filter
+// svelte-ignore non_reactive_update
+let vlist_messages: VListHandle
+// svelte-ignore non_reactive_update
+let vlist_thread: VListHandle
 
-    $effect(() => {
-        if (!showThread) selectedThread = null;
-    });
+$effect(() => {
+  if (!showThread) selectedThread = null
+})
 
-    $effect(() => {
-        if (!selectedThread) showThread = false;
-    });
+$effect(() => {
+  if (!selectedThread) showThread = false
+})
 
-    const filteredChannels = $derived(
-        channels.filter((channel) =>
-            channel.name.toLowerCase().includes(channelFilter.toLowerCase()),
-        ),
-    );
+const filteredChannels = $derived(
+  channels.filter(channel => channel.name.toLowerCase().includes(channelFilter.toLowerCase())),
+)
 
-    $effect(() => {
-        if (selectedThread && selectedChannel) {
-            const loadThread = async () => {
-                threadMessages = await GetThreadByTs(
-                    selectedThread!.thread_ts,
-                    selectedChannel!.id!,
-                    selectedThread!.import_id,
-                );
-                if (vlist_thread && threadMessages.length > 0) {
-                    await tick();
-                    vlist_thread.scrollToIndex(threadMessages.length - 1, {
-                        align: "end",
-                    });
-                }
-            };
-            loadThread();
-            showThread = true;
-        }
-    });
+$effect(() => {
+  if (selectedThread && selectedChannel) {
+    const loadThread = async () => {
+      threadMessages = await GetThreadByTs(selectedThread!.thread_ts, selectedChannel!.id!, selectedThread!.import_id)
+      if (vlist_thread && threadMessages.length > 0) {
+        await tick()
+        vlist_thread.scrollToIndex(threadMessages.length - 1, {
+          align: 'end',
+        })
+      }
+    }
+    loadThread()
+    showThread = true
+  }
+})
 
-    onMount(async () => {
-        try {
-            viewState = (await GetViewState()) as ViewState;
-            runtime.EventsOn("backend:viewState", (newState: string) => {
-                viewState = newState as ViewState;
-            });
+onMount(async () => {
+  try {
+    viewState = (await GetViewState()) as ViewState
+    runtime.EventsOn('backend:viewState', (newState: string) => {
+      viewState = newState as ViewState
+    })
 
-            channels = await GetChannels();
-            runtime.EventsOn("importComplete", async () => {
-                const fresh = await GetChannels();
-                channels = [...fresh];
-            });
-            runtime.EventsOn("importDeleted", async () => {
-                const fresh = await GetChannels();
-                channels = [...fresh];
-            });
-        } catch (error) {
-            console.error(
-                "Failed to initialize view state or set up listener:",
-                error,
-            );
-        }
-    });
+    channels = await GetChannels()
+    runtime.EventsOn('importComplete', async () => {
+      const fresh = await GetChannels()
+      channels = [...fresh]
+    })
+    runtime.EventsOn('importDeleted', async () => {
+      const fresh = await GetChannels()
+      channels = [...fresh]
+    })
+  } catch (error) {
+    console.error('Failed to initialize view state or set up listener:', error)
+  }
+})
 
-    onDestroy(() => {
-        document.body.classList.remove("is-resizing-panes");
-    });
+onDestroy(() => {
+  document.body.classList.remove('is-resizing-panes')
+})
 
-    setContext("avatar_cache", new Map<string, string>());
-    setContext("userhandle_cache", new Map<string, string>());
-    setContext("imageOverlay", { openImageOverlay });
+setContext('avatar_cache', new Map<string, string>())
+setContext('userhandle_cache', new Map<string, string>())
+setContext('imageOverlay', { openImageOverlay })
 
-    function openImageOverlay(src: string) {
-        if (imageOverlayComponent) {
-            imageOverlayComponent.showOverlay(src);
-        }
+function openImageOverlay(src: string) {
+  if (imageOverlayComponent) {
+    imageOverlayComponent.showOverlay(src)
+  }
+}
+
+function openImportsOverlay() {
+  if (importsOverlayComponent) {
+    importsOverlayComponent.showOverlay()
+  }
+}
+
+async function selectChannel(channel: models.Channel) {
+  if (selectedChannel?.id === channel.id && currentView === 'channel') return
+  selectedChannel = channel
+  messages = []
+  hasMoreMessages = true
+  showThread = false
+  currentView = 'channel'
+  await loadMoreMessages()
+  if (vlist_messages && messages.length > 0) {
+    await tick()
+    vlist_messages.scrollToIndex(messages.length - 1, { align: 'end' })
+  }
+}
+
+function groupMessagesByDay(messages: models.Message[]): AggregatedMessage {
+  if (!messages || messages.length === 0) {
+    return []
+  }
+
+  const groups = messages.reduce((acc: AggregatedMessage, msg) => {
+    const lastGroup = acc.length > 0 ? acc[acc.length - 1] : null
+
+    if (lastGroup) {
+      const lastGroupDate = lastGroup[0].ts
+      if (lastGroupDate === msg.ts) {
+        lastGroup.push(msg)
+        return acc
+      }
     }
 
-    function openImportsOverlay() {
-        if (importsOverlayComponent) {
-            importsOverlayComponent.showOverlay();
-        }
+    acc.push([msg])
+    return acc
+  }, [])
+
+  return groups
+}
+
+async function loadMoreMessages() {
+  if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return
+  isLoadingMessages = true
+  try {
+    const cursor = messages[0]?.ts || ''
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 100)
+
+    if (newMessages?.length > 0) {
+      messages = [...newMessages.reverse(), ...messages]
+      groups = groupMessagesByDay(messages)
+    } else {
+      hasMoreMessages = false
     }
+  } catch (error) {
+    console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
+  } finally {
+    isLoadingMessages = false
+  }
+  await tick()
+}
 
-    async function selectChannel(channel: models.Channel) {
-        if (selectedChannel?.id === channel.id && currentView === "channel")
-            return;
-        selectedChannel = channel;
-        messages = [];
-        hasMoreMessages = true;
-        showThread = false;
-        currentView = "channel";
-        await loadMoreMessages();
-        if (vlist_messages && messages.length > 0) {
-            await tick();
-            vlist_messages.scrollToIndex(messages.length - 1, { align: "end" });
-        }
-    }
+function handleScroll(offset: number) {
+  if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
+    loadMoreMessages().then(() => {})
+  }
+}
 
-    function groupMessagesByDay(messages: models.Message[]): AggregatedMessage {
-        if (!messages || messages.length === 0) {
-            return [];
-        }
-
-        const groups = messages.reduce((acc: AggregatedMessage, msg) => {
-            const lastGroup = acc.length > 0 ? acc[acc.length - 1] : null;
-
-            if (lastGroup) {
-                const lastGroupDate = lastGroup[0].ts;
-                if (lastGroupDate === msg.ts) {
-                    lastGroup.push(msg);
-                    return acc;
-                }
-            }
-
-            acc.push([msg]);
-            return acc;
-        }, []);
-
-        return groups;
-    }
-
-    async function loadMoreMessages() {
-        if (isLoadingMessages || !selectedChannel || !hasMoreMessages) return;
-        isLoadingMessages = true;
-        try {
-            const cursor = messages[0]?.ts || "";
-            const newMessages: models.Message[] = await GetMessages(
-                selectedChannel.id,
-                cursor,
-                100,
-            );
-
-            if (newMessages?.length > 0) {
-                messages = [...newMessages.reverse(), ...messages];
-                groups = groupMessagesByDay(messages);
-            } else {
-                hasMoreMessages = false;
-            }
-        } catch (error) {
-            console.error(
-                `Failed to get messages for channel ${selectedChannel.id}:`,
-                error,
-            );
-        } finally {
-            isLoadingMessages = false;
-        }
-        await tick();
-    }
-
-    function handleScroll(offset: number) {
-        if (offset === 0 && hasMoreMessages && !isLoadingMessages) {
-            loadMoreMessages().then(() => {});
-        }
-    }
-
-    function startResize() {
-        document.body.classList.add("is-resizing-panes");
-    }
-    function endResize() {
-        document.body.classList.remove("is-resizing-panes");
-    }
+function startResize() {
+  document.body.classList.add('is-resizing-panes')
+}
+function endResize() {
+  document.body.classList.remove('is-resizing-panes')
+}
 </script>
 
 <ImageOverlay bind:this={imageOverlayComponent} />
