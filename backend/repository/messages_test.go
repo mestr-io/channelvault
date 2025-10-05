@@ -132,7 +132,7 @@ func TestGetThreadByTs(t *testing.T) {
 		t.Fatalf("BulkInsertMessages() error = %v", err)
 	}
 
-	retrieved, err := repo.GetThreadByTs(context.Background(), "123.456", "C1", 0)
+	retrieved, err := repo.GetThreadByTs(context.Background(), "123.456", "C1", imp.ID)
 	if err != nil {
 		t.Fatalf("GetThreadByTs() error = %v", err)
 	}
