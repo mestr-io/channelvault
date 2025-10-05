@@ -190,7 +190,7 @@ function endResize() {
                     Channels
                     <input
                         type="text"
-                        placeholder="Filter channels..."
+                        placeholder="Filter..."
                         bind:value={channelFilter}
                         class="channel-filter-input"
                     />
