@@ -37,6 +37,7 @@
     let showThread = $state(false);
     let selectedThread = $state<ThreadID | null>(null);
     let currentView = $state<"welcome" | "channel" | "imports">("welcome");
+    let channelFilter = $state(""); // New state variable for channel filter
     // svelte-ignore non_reactive_update
     let vlist_messages: VListHandle;
     // svelte-ignore non_reactive_update
@@ -49,6 +50,12 @@
     $effect(() => {
         if (!selectedThread) showThread = false;
     });
+
+    const filteredChannels = $derived(
+        channels.filter((channel) =>
+            channel.name.toLowerCase().includes(channelFilter.toLowerCase()),
+        ),
+    );
 
     $effect(() => {
         if (selectedThread && selectedChannel) {
@@ -201,9 +208,17 @@
     <Splitpanes on:resize={startResize} on:resized={endResize}>
         <Pane minSize={10} maxSize={30} size={25}>
             <div class="sidebar">
-                <div class="sidebar-header">Channels</div>
+                <div class="sidebar-header">
+                    Channels
+                    <input
+                        type="text"
+                        placeholder="Filter channels..."
+                        bind:value={channelFilter}
+                        class="channel-filter-input"
+                    />
+                </div>
                 <div class="channel-list">
-                    {#each channels as channel (channel.id)}
+                    {#each filteredChannels as channel (channel.id)}
                         <div class="channel-item">
                             <button
                                 class:active={channel.id ===
@@ -349,7 +364,24 @@
         font-size: 1.2rem;
         font-weight: 600;
         color: #dbc9e0;
-        border-bottom: 2px solid red;
+        border-bottom: 1px solid #7a4b87;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .channel-filter-input {
+        background-color: #3e0e42;
+        border: 1px solid #663867;
+        border-radius: 4px;
+        color: #dbc9e0;
+        padding: 0.3rem 0.4rem;
+        width: calc(100% - 1.5rem);
+        font-size: 0.8rem;
+    }
+
+    .channel-filter-input::placeholder {
+        color: #a08fa6;
     }
 
     .channel-header {
