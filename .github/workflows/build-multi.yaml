@@ -1,4 +1,4 @@
-name: Wails build
+name: ChannelVault multi-build
 
 on:
   workflow_call:
