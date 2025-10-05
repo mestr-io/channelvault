@@ -11,6 +11,8 @@ import ImportManager from './lib/components/ImportManager.svelte'
 import ImageOverlay from './lib/components/ImageOverlay.svelte'
 import { models } from '../wailsjs/go/models'
 import { import_icon } from './lib/components/Icons.svelte'
+import { chevron } from './lib/components/icons'
+
 import type { ThreadID } from './lib/types'
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
@@ -33,6 +35,7 @@ let showThread = $state(false)
 let selectedThread = $state<ThreadID | null>(null)
 let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
 let channelFilter = $state('') // New state variable for channel filter
+let showChannelFilter = $state(false) // New state variable to control filter visibility
 // svelte-ignore non_reactive_update
 let vlist_messages: VListHandle
 // svelte-ignore non_reactive_update
@@ -187,13 +190,23 @@ function endResize() {
         <Pane minSize={10} maxSize={30} size={25}>
             <div class="sidebar">
                 <div class="sidebar-header">
-                    Channels
-                    <input
-                        type="text"
-                        placeholder="Filter..."
-                        bind:value={channelFilter}
-                        class="channel-filter-input"
-                    />
+                    <button
+                        class="sidebar-header-title"
+                        onclick={() => (showChannelFilter = !showChannelFilter)}
+                    >
+                        <div class="header-options-chevron">
+                            {@render chevron(showChannelFilter)}
+                        </div>
+                        Channels
+                    </button>
+                    {#if showChannelFilter}
+                        <input
+                            type="text"
+                            placeholder="Filter..."
+                            bind:value={channelFilter}
+                            class="channel-filter-input"
+                        />
+                    {/if}
                 </div>
                 <div class="channel-list">
                     {#each filteredChannels as channel (channel.id)}
@@ -346,6 +359,24 @@ function endResize() {
         display: flex;
         flex-direction: column;
         gap: 10px;
+    }
+    .header-options-chevron {
+        width: 1.6rem;
+        height: 1.6rem;
+    }
+
+    .sidebar-header-title {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        color: #dbc9e0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
     }
 
     .channel-filter-input {
