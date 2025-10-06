@@ -9,6 +9,7 @@ import Message from './lib/components/Message.svelte'
 import Welcome from './lib/components/Welcome.svelte'
 import ImportManager from './lib/components/ImportManager.svelte'
 import ImageOverlay from './lib/components/ImageOverlay.svelte'
+import NoMessages from './lib/components/NoMessages.svelte'
 import { models } from '../wailsjs/go/models'
 import { import_icon } from './lib/components/Icons.svelte'
 import { chevron } from './lib/components/icons'
@@ -231,7 +232,7 @@ function endResize() {
         >
         <Pane>
             <div class="main-content" id="main-content">
-                {#if currentView === "channel" && selectedChannel}
+                {#if currentView === "channel" && selectedChannel && messages.length > 0}
                     <header class="channel-header">
                         <h2># {selectedChannel.name}</h2>
                     </header>
@@ -253,6 +254,8 @@ function endResize() {
                             <Message {group} bind:selectedThread />
                         {/snippet}
                     </VList>
+                {:else if currentView === "channel" && selectedChannel && messages.length === 0}
+                    <NoMessages />
                 {:else}
                     <Welcome />
                 {/if}
