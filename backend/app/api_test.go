@@ -64,7 +64,7 @@ func TestGetThreadByTs(t *testing.T) {
 	app.ctx = context.Background()
 
 	expectedMessages := []models.Message{{Text: "Reply"}}
-	mockRepo.On("GetThreadByTs", mock.Anything /*ctx*/, "123.456", "C1", 0).Return(expectedMessages, nil).Once()
+	mockRepo.On("GetThreadByTs", mock.Anything /*ctx*/, "123.456", "C1", int64(0)).Return(expectedMessages, nil).Once()
 
 	messages, err := app.GetThreadByTs("123.456", "C1", 0)
 

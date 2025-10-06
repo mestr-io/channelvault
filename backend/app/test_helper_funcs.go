@@ -169,6 +169,11 @@ func (m *MockRepository) GetUserAvatar(ctx context.Context, userId string) (stri
 	return args.String(0), args.Error(1)
 }
 
+func (m *MockRepository) GetUserHandle(ctx context.Context, userId string) (string, error) {
+	args := m.Called(ctx, userId)
+	return args.String(0), args.Error(1)
+}
+
 func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.SlackImport, error) {
 	args := m.Called(ctx, path)
 	// Handle the case where the first return value might be nil

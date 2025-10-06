@@ -13,7 +13,6 @@ import (
 	// For formatting output, like in LogPrintf
 
 	"github.com/adrg/xdg"
-	_ "github.com/marcboeker/go-duckdb"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mestr-io/slack-export-viewer/backend/app"
 	helpers "github.com/mestr-io/slack-export-viewer/backend/app_helpers"

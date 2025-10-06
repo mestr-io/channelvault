@@ -142,6 +142,11 @@ func (m *MockRepository) FinishedImport(ctx context.Context, id int64) error {
 	panic("FinishedImport not defined in mock")
 }
 
+func (m *MockRepository) GetUserHandle(ctx context.Context, userId string) (string, error) {
+	args := m.Called(ctx, userId)
+	return args.String(0), args.Error(1)
+}
+
 // Helper function to create a test zip file in memory.
 func createTestZip(t *testing.T, files map[string]string) string {
 	t.Helper()

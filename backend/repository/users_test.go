@@ -21,7 +21,7 @@ func TestBulkInsertUsers(t *testing.T) {
 	imp.ID = 66
 	ctx = context.WithValue(ctx, "import", &imp)
 	users := []models.User{
-		{ID: "U1", Name: "user1", RealName: "User One", Profile: models.Profile{Image32: "http://example.com/avatar1.png"}},
+		{ID: "U1", Name: "user1", RealName: "User One", Profile: models.Profile{Image72: "http://example.com/avatar1.png"}},
 		{ID: "U2", Name: "user2", RealName: "User Two", IsBot: true},
 	}
 
@@ -64,7 +64,7 @@ func TestGetUserAvatar(t *testing.T) {
 	ctx = context.WithValue(ctx, "import", &imp)
 
 	users := []models.User{
-		{ID: "U1", Name: "user1", Profile: models.Profile{Image32: "http://example.com/avatar1.png"}},
+		{ID: "U1", Name: "user1", Profile: models.Profile{Image72: "http://example.com/avatar1.png"}},
 	}
 	if err := repo.BulkInsertUsers(ctx, users); err != nil {
 		t.Fatalf("failed to insert users for testing: %v", err)
