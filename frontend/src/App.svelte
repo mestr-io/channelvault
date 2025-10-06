@@ -186,7 +186,7 @@ function endResize() {
 <ImageOverlay bind:this={imageOverlayComponent} />
 <ImportManager bind:this={importsOverlayComponent} />
 
-<main class="slack-clone">
+<main class="dashboard">
     <Splitpanes on:resize={startResize} on:resized={endResize}>
         <Pane minSize={10} maxSize={30} size={25}>
             <div class="sidebar">
@@ -333,7 +333,7 @@ function endResize() {
         -moz-user-select: none !important;
         -ms-user-select: none !important;
     }
-    .slack-clone {
+    .dashboard {
         display: flex;
         height: 100vh;
     }
