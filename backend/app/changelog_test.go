@@ -11,7 +11,7 @@ const sampleHTML = `
 <html>
   <body>
     <section id="final-cta">
-      <div>Test Content</div>
+      <div>Test     Content</div>
     </section>
     <section id="other">
       <div>Other Content</div>
