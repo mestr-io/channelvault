@@ -65,7 +65,7 @@ func main() {
 
 	app := app.New(r, filesFolder)
 	err = wails.Run(&options.App{
-		Title:  "slack-viewer", // Use your application's title
+		Title:  "ChannelVault", // Use your application's title
 		Width:  1024,
 		Height: 768,
 
