@@ -27,13 +27,25 @@ onMount(async () => {
     </div>
     <div class="changelog-row">
         <h2>Changelog</h2>
-        <div class="changelog-content">
+        <div class="">
             {@html changelog}
         </div>
     </div>
 </div>
 
 <style>
+    :global(#changelog-entries h3) {
+        color: #9f479b;
+    }
+    :global(#changelog-entries .version-badge) {
+        background: #9f479b;
+        color: white;
+        border-radius: 1rem;
+        padding: 0.4rem 0.5rem 0.2rem 0.5rem;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+
     .welcome-screen {
         display: flex;
         flex-direction: column;
@@ -70,7 +82,7 @@ onMount(async () => {
     }
     .changelog-content {
         white-space: pre-wrap;
-        font-family: "Fira Mono", "Consolas", monospace;
+        /* font-family: "Fira Mono", "Consolas", monospace; */
         font-size: 1em;
         color: #333;
         margin: 0;

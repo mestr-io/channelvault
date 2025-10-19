@@ -10,9 +10,9 @@ import (
 )
 
 // URL to fetch the changelog from
-const url = "https://mestr.io"
-const sectionName = "section"
-const sectionId = "final-cta"
+const url = "https://mestr.io/changelog.html"
+const sectionName = "div"
+const sectionId = "changelog-entries"
 
 // FetchPage fetches the HTML content from the specified URL.
 func (a *App) FetchPage() (string, error) {
