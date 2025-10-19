@@ -10,9 +10,9 @@ import (
 const sampleHTML = `
 <html>
   <body>
-    <section id="final-cta">
+    <div id="changelog-entries">
       <div>Test     Content</div>
-    </section>
+    </div>
     <section id="other">
       <div>Other Content</div>
     </section>
@@ -26,18 +26,18 @@ func TestFindSectionByID(t *testing.T) {
 		t.Fatalf("Failed to parse HTML: %v", err)
 	}
 
-	section := FindSectionByID(doc, "final-cta")
+	section := FindSectionByID(doc, "changelog-entries")
 	if section == nil {
-		t.Fatal("Section with id 'final-cta' not found")
+		t.Fatal("div with id 'changelog-entries' not found")
 	}
-	if section.Data != "section" {
-		t.Errorf("Expected 'section', got '%s'", section.Data)
+	if section.Data != "div" {
+		t.Errorf("Expected 'div', got '%s'", section.Data)
 	}
 
 	// Check that the correct section is found
 	found := false
 	for _, attr := range section.Attr {
-		if attr.Key == "id" && attr.Val == "final-cta" {
+		if attr.Key == "id" && attr.Val == "changelog-entries" {
 			found = true
 			break
 		}
@@ -53,16 +53,16 @@ func TestRenderNode(t *testing.T) {
 		t.Fatalf("Failed to parse HTML: %v", err)
 	}
 
-	section := FindSectionByID(doc, "final-cta")
+	section := FindSectionByID(doc, "changelog-entries")
 	if section == nil {
-		t.Fatal("Section with id 'final-cta' not found")
+		t.Fatal("div with id 'changelog-entries' not found")
 	}
 
 	htmlStr := RenderNode(section)
 	if !strings.Contains(htmlStr, "Test Content") {
 		t.Errorf("Rendered HTML does not contain expected content: %s", htmlStr)
 	}
-	if !strings.HasPrefix(htmlStr, "<section") {
-		t.Errorf("Rendered HTML does not start with <section: %s", htmlStr)
+	if !strings.HasPrefix(htmlStr, "<div") {
+		t.Errorf("Rendered HTML does not start with <div: %s", htmlStr)
 	}
 }

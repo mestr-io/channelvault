@@ -80,11 +80,4 @@ onMount(async () => {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         overflow-x: auto;
     }
-    .changelog-content {
-        white-space: pre-wrap;
-        /* font-family: "Fira Mono", "Consolas", monospace; */
-        font-size: 1em;
-        color: #333;
-        margin: 0;
-    }
 </style>
