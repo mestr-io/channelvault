@@ -1,17 +1,83 @@
 <script lang="ts">
+import { onMount } from 'svelte'
+import { FetchChangelog } from '../../../wailsjs/go/app/App'
+
+let changelog = 'Loading changelog...'
+
+onMount(async () => {
+  try {
+    changelog = await FetchChangelog()
+  } catch (e) {
+    changelog = 'Failed to load changelog.'
+  }
+})
 </script>
 
 <div class="welcome-screen">
-    <h2>Welcome!</h2>
-    <p>Select a channel to view messages.</p>
+    <div class="app-icon-row">
+        <img
+            src="./src/assets/images/appicon.png"
+            alt="ChannelVault icon"
+            class="app-icon"
+        />
+    </div>
+    <div class="app-name-row">
+        <h1>ChannelVault</h1>
+        Select a channel or import a new workspace to get started.
+    </div>
+    <div class="changelog-row">
+        <h2>Changelog</h2>
+        <div class="">
+            {@html changelog}
+        </div>
+    </div>
 </div>
 
 <style>
+    :global(#changelog-entries h3) {
+        color: #9f479b;
+    }
+    :global(#changelog-entries .version-badge) {
+        background: #9f479b;
+        color: white;
+        border-radius: 1rem;
+        padding: 0.4rem 0.5rem 0.2rem 0.5rem;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+
     .welcome-screen {
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
         height: 100%;
+        padding: 2em 0;
+        gap: 2em;
+    }
+
+    .app-icon-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .app-icon {
+        width: 200px;
+        border-radius: 12px;
+    }
+    .app-name-row h1 {
+        font-size: 2em;
+        font-weight: 700;
+        margin: 0;
+        color: #552958;
+        text-align: center;
+    }
+
+    .changelog-row {
+        width: 90vw;
+        max-width: 600px;
+        border-radius: 8px;
+        padding: 1em;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        overflow-x: auto;
     }
 </style>

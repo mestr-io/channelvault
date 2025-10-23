@@ -187,272 +187,269 @@ function endResize() {
 <ImportManager bind:this={importsOverlayComponent} />
 
 <main class="dashboard">
-    <Splitpanes on:resize={startResize} on:resized={endResize}>
-        <Pane minSize={10} maxSize={30} size={25}>
-            <div class="sidebar">
-                <div class="sidebar-header">
-                    <button
-                        class="sidebar-header-title"
-                        onclick={() => (showChannelFilter = !showChannelFilter)}
-                    >
-                        <div class="header-options-chevron">
-                            {@render chevron(showChannelFilter)}
-                        </div>
-                        Channels
-                    </button>
-                    {#if showChannelFilter}
-                        <input
-                            type="text"
-                            placeholder="Filter..."
-                            bind:value={channelFilter}
-                            class="channel-filter-input"
-                        />
-                    {/if}
-                </div>
-                <div class="channel-list">
-                    {#each filteredChannels as channel (channel.id)}
-                        <div class="channel-item">
-                            <button
-                                class:active={channel.id ===
-                                    selectedChannel?.id &&
-                                    currentView === "channel"}
-                                onclick={() => selectChannel(channel)}
-                                ># {channel.name}</button
-                            >
-                        </div>
-                    {/each}
-                </div>
-                <div class="channel-item" style="padding-bottom: 12px;">
-                    <button onclick={() => openImportsOverlay()}>
-                        {@render import_icon("1rem")}
-                        Imports
-                    </button>
-                </div>
-            </div></Pane
-        >
-        <Pane>
-            <div class="main-content" id="main-content">
-                {#if currentView === "channel" && selectedChannel && messages.length > 0}
-                    <header class="channel-header">
-                        <h2># {selectedChannel.name}</h2>
-                    </header>
-                    <VList
-                        bind:this={vlist_messages}
-                        data={groups}
-                        getKey={(g: models.Message[], _) => `${g[0].ts}`}
-                        overscan={10}
-                        shift={true}
-                        onscroll={handleScroll}
-                    >
-                        {#snippet children(group, i)}
-                            <DayDivider
-                                current={group[0]}
-                                previous={groups[i - 1]
-                                    ? groups[i - 1][0]
-                                    : undefined}
-                            />
-                            <Message {group} bind:selectedThread />
-                        {/snippet}
-                    </VList>
-                {:else if currentView === "channel" && selectedChannel && messages.length === 0}
-                    <NoMessages />
-                {:else}
-                    <Welcome />
-                {/if}
+  <Splitpanes on:resize={startResize} on:resized={endResize}>
+    <Pane minSize={10} maxSize={30} size={25}>
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <button
+            class="sidebar-header-title"
+            onclick={() => (showChannelFilter = !showChannelFilter)}
+          >
+            <div class="header-options-chevron">
+              {@render chevron(showChannelFilter)}
             </div>
-        </Pane>
-
-        {#if showThread}
-            <Pane size={30}>
-                <div class="main-content">
-                    <header class="channel-header">
-                        <h2>Thread</h2>
-                        <button
-                            class="close-thread-btn"
-                            aria-label="Close thread"
-                            onclick={() => (showThread = false)}
-                        >
-                            <svg
-                                viewBox="0 0 20 20"
-                                width="20"
-                                height="20"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                fill="none"
-                                shape-rendering="geometricPrecision"
-                            >
-                                <path d="M15 5L5 15"></path>
-                                <path d="M5 5L15 15"></path>
-                            </svg>
-                        </button>
-                    </header>
-                    <VList
-                        bind:this={vlist_thread}
-                        data={threadMessages}
-                        getKey={(msg: models.Message, _) =>
-                            `${msg.ts}${msg.ImportID}`}
-                        overscan={10}
-                        shift={true}
-                    >
-                        {#snippet children(msg, i)}
-                            <DayDivider
-                                current={msg}
-                                previous={threadMessages[i - 1]}
-                            />
-                            <Message group={[msg]} bind:selectedThread />
-                        {/snippet}
-                    </VList>
-                </div>
-            </Pane>
+            Channels
+          </button>
+          {#if showChannelFilter}
+            <input
+              type="text"
+              placeholder="Filter..."
+              bind:value={channelFilter}
+              class="channel-filter-input"
+            />
+          {/if}
+        </div>
+        <div class="channel-list">
+          {#each filteredChannels as channel (channel.id)}
+            <div class="channel-item">
+              <button
+                class:active={channel.id === selectedChannel?.id &&
+                  currentView === "channel"}
+                onclick={() => selectChannel(channel)}># {channel.name}</button
+              >
+            </div>
+          {/each}
+        </div>
+        <div class="channel-item settings-button">
+          <button onclick={() => openImportsOverlay()}>
+            {@render import_icon("1rem")}
+            Imports
+          </button>
+        </div>
+      </div></Pane
+    >
+    <Pane>
+      <div class="main-content" id="main-content">
+        {#if currentView === "channel" && selectedChannel && messages.length > 0}
+          <header class="channel-header">
+            <h2># {selectedChannel.name}</h2>
+          </header>
+          <VList
+            bind:this={vlist_messages}
+            data={groups}
+            getKey={(g: models.Message[], _) => `${g[0].ts}`}
+            overscan={10}
+            shift={true}
+            onscroll={handleScroll}
+          >
+            {#snippet children(group, i)}
+              <DayDivider
+                current={group[0]}
+                previous={groups[i - 1] ? groups[i - 1][0] : undefined}
+              />
+              <Message {group} bind:selectedThread />
+            {/snippet}
+          </VList>
+        {:else if currentView === "channel" && selectedChannel && messages.length === 0}
+          <NoMessages />
+        {:else}
+          <Welcome />
         {/if}
-    </Splitpanes>
+      </div>
+    </Pane>
+
+    {#if showThread}
+      <Pane size={30}>
+        <div class="main-content">
+          <header class="channel-header">
+            <h2>Thread</h2>
+            <button
+              class="close-thread-btn"
+              aria-label="Close thread"
+              onclick={() => (showThread = false)}
+            >
+              <svg
+                viewBox="0 0 20 20"
+                width="20"
+                height="20"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                fill="none"
+                shape-rendering="geometricPrecision"
+              >
+                <path d="M15 5L5 15"></path>
+                <path d="M5 5L15 15"></path>
+              </svg>
+            </button>
+          </header>
+          <VList
+            bind:this={vlist_thread}
+            data={threadMessages}
+            getKey={(msg: models.Message, _) => `${msg.ts}${msg.ImportID}`}
+            overscan={10}
+            shift={true}
+          >
+            {#snippet children(msg, i)}
+              <DayDivider current={msg} previous={threadMessages[i - 1]} />
+              <Message group={[msg]} bind:selectedThread />
+            {/snippet}
+          </VList>
+        </div>
+      </Pane>
+    {/if}
+  </Splitpanes>
 </main>
 
 <style>
-    :global(body) {
-        font-family:
-            "Lato",
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            Roboto,
-            Helvetica,
-            Arial,
-            sans-serif;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+  :global(body) {
+    font-family:
+      "Lato",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-    :global(body.is-resizing-panes) {
-        cursor: col-resize !important;
-        user-select: none !important;
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
-    }
-    .dashboard {
-        display: flex;
-        height: 100vh;
-    }
-    .sidebar {
-        flex-shrink: 0;
-        overflow-y: auto;
-        height: 100%;
-        overflow-x: hidden;
-        background-color: #552958;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-    }
-    .channel-list {
-        flex-grow: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
+  :global(body.is-resizing-panes) {
+    cursor: col-resize !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
+  .dashboard {
+    display: flex;
+    height: 100vh;
+  }
+  .sidebar {
+    flex-shrink: 0;
+    overflow-y: auto;
+    height: 100%;
+    overflow-x: hidden;
+    background-color: #552958;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .channel-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 
-    .sidebar-header {
-        padding: 1rem 1.25rem 0.5rem;
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #dbc9e0;
-        border-bottom: 1px solid #7a4b87;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .header-options-chevron {
-        width: 1.6rem;
-        height: 1.6rem;
-    }
+  .sidebar-header {
+    padding: 1rem 1.25rem 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #dbc9e0;
+    border-bottom: 1px solid #7a4b87;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .header-options-chevron {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
 
-    .sidebar-header-title {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: none;
-        border: none;
-        color: #dbc9e0;
-        font-size: 1.2rem;
-        font-weight: 600;
-        cursor: pointer;
-        padding: 0;
-        margin: 0;
-    }
+  .sidebar-header-title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: #dbc9e0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+  }
 
-    .channel-filter-input {
-        background-color: #3e0e42;
-        border: 1px solid #663867;
-        border-radius: 4px;
-        color: #dbc9e0;
-        padding: 0.3rem 0.4rem;
-        width: calc(100% - 1.5rem);
-        font-size: 0.8rem;
-    }
+  .channel-filter-input {
+    background-color: #3e0e42;
+    border: 1px solid #663867;
+    border-radius: 4px;
+    color: #dbc9e0;
+    padding: 0.3rem 0.4rem;
+    width: calc(100% - 1.5rem);
+    font-size: 0.8rem;
+  }
 
-    .channel-filter-input::placeholder {
-        color: #a08fa6;
-    }
+  .channel-filter-input::placeholder {
+    color: #a08fa6;
+  }
 
-    .channel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid #3b3d40;
-        flex-shrink: 0;
-    }
+  .channel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #3b3d40;
+    flex-shrink: 0;
+  }
 
-    .close-thread-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px;
-        border-radius: 6px;
-        color: #dbc9e0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.1s ease-in-out;
-    }
+  .close-thread-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    color: #dbc9e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.1s ease-in-out;
+  }
 
-    .close-thread-btn:hover {
-        background-color: #663867;
-    }
-    .channel-item button {
-        background: none;
-        border-radius: 4px;
-        border: none;
-        color: #dbc9e0;
-        cursor: pointer;
-        margin: 0 0.5rem;
-        padding: 0.5rem 1.25rem;
-        text-align: left;
-        white-space: nowrap;
-        width: 100%;
-        font-size: 1rem;
-        font-weight: 500;
-    }
+  .close-thread-btn:hover {
+    background-color: #663867;
+  }
+  .channel-item button {
+    background: none;
+    border-radius: 4px;
+    border: none;
+    color: #dbc9e0;
+    cursor: pointer;
+    margin: 0 0.5rem;
+    padding: 0.5rem 1.25rem;
+    text-align: left;
+    white-space: nowrap;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 500;
+  }
 
-    .channel-item button:hover {
-        background-color: #663867;
-    }
+  .channel-item.settings-button {
+    border-top: 1px solid #7a4b87;
+    padding: 0 8px;
+  }
 
-    .channel-item button.active {
-        background-color: #f9edff;
-        color: #39063a;
-    }
+  .channel-item button:hover {
+    background-color: #663867;
+  }
 
-    .main-content {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-    }
+  .channel-item button.active {
+    background-color: #f9edff;
+    color: #39063a;
+  }
 
-    .channel-header h2 {
-        margin: 0;
-    }
+  .main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .channel-header h2 {
+    margin: 0;
+  }
 </style>

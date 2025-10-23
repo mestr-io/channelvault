@@ -10,6 +10,14 @@ export function DownloadBinaries(arg1, arg2) {
   return window['go']['app']['App']['DownloadBinaries'](arg1, arg2);
 }
 
+export function FetchChangelog() {
+  return window['go']['app']['App']['FetchChangelog']();
+}
+
+export function FetchPage() {
+  return window['go']['app']['App']['FetchPage']();
+}
+
 export function GetBase64Image(arg1) {
   return window['go']['app']['App']['GetBase64Image'](arg1);
 }
