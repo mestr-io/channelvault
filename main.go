@@ -13,7 +13,7 @@ import (
 	// For formatting output, like in LogPrintf
 
 	"github.com/adrg/xdg"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 	"github.com/mestr-io/slack-export-viewer/backend/app"
 	helpers "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"

@@ -42,6 +42,9 @@ build: goversion ##                        Build apps
 	$(info) ">>> Install app $(VERSION)-$(RELEASE) ..."
 	@wails build -tags webkit2_41
 
+buildwin: goversion ##
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX_FOR_TARGET=x86_64-w64-mingw32-g++ CC_FOR_TARGET=x86_64-w64-mingw32-gcc wails build -tags webkit2_41 -platform windows
+
 dev: goversion ##                          Dev launch
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
 	wails dev -tags webkit2_41
