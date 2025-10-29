@@ -11,8 +11,7 @@ import (
 	// For formatting output, like in LogPrintf
 	// For formatting output, like in LogPrintf
 	"time"
-
-	_ "github.com/mattn/go-sqlite3" // For checking the build mode
+	
 	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
