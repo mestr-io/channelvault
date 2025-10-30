@@ -12,7 +12,7 @@ onMount(async () => {
   }
 })
 
-import logo from '../../assets/images/appicon.png';
+import logo from '../../assets/images/appicon.png'
 </script>
 
 <div class="welcome-screen">
