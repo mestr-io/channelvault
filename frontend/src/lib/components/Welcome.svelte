@@ -11,12 +11,14 @@ onMount(async () => {
     changelog = 'Failed to load changelog.'
   }
 })
+
+import logo from '../../assets/images/appicon.png';
 </script>
 
 <div class="welcome-screen">
     <div class="app-icon-row">
         <img
-            src="./src/assets/images/appicon.png"
+            src={logo}
             alt="ChannelVault icon"
             class="app-icon"
         />
