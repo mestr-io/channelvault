@@ -44,6 +44,16 @@ onMount(async () => {
     imports = [...fresh]
   })
 
+  window.addEventListener("dragover", e => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
+  window.addEventListener("drop", e => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
   // load imports
   const fresh = await ListImports()
   imports = [...fresh]
