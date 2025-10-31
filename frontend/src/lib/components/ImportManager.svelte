@@ -1,6 +1,6 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { ListImports, ResumeImport } from '../../../wailsjs/go/app/App'
+import { ListImports, ResumeImport, OnFileDropHandler } from '../../../wailsjs/go/app/App'
 import { models } from '../../../wailsjs/go/models'
 import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
@@ -17,6 +17,10 @@ let isImporting = $state(false)
 let isDropZoneCollapsed = $state(true)
 
 let overlayElement: HTMLDivElement | null = null
+
+interface WailsFile extends File {
+  path?: string
+}
 
 onMount(async () => {
   // subscribe to new import notification
@@ -101,12 +105,23 @@ function handleDragLeave(event: DragEvent): void {
   }
 }
 
-function handleDrop(event: DragEvent): void {
+async function handleDrop(event: DragEvent): Promise<void> {
   event.preventDefault()
   dragCounter = 0
   isDragging = false
   isDropZoneCollapsed = true
   if (isImporting) return
+
+  
+  const files = Array.from(event.dataTransfer?.files || []) as WailsFile[]
+  if (files.length === 0) return
+
+  // collect filesystem paths
+  const paths = files.map(f => f.path!).filter(Boolean)
+  if (paths.length === 0) return // WebKit case; ignore and let native emit
+
+  // clean call to Go backend
+  await OnFileDropHandler(event.clientX, event.clientY, paths)
 }
 
 $effect(() => {

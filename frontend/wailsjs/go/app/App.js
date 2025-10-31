@@ -50,6 +50,10 @@ export function ListImports() {
   return window['go']['app']['App']['ListImports']();
 }
 
+export function OnFileDropHandler(arg1, arg2, arg3) {
+  return window['go']['app']['App']['OnFileDropHandler'](arg1, arg2, arg3);
+}
+
 export function RenameImport(arg1, arg2) {
   return window['go']['app']['App']['RenameImport'](arg1, arg2);
 }

@@ -74,7 +74,7 @@ func (a *App) setViewState(state ViewState) {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
-	runtime.OnFileDrop(ctx, a.onFileDrop)
+	runtime.OnFileDrop(ctx, a.OnFileDropHandler)
 	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
 
@@ -104,7 +104,7 @@ func (a *App) Startup(ctx context.Context) {
 
 }
 
-func (a *App) onFileDrop(x, y int, paths []string) {
+func (a *App) OnFileDropHandler(x, y int, paths []string) {
 	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", paths, x, y)
 	if len(paths) != 1 {
 		ah.Fatalf("internal error. import part incorrect: %v", paths)
