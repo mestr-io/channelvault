@@ -74,7 +74,7 @@ func (a *App) setViewState(state ViewState) {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	// register callback
-	runtime.OnFileDrop(ctx, a.onFileDrop)
+	//runtime.OnFileDrop(ctx, a.onFileDrop)
 	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
 
@@ -104,13 +104,17 @@ func (a *App) Startup(ctx context.Context) {
 
 }
 
-func (a *App) onFileDrop(x, y int, paths []string) {
-	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", paths, x, y)
-	if len(paths) != 1 {
-		ah.Fatalf("internal error. import part incorrect: %v", paths)
+func (a *App) OnFileDrop(x, y int, paths []string) {
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{})
+	if err != nil {
+		ah.Fatalf("failed to retrieve file from file browser: %v", err)
 	}
+	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", path, x, y)
+	//if len(paths) != 1 {
+	//	ah.Fatalf("internal error. import part incorrect: %v", paths)
+	//}
 
-	record, err := a.repository.CreateImport(a.ctx, paths[0], defaultImportName(paths[0]))
+	record, err := a.repository.CreateImport(a.ctx, path, defaultImportName(path))
 	if err != nil {
 		ah.Errorf("Import failed: %v", err)
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
