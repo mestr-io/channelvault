@@ -148,19 +148,19 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = channel_id AND c.import_id = m.import_id
-        WHERE c.id = $1 AND (thread_ts = ts OR thread_ts = "") 
+        WHERE c.id = ? AND (thread_ts = ts OR thread_ts = "") 
     `
 	args := []interface{}{channelID}
 
 	// If a cursor is provided, add a condition to fetch messages older than the cursor.
 	// This is a common pattern for keyset/cursor-based pagination.
 	if cursor != "" {
-		query += " AND ts < $2"
+		query += " AND ts < ?"
 		args = append(args, cursor)
 	}
 
 	// Always order by timestamp to ensure consistent pagination, and limit the result size.
-	query += " ORDER BY ts DESC LIMIT $3"
+	query += " ORDER BY ts DESC LIMIT ?"
 	args = append(args, pageSize)
 
 	// Execute the query using the context for cancellation safety.

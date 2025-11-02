@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
+	_ "modernc.org/sqlite"
 )
 
 func TestBulkInsertMessages(t *testing.T) {

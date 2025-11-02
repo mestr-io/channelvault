@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
+	_ "modernc.org/sqlite"
 )
 
 func TestBulkInsertUsers(t *testing.T) {
@@ -56,8 +56,8 @@ func TestGetUserAvatar(t *testing.T) {
 		if err := repo.db.Close(); err != nil {
 			panic(err)
 		}
-	}()	
-	
+	}()
+
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66

@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
+	_ "modernc.org/sqlite"
 )
 
 func setup(t *testing.T) *RepositorySql {
@@ -27,7 +27,7 @@ func setup(t *testing.T) *RepositorySql {
 
 func TestBulkInsertChannels(t *testing.T) {
 	repo := setup(t)
-	defer func(){
+	defer func() {
 		err := repo.db.Close()
 		if err != nil {
 			panic(err)
@@ -78,7 +78,7 @@ func TestBulkInsertChannels(t *testing.T) {
 
 func TestGetChannels(t *testing.T) {
 	repo := setup(t)
-	defer func(){
+	defer func() {
 		err := repo.db.Close()
 		if err != nil {
 			panic(err)

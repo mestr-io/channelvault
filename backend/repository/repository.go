@@ -52,7 +52,7 @@ type RepositorySql struct {
 }
 
 func New(dbPath string) (*RepositorySql, error) {
-	db, err := sql.Open("sqlite3", fmt.Sprintf("%s?_foreign_keys=on&_journal_mode=WAL", dbPath))
+	db, err := sql.Open("sqlite", fmt.Sprintf("%s?_foreign_keys=on&_journal_mode=WAL", dbPath))
 	if err != nil {
 		return nil, fmt.Errorf("FATAL: could not determine database path: %v", err)
 	}

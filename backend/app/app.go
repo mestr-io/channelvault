@@ -12,11 +12,11 @@ import (
 	// For formatting output, like in LogPrintf
 	"time"
 
-	_ "github.com/mattn/go-sqlite3" // For checking the build mode
 	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
+	_ "modernc.org/sqlite"
 
 	// Ensure this is imported for assetserver.Options
 	"github.com/wailsapp/wails/v2/pkg/runtime"
