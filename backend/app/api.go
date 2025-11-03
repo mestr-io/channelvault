@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
@@ -85,6 +86,15 @@ func (a *App) ListImports() ([]models.SlackImport, error) {
 }
 
 func (a *App) DeleteImport(importID int64) error {
+	// Warning!!!
+	// https://wails.io/docs/reference/runtime/dialog#windows
+	// Windows has standard dialog types in which the buttons are not customisable. The value returned will be one of:
+	// "Ok", "Cancel", "Abort", "Retry", "Ignore", "Yes", "No", "Try Again" or "Continue".
+
+	// https://wails.io/docs/reference/runtime/dialog#linux
+	// Linux has standard dialog types in which the buttons are not customisable. The value returned will be one of:
+	// "Ok", "Cancel", "Yes", "No"
+
 	selection, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
 		Type:          runtime.QuestionDialog,
 		Title:         "Confirm Delete",
@@ -95,7 +105,11 @@ func (a *App) DeleteImport(importID int64) error {
 	if err != nil {
 		return err
 	}
-	if selection != "Delete" {
+
+	// check that selection is really delete
+	validTokens := []string{"Delete", "Ok", "Yes", "Continue"}
+	found := slices.Contains(validTokens, selection)
+	if !found {
 		return fmt.Errorf("user cancelled deletion")
 	}
 	err = a.repository.DeleteImport(a.ctx, importID)

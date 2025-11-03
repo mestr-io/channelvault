@@ -101,20 +101,19 @@ func (a *App) Startup(ctx context.Context) {
 			}
 		}
 	}
-	runtime.EventsOn(ctx, "frontend:ready", func(optional ...any) {
-		runtime.EventsEmit(ctx, "backend:ready")
-	})
 }
 
 func (a *App) OnFileDrop(x, y int, paths []string) {
-	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{})
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{Title: "Select your import zip file"})
 	if err != nil {
 		ah.Fatalf("failed to retrieve file from file browser: %v", err)
 	}
+
+	// user has cancelled the modal, ignore
+	if path == "" {
+		return
+	}
 	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", path, x, y)
-	//if len(paths) != 1 {
-	//	ah.Fatalf("internal error. import part incorrect: %v", paths)
-	//}
 
 	record, err := a.repository.CreateImport(a.ctx, path, defaultImportName(path))
 	if err != nil {

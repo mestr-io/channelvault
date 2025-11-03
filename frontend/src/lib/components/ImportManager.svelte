@@ -43,28 +43,14 @@ runtime.EventsOn('downloadBinariesDone', async _ => {
   imports = [...fresh]
 })
 
-window.addEventListener('dragover', e => {
-  e.preventDefault()
-  e.stopPropagation()
-})
-
-window.addEventListener('drop', e => {
-  e.preventDefault()
-  e.stopPropagation()
-})
-
-runtime.EventsOn('backend:ready', async () => {
-  // load imports
+onMount(async () => {
+ // load imports
   const fresh = await ListImports()
   imports = [...fresh]
 
   if (imports.length === 0) {
     isDropZoneCollapsed = false
   }
-})
-
-onMount(() => {
-  runtime.EventsEmit('frontend:ready')
 })
 
 let DeleteImportHandle = async (importID: number) => {

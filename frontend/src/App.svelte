@@ -79,18 +79,10 @@ runtime.EventsOn('importComplete', async () => {
 runtime.EventsOn('importDeleted', async () => {
   channels = await GetChannels()
 })
-runtime.EventsOn('backend:ready', async () => {
-  try {
-    viewState = (await GetViewState()) as ViewState
-    channels = await GetChannels()
-  } catch (error) {
-    console.error('Failed to initialize:', error)
-  }
-})
 
-onMount(() => {
-  runtime.EventsEmit('frontend:ready')
-})
+onMount(async () => {
+  viewState = (await GetViewState()) as ViewState
+  channels = await GetChannels()})
 
 onDestroy(() => {
   document.body.classList.remove('is-resizing-panes')

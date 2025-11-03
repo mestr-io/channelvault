@@ -235,7 +235,7 @@ function toggleCollapse() {
         {#if slackImportCard.Error}
             <div class="error-section">
                 <div class="error-header">
-                    {@render errorIcon({ class: "error-icon" })}
+                    {@render errorIcon()}
                     <span class="error-title">Import Error</span>
                 </div>
                 <p class="error-message">{slackImportCard.Error}</p>
