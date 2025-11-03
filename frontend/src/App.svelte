@@ -82,7 +82,8 @@ runtime.EventsOn('importDeleted', async () => {
 
 onMount(async () => {
   viewState = (await GetViewState()) as ViewState
-  channels = await GetChannels()})
+  channels = await GetChannels()
+})
 
 onDestroy(() => {
   document.body.classList.remove('is-resizing-panes')

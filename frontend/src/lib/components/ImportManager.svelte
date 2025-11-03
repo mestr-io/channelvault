@@ -44,7 +44,7 @@ runtime.EventsOn('downloadBinariesDone', async _ => {
 })
 
 onMount(async () => {
- // load imports
+  // load imports
   const fresh = await ListImports()
   imports = [...fresh]
 
