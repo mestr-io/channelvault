@@ -1,6 +1,6 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { ListImports, ResumeImport, OnFileDrop } from '../../../wailsjs/go/app/App'
+import { ListImports, ResumeImport, SelectImportFile } from '../../../wailsjs/go/app/App'
 import { models } from '../../../wailsjs/go/models'
 import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
@@ -148,7 +148,7 @@ function closeOverlay() {
         <div class="drop-zone-container">
             <button
                 class="collapse-toggle"
-                onclick={() => {OnFileDrop(0,0,[])}}
+                onclick={() => {SelectImportFile()}}
                 aria-label={isDropZoneCollapsed
                     ? "Expand drop zone"
                     : "Collapse drop zone"}

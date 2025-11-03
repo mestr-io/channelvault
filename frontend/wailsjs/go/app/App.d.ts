@@ -26,10 +26,10 @@ export function GetViewState():Promise<string>;
 
 export function ListImports():Promise<Array<models.SlackImport>>;
 
-export function OnFileDrop(arg1:number,arg2:number,arg3:Array<string>):Promise<void>;
-
 export function RenameImport(arg1:number,arg2:string):Promise<void>;
 
 export function ResumeImport(arg1:number):Promise<void>;
+
+export function SelectImportFile():Promise<void>;
 
 export function WailsGenProgress():Promise<models.Progress>;

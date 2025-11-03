@@ -73,8 +73,7 @@ func (a *App) setViewState(state ViewState) {
 
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
-	// register callback
-	//runtime.OnFileDrop(ctx, a.onFileDrop)
+
 	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
 
@@ -103,7 +102,7 @@ func (a *App) Startup(ctx context.Context) {
 	}
 }
 
-func (a *App) OnFileDrop(x, y int, paths []string) {
+func (a *App) SelectImportFile() {
 	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{Title: "Select your import zip file"})
 	if err != nil {
 		ah.Fatalf("failed to retrieve file from file browser: %v", err)
@@ -113,7 +112,6 @@ func (a *App) OnFileDrop(x, y int, paths []string) {
 	if path == "" {
 		return
 	}
-	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", path, x, y)
 
 	record, err := a.repository.CreateImport(a.ctx, path, defaultImportName(path))
 	if err != nil {
