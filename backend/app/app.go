@@ -130,6 +130,12 @@ func defaultImportName(path string) string {
 }
 
 func (a *App) processImport(currentImport *models.SlackImport) {
+	ah.Infof("currentImport is %+v", currentImport)
+
+	if strings.TrimSpace(currentImport.Path) == "" {
+		ah.Warningf("Ignoring pathless import")
+		return
+	}
 	// notify the FE
 	currentImport.Error = ""
 	currentImport.NumFiles = 0
