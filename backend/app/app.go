@@ -12,11 +12,11 @@ import (
 	// For formatting output, like in LogPrintf
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
-	_ "modernc.org/sqlite"
 
 	// Ensure this is imported for assetserver.Options
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -77,7 +77,6 @@ func (a *App) Startup(ctx context.Context) {
 	//runtime.OnFileDrop(ctx, a.onFileDrop)
 	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
-	runtime.EventsEmit(a.ctx, "backend:ready")
 
 	// start here any pending task
 	imports, err := a.repository.ListImports(a.ctx)
@@ -102,7 +101,9 @@ func (a *App) Startup(ctx context.Context) {
 			}
 		}
 	}
-
+	runtime.EventsOn(ctx, "frontend:ready", func(optional ...any) {
+		runtime.EventsEmit(ctx, "backend:ready")
+	})
 }
 
 func (a *App) OnFileDrop(x, y int, paths []string) {
@@ -132,10 +133,6 @@ func defaultImportName(path string) string {
 func (a *App) processImport(currentImport *models.SlackImport) {
 	ah.Infof("currentImport is %+v", currentImport)
 
-	if strings.TrimSpace(currentImport.Path) == "" {
-		ah.Warningf("Ignoring pathless import")
-		return
-	}
 	// notify the FE
 	currentImport.Error = ""
 	currentImport.NumFiles = 0

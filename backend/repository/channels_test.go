@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
-	_ "modernc.org/sqlite"
 )
 
 func setup(t *testing.T) *RepositorySql {

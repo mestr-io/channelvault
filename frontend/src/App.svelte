@@ -69,27 +69,28 @@ $effect(() => {
     showThread = true
   }
 })
-onMount(() => {
-  runtime.EventsOn('backend:ready', async () => {
-    try {
-      viewState = (await GetViewState()) as ViewState
-      runtime.EventsOn('backend:viewState', (newState: string) => {
-        viewState = newState as ViewState
-      })
 
-      channels = await GetChannels()
-      runtime.EventsOn('importComplete', async () => {
-        channels = await GetChannels()
-      })
-      runtime.EventsOn('importDeleted', async () => {
-        channels = await GetChannels()
-      })
-    } catch (error) {
-      console.error('Failed to initialize:', error)
-    }
-  })
+runtime.EventsOn('backend:viewState', (newState: string) => {
+  viewState = newState as ViewState
+})
+runtime.EventsOn('importComplete', async () => {
+  channels = await GetChannels()
+})
+runtime.EventsOn('importDeleted', async () => {
+  channels = await GetChannels()
+})
+runtime.EventsOn('backend:ready', async () => {
+  try {
+    viewState = (await GetViewState()) as ViewState
+    channels = await GetChannels()
+  } catch (error) {
+    console.error('Failed to initialize:', error)
+  }
 })
 
+onMount(() => {
+  runtime.EventsEmit('frontend:ready')
+})
 
 onDestroy(() => {
   document.body.classList.remove('is-resizing-panes')

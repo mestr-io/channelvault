@@ -13,6 +13,7 @@ import (
 	// For formatting output, like in LogPrintf
 
 	"github.com/adrg/xdg"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/mestr-io/slack-export-viewer/backend/app"
 	helpers "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
@@ -20,7 +21,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/logger"
 	"github.com/wailsapp/wails/v2/pkg/options"             // For checking the build mode
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver" // Ensure this is imported for assetserver.Options
-	_ "modernc.org/sqlite"
 )
 
 //go:embed all:frontend/dist

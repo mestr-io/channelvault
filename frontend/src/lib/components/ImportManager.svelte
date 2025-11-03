@@ -18,51 +18,53 @@ let isDropZoneCollapsed = $state(true)
 
 let overlayElement: HTMLDivElement | null = null
 
-onMount(async () => {
-     runtime.EventsOn('backend:ready', async () => {
-        // subscribe to new import notification
-        runtime.EventsOn('startImport', async (imp: models.SlackImport) => {
-            const fresh = await ListImports()
-            imports = [...fresh]
-            isImporting = true
-        })
+// subscribe to new import notification
+runtime.EventsOn('startImport', async (imp: models.SlackImport) => {
+  const fresh = await ListImports()
+  imports = [...fresh]
+  isImporting = true
+})
 
-        // reload the
-        runtime.EventsOn('importComplete', async () => {
-            const fresh = await ListImports()
-            imports = [...fresh]
-            isImporting = false
-        })
+// reload the
+runtime.EventsOn('importComplete', async () => {
+  const fresh = await ListImports()
+  imports = [...fresh]
+  isImporting = false
+})
 
-        runtime.EventsOn('importError', async () => {
-            const fresh = await ListImports()
-            imports = [...fresh]
-            isImporting = false
-        })
+runtime.EventsOn('importError', async () => {
+  const fresh = await ListImports()
+  imports = [...fresh]
+  isImporting = false
+})
 
-        runtime.EventsOn('downloadBinariesDone', async _ => {
-            const fresh = await ListImports()
-            imports = [...fresh]
-        })
+runtime.EventsOn('downloadBinariesDone', async _ => {
+  const fresh = await ListImports()
+  imports = [...fresh]
+})
 
-        window.addEventListener("dragover", e => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
+window.addEventListener('dragover', e => {
+  e.preventDefault()
+  e.stopPropagation()
+})
 
-        window.addEventListener("drop", e => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
+window.addEventListener('drop', e => {
+  e.preventDefault()
+  e.stopPropagation()
+})
 
-        // load imports
-        const fresh = await ListImports()
-        imports = [...fresh]
+runtime.EventsOn('backend:ready', async () => {
+  // load imports
+  const fresh = await ListImports()
+  imports = [...fresh]
 
-        if (imports.length === 0) {
-            isDropZoneCollapsed = false
-        }
-    })
+  if (imports.length === 0) {
+    isDropZoneCollapsed = false
+  }
+})
+
+onMount(() => {
+  runtime.EventsEmit('frontend:ready')
 })
 
 let DeleteImportHandle = async (importID: number) => {
