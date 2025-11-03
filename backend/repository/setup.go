@@ -85,10 +85,5 @@ func (r *RepositorySql) SetupSchemas() error {
 		return fmt.Errorf("failed to vacuum: %v", err)
 	}
 
-	r.db.Exec("PRAGMA journal_mode=WAL;")
-	r.db.SetMaxOpenConns(5)
-	r.db.SetMaxIdleConns(5)
-	r.db.Exec("PRAGMA busy_timeout=5000;") // wait 5 seconds for locks
-
 	return nil
 }

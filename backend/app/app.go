@@ -77,6 +77,7 @@ func (a *App) Startup(ctx context.Context) {
 	//runtime.OnFileDrop(ctx, a.onFileDrop)
 	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
+	runtime.EventsEmit(a.ctx, "backend:ready")
 
 	// start here any pending task
 	imports, err := a.repository.ListImports(a.ctx)
