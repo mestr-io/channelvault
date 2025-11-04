@@ -1,4 +1,4 @@
-name: ChannelVault multi-build
+name: New ChannelVault multi-build
 
 on:
   workflow_dispatch:
