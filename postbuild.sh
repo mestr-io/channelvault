@@ -1,1 +1,1 @@
-echo "Postbuild for $1"
+echo "Postbuild for $1" > postbuild.$1.log

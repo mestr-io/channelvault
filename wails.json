@@ -11,8 +11,8 @@
     "email": "info@mestr.io"
   },
   "postBuildHooks": {
-            "darwin/universal": "./postbuild.sh macOS",
-            "windows/amd64": "./postbuild.sh win",
-            "linux/amd64": "./postbuild.sh linux"
+            "darwin/universal": "sh ../../postbuild.sh macOS",
+            "windows/amd64": "sh ../../postbuild.sh win",
+            "linux/amd64": "sh ../../postbuild.sh linux"
   }
 }
