@@ -140,14 +140,18 @@ func (a *App) DownloadBinaries(importID int64, confirm bool) error {
 			Type:          runtime.QuestionDialog,
 			Title:         "Download binaries",
 			Message:       "Are you sure you want to download all workspace binaries? This action can take a lot of disk space.",
-			Buttons:       []string{"Cancel", "OK"},
-			DefaultButton: "OK",
+			Buttons:       []string{"Cancel", "Ok"},
+			DefaultButton: "Ok",
 		})
 		if err != nil {
 			return err
 		}
-		if selection != "OK" {
-			return fmt.Errorf("user cancelled deletion")
+
+		// check that selection is really delete
+		validTokens := []string{"Ok", "Yes", "Continue"}
+		found := slices.Contains(validTokens, selection)
+		if !found {
+			return fmt.Errorf("user cancelled operation")
 		}
 	}
 
