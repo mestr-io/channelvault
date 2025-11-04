@@ -58,6 +58,10 @@ export function ResumeImport(arg1) {
   return window['go']['app']['App']['ResumeImport'](arg1);
 }
 
+export function SelectImportFile() {
+  return window['go']['app']['App']['SelectImportFile']();
+}
+
 export function WailsGenProgress() {
   return window['go']['app']['App']['WailsGenProgress']();
 }

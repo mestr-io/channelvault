@@ -177,25 +177,56 @@ func (r *RepositorySql) NoFinishedImports(ctx context.Context) (bool, error) {
 	}
 	return any, nil
 }
-
 func (r *RepositorySql) ListImports(ctx context.Context) (imports []models.SlackImport, err error) {
-	sqlStatement := `SELECT id, created, finished, num_messages, path, name, error, download_started, download_finished FROM imports ORDER BY id DESC;`
-	rows, err := r.db.Query(sqlStatement)
+	const sqlStatement = `
+SELECT
+    i.id,
+    i.created,
+    i.finished,
+    i.num_messages,
+    i.path,
+    i.name,
+    i.error,
+    i.download_started,
+    i.download_finished,
+    COALESCE((
+        SELECT COUNT(*)
+        FROM checkpoints c
+        WHERE c.import_id = i.id AND c.processed = 0
+    ), 0) AS pending_binaries
+FROM imports i
+ORDER BY i.id DESC;
+`
+	rows, err := r.db.QueryContext(ctx, sqlStatement)
 	if err != nil {
-		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
+		return nil, fmt.Errorf("FATAL: couldn't query imports: %w", err)
 	}
 	defer func() {
-		err = errors.Join(rows.Close(), err)
+		if cerr := rows.Close(); cerr != nil {
+			err = errors.Join(err, cerr)
+		}
 	}()
 
 	for rows.Next() {
 		var imp models.SlackImport
-		var finished sql.NullString
-		var errorMsg sql.NullString
-		err = rows.Scan(&imp.ID, &imp.Created, &finished, &imp.NumFiles, &imp.Path, &imp.Name, &errorMsg, &imp.DownloadStarted, &imp.DownloadFinished)
+		var finished, errorMsg sql.NullString
+
+		err = rows.Scan(
+			&imp.ID,
+			&imp.Created,
+			&finished,
+			&imp.NumFiles,
+			&imp.Path,
+			&imp.Name,
+			&errorMsg,
+			&imp.DownloadStarted,
+			&imp.DownloadFinished,
+			&imp.PendingBinaries,
+		)
 		if err != nil {
-			return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
+			return nil, fmt.Errorf("FATAL: couldn't scan import row: %w", err)
 		}
+
 		if finished.Valid {
 			imp.Finished = finished.String
 		}
@@ -203,22 +234,15 @@ func (r *RepositorySql) ListImports(ctx context.Context) (imports []models.Slack
 			imp.Error = errorMsg.String
 		}
 
-		imp.PendingBinaries, err = r.CountPendingBinaries(ctx, imp.ID)
-		if err != nil {
-			return nil, fmt.Errorf("couldnt query pending files for import %d: %v", imp.ID, err)
-		}
-
 		imports = append(imports, imp)
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, fmt.Errorf("FATAL: couldnt query imports: %w", err)
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("FATAL: couldn't iterate imports: %w", err)
 	}
 
-	// Ensure empty slice instead of nil
 	if imports == nil {
 		imports = []models.SlackImport{}
 	}
-
 	return imports, nil
 }

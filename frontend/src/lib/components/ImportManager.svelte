@@ -1,6 +1,6 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { ListImports, ResumeImport } from '../../../wailsjs/go/app/App'
+import { ListImports, ResumeImport, SelectImportFile } from '../../../wailsjs/go/app/App'
 import { models } from '../../../wailsjs/go/models'
 import SlackImport from './SlackImport.svelte'
 import * as runtime from '../../../wailsjs/runtime/runtime'
@@ -18,32 +18,32 @@ let isDropZoneCollapsed = $state(true)
 
 let overlayElement: HTMLDivElement | null = null
 
+// subscribe to new import notification
+runtime.EventsOn('startImport', async (imp: models.SlackImport) => {
+  const fresh = await ListImports()
+  imports = [...fresh]
+  isImporting = true
+})
+
+// reload the
+runtime.EventsOn('importComplete', async () => {
+  const fresh = await ListImports()
+  imports = [...fresh]
+  isImporting = false
+})
+
+runtime.EventsOn('importError', async () => {
+  const fresh = await ListImports()
+  imports = [...fresh]
+  isImporting = false
+})
+
+runtime.EventsOn('downloadBinariesDone', async _ => {
+  const fresh = await ListImports()
+  imports = [...fresh]
+})
+
 onMount(async () => {
-  // subscribe to new import notification
-  runtime.EventsOn('startImport', async (imp: models.SlackImport) => {
-    const fresh = await ListImports()
-    imports = [...fresh]
-    isImporting = true
-  })
-
-  // reload the
-  runtime.EventsOn('importComplete', async () => {
-    const fresh = await ListImports()
-    imports = [...fresh]
-    isImporting = false
-  })
-
-  runtime.EventsOn('importError', async () => {
-    const fresh = await ListImports()
-    imports = [...fresh]
-    isImporting = false
-  })
-
-  runtime.EventsOn('downloadBinariesDone', async _ => {
-    const fresh = await ListImports()
-    imports = [...fresh]
-  })
-
   // load imports
   const fresh = await ListImports()
   imports = [...fresh]
@@ -148,7 +148,7 @@ function closeOverlay() {
         <div class="drop-zone-container">
             <button
                 class="collapse-toggle"
-                onclick={toggleDropZone}
+                onclick={() => {SelectImportFile()}}
                 aria-label={isDropZoneCollapsed
                     ? "Expand drop zone"
                     : "Collapse drop zone"}

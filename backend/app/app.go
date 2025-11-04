@@ -12,7 +12,7 @@ import (
 	// For formatting output, like in LogPrintf
 	"time"
 
-	_ "github.com/mattn/go-sqlite3" // For checking the build mode
+	_ "github.com/mattn/go-sqlite3"
 	ah "github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/importer"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
@@ -73,8 +73,7 @@ func (a *App) setViewState(state ViewState) {
 
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
-	// register callback
-	runtime.OnFileDrop(ctx, a.onFileDrop)
+
 	ah.InitWailsLog(ctx)
 	ah.Infof("Wails application started successfully!")
 
@@ -101,16 +100,20 @@ func (a *App) Startup(ctx context.Context) {
 			}
 		}
 	}
-
 }
 
-func (a *App) onFileDrop(x, y int, paths []string) {
-	runtime.LogPrintf(a.ctx, "Go-side OnFileDrop received: %v at (%d,%d)", paths, x, y)
-	if len(paths) != 1 {
-		ah.Fatalf("internal error. import part incorrect: %v", paths)
+func (a *App) SelectImportFile() {
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{Title: "Select your import zip file"})
+	if err != nil {
+		ah.Fatalf("failed to retrieve file from file browser: %v", err)
 	}
 
-	record, err := a.repository.CreateImport(a.ctx, paths[0], defaultImportName(paths[0]))
+	// user has cancelled the modal, ignore
+	if path == "" {
+		return
+	}
+
+	record, err := a.repository.CreateImport(a.ctx, path, defaultImportName(path))
 	if err != nil {
 		ah.Errorf("Import failed: %v", err)
 		a.setViewState(ViewStateSetup) // Go back to setup on failure
@@ -125,6 +128,8 @@ func defaultImportName(path string) string {
 }
 
 func (a *App) processImport(currentImport *models.SlackImport) {
+	ah.Infof("currentImport is %+v", currentImport)
+
 	// notify the FE
 	currentImport.Error = ""
 	currentImport.NumFiles = 0

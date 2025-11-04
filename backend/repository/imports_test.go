@@ -10,7 +10,7 @@ import (
 
 func TestStoreImport(t *testing.T) {
 	repo := setup(t)
-	defer func(){
+	defer func() {
 		if err := repo.db.Close(); err != nil {
 			panic(err)
 		}
@@ -37,7 +37,7 @@ func TestStoreImport(t *testing.T) {
 
 func TestFinishedImport(t *testing.T) {
 	repo := setup(t)
-	defer func(){
+	defer func() {
 		if err := repo.db.Close(); err != nil {
 			panic(err)
 		}
@@ -64,7 +64,7 @@ func TestFinishedImport(t *testing.T) {
 
 func TestNoFinishedImports(t *testing.T) {
 	repo := setup(t)
-	defer func(){
+	defer func() {
 		if err := repo.db.Close(); err != nil {
 			panic(err)
 		}

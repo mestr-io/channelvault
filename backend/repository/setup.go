@@ -84,5 +84,6 @@ func (r *RepositorySql) SetupSchemas() error {
 	if _, err := r.db.Exec("VACUUM;"); err != nil {
 		return fmt.Errorf("failed to vacuum: %v", err)
 	}
+
 	return nil
 }

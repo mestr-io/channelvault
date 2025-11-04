@@ -15,7 +15,7 @@ func TestGetSqliteDatabasePath(t *testing.T) {
 	oldXDGDataHome := os.Getenv("XDG_DATA_HOME")
 	tempDir, err := os.MkdirTemp("", "test-xdg-")
 	assert.NoError(t, err)
-	defer func(){
+	defer func() {
 		err = os.RemoveAll(tempDir)
 		if err != nil {
 			panic(err)

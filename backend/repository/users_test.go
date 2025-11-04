@@ -56,8 +56,8 @@ func TestGetUserAvatar(t *testing.T) {
 		if err := repo.db.Close(); err != nil {
 			panic(err)
 		}
-	}()	
-	
+	}()
+
 	ctx := context.Background()
 	imp := models.SlackImport{}
 	imp.ID = 66

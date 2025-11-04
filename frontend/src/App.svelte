@@ -70,25 +70,19 @@ $effect(() => {
   }
 })
 
-onMount(async () => {
-  try {
-    viewState = (await GetViewState()) as ViewState
-    runtime.EventsOn('backend:viewState', (newState: string) => {
-      viewState = newState as ViewState
-    })
+runtime.EventsOn('backend:viewState', (newState: string) => {
+  viewState = newState as ViewState
+})
+runtime.EventsOn('importComplete', async () => {
+  channels = await GetChannels()
+})
+runtime.EventsOn('importDeleted', async () => {
+  channels = await GetChannels()
+})
 
-    channels = await GetChannels()
-    runtime.EventsOn('importComplete', async () => {
-      const fresh = await GetChannels()
-      channels = [...fresh]
-    })
-    runtime.EventsOn('importDeleted', async () => {
-      const fresh = await GetChannels()
-      channels = [...fresh]
-    })
-  } catch (error) {
-    console.error('Failed to initialize view state or set up listener:', error)
-  }
+onMount(async () => {
+  viewState = (await GetViewState()) as ViewState
+  channels = await GetChannels()
 })
 
 onDestroy(() => {
