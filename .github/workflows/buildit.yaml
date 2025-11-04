@@ -18,6 +18,11 @@ jobs:
           build-obfuscate: true
           go-version: "^1.24"
           package: true
+      - name: Listar archivos en el repositorio
+         run: |
+          echo "Los archivos en el directorio de trabajo son:"
+          ls -l
+
   macos:
     runs-on: macos-latest
     steps:
@@ -31,6 +36,11 @@ jobs:
           build-obfuscate: true
           go-version: "^1.24"
           package: true
+      - name: Listar archivos en el repositorio
+        run: |
+          echo "Los archivos en el directorio de trabajo son:"
+          ls -l
+
   windows:
     runs-on: windows-latest
     steps:
@@ -46,3 +56,8 @@ jobs:
           build-obfuscate: true
           go-version: "^1.24"
           package: true
+       - name: Listar archivos en el repositorio
+         run: |
+          echo "Los archivos en el directorio de trabajo son:"
+          ls -l
+
