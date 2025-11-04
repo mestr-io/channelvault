@@ -1,1 +1,6 @@
-echo "Postbuild for $1" > postbuild.$1.log
+#!/bin/bash
+
+# Check if the first command-line argument is "macOS"
+if [ "$1" = "macOS" ]; then
+     mv ChannelVault.app wails.app
+fi
