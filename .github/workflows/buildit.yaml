@@ -42,6 +42,7 @@ jobs:
           build-name: ChannelVault.exe
           build-platform: windows/amd64
           wails-build-webview2: "embed"
+          nsis: true
           build-obfuscate: true
           go-version: "^1.24"
           package: true
