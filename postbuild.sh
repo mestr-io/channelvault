@@ -1,1 +1,1 @@
-echo Postbuild Hook
+echo "Postbuild for $1"

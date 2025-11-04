@@ -10,5 +10,9 @@
     "name": "mestr.io",
     "email": "info@mestr.io"
   },
-  "postBuildHooks":"./postbuild.sh"
+  "postBuildHooks": {
+            "darwin/universal": "./postbuild.sh macOS",
+            "windows/amd64": "./postbuild.sh win",
+            "linux/amd64": "./postbuild.sh linux"
+  }
 }
