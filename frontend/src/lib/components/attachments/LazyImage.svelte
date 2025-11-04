@@ -63,7 +63,9 @@ onMount(() => {
   <div bind:this={container} class="wrapper">
     <div class="placeholder">
       {#if shouldLoad}
-        {#await GetBase64Image(fileId) then src}
+        {#await GetBase64Image(fileId)}
+          <div class="loading"><div>loading...</div></div>
+        {:then src}
           <img
             {src}
             {alt}
@@ -71,6 +73,10 @@ onMount(() => {
               openImageOverlay(src);
             }}
           />
+        {:catch err}
+          <div class="error">
+            <div style="padding: 2rem;">{err}</div>
+          </div>
         {/await}
       {/if}
     </div>
@@ -81,6 +87,28 @@ onMount(() => {
   /* The wrapper must be a layout element for the observer to see it. */
   .wrapper {
     display: flex;
+  }
+
+  .error {
+    background-color: lightcoral;
+    max-width: 90%;
+    height: 300px;
+        display: flex;
+        justify-content: center;
+  align-items: center;
+      border-radius: 2rem;
+
+  }
+
+  .loading {
+    background-color: lightgray;
+    max-width: 90%;
+    height: 300px;
+     display: flex;
+        justify-content: center;
+  align-items: center;
+      border-radius: 2rem;
+
   }
 
   .placeholder {
