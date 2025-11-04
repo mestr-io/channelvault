@@ -12,18 +12,16 @@
   },
   "runNonNativeBuildHooks": true,
   "preBuildHooks": {
-            "darwin/universal": "sh ../../prebuild.sh macOS",
-            "windows/amd64": "echo sh ../../prebuild.sh win",
-            "linux/amd64": "sh ../../prebuild.sh linux"
+    "darwin/universal": "sh ../../prebuild.sh macOS",
+    "linux/amd64": "sh ../../prebuild.sh linux"
   },
   "postBuildHooks": {
-            "darwin/universal": "sh ../../postbuild.sh macOS",
-            "windows/amd64": "echo sh ../../postbuild.sh win",
-            "linux/amd64": "sh ../../postbuild.sh linux"
+    "darwin/universal": "sh ../../postbuild.sh macOS",
+    "linux/amd64": "sh ../../postbuild.sh linux"
   },
   "info": {
-                "companyName": "mestrio",
-                "productName": "ChannelVault",
-                "productVersion": "0.0.1"
+    "companyName": "mestrio",
+    "productName": "ChannelVault",
+    "productVersion": "0.0.1"
   }
 }
