@@ -19,7 +19,8 @@ jobs:
           go-version: "^1.24"
           package: true
       - name: Listar archivos en el repositorio
-         run: |
+        shell: bash
+        run: |
           echo "Los archivos en el directorio de trabajo son:"
           ls -l
   macos:
@@ -36,6 +37,7 @@ jobs:
           go-version: "^1.24"
           package: true
       - name: Listar archivos en el repositorio
+        shell: bash
         run: |
           echo "Los archivos en el directorio de trabajo son:"
           ls -l
@@ -54,7 +56,8 @@ jobs:
           build-obfuscate: true
           go-version: "^1.24"
           package: true
-       - name: Listar archivos en el repositorio
-         run: |
+      - name: Listar archivos en el repositorio
+        shell: bash
+        run: |
           echo "Los archivos en el directorio de trabajo son:"
           ls -l
