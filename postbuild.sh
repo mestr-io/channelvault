@@ -10,11 +10,11 @@ if [ "$1" = "macOS" ]; then
 fi
 
 if [ "$1" = "win" ]; then
-    mv ChannelVault.exe ../../ChannelVault-$USERVER-$VERSION-$DATE.exe
+    mv ChannelVault.exe ChannelVault-$USERVER-$VERSION-$DATE.exe
 fi
 
 if [ "$1" = "linux" ]; then
-    mv ChannelVault ../../ChannelVault-$USERVER-$VERSION-$DATE
+    mv ChannelVault ChannelVault-$USERVER-$VERSION-$DATE
 fi
 
 echo Version is $VERSION
