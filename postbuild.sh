@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USERVER="0.1"
+USERVER="0.0.1"
 VERSION=$(git rev-parse --short HEAD)
 DATE=$(date -u +%Y%m%d%H%M%S)
 
