@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           echo "Los archivos en el directorio de trabajo son:"
-          ls -l
+          ls -l build/bin
   macos:
     runs-on: macos-latest
     steps:
@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           echo "Los archivos en el directorio de trabajo son:"
-          ls -l
+          ls -l build/bin
   windows:
     runs-on: windows-latest
     steps:
@@ -60,4 +60,4 @@ jobs:
         shell: bash
         run: |
           echo "Los archivos en el directorio de trabajo son:"
-          ls -l
+          ls -l build/bin
