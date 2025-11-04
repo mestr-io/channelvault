@@ -9,5 +9,6 @@
   "author": {
     "name": "mestr.io",
     "email": "info@mestr.io"
-  }
+  },
+  "postBuildHooks":"./postbuild.sh"
 }
