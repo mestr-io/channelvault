@@ -23,7 +23,7 @@ jobs:
         run: |
           echo "Los archivos en el directorio de trabajo son:"
           ls -l build/bin
-          export ZIPNAME=$(ls build/bin/ChannelVault*').zip
+          export ZIPNAME=$(ls build/bin/ChannelVault*).zip
           echo $ZIPNAME
   macos:
     runs-on: macos-latest
