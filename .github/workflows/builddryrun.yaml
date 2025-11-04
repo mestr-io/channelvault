@@ -1,0 +1,48 @@
+name: ChannelVault multi-build [DRY RUN]
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dAppServer/wails-build-action@main
+        with:
+          build-name: ChannelVault
+          build-platform: linux/amd64
+          wails-build-webview2: "embed"
+          build-obfuscate: true
+          go-version: "^1.24"
+          package: false
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dAppServer/wails-build-action@main
+        with:
+          build-name: ChannelVault
+          build-platform: darwin/universal
+          build-obfuscate: true
+          go-version: "^1.24"
+          package: false
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dAppServer/wails-build-action@main
+        with:
+          build-name: ChannelVault.exe
+          build-platform: windows/amd64
+          wails-build-webview2: "embed"
+          nsis: true
+          build-obfuscate: true
+          go-version: "^1.24"
+          package: false
