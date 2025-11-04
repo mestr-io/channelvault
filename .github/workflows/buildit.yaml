@@ -1,0 +1,47 @@
+name: New ChannelVault multi-build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ubuntu-obfuscate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dAppServer/wails-build-action@main
+        with:
+          build-name: wails
+          build-platform: linux/amd64
+          wails-build-webview2: "embed"
+          build-obfuscate: true
+          go-version: "^1.24"
+          package: false # Do not try to upload to github
+  macos-obfuscate:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dAppServer/wails-build-action@main
+        with:
+          build-name: wails
+          build-platform: darwin/universal
+          build-obfuscate: true
+          go-version: "^1.24"
+          package: false # Do not try to upload to github
+  windows-obfuscate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dAppServer/wails-build-action@main
+        with:
+          build-name: wails.exe
+          build-platform: windows/amd64
+          wails-build-webview2: "embed"
+          build-obfuscate: true
+          go-version: "^1.24"
+          package: false # Do not try to upload to github
