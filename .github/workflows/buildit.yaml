@@ -22,7 +22,6 @@ jobs:
          run: |
           echo "Los archivos en el directorio de trabajo son:"
           ls -l
-
   macos:
     runs-on: macos-latest
     steps:
@@ -40,7 +39,6 @@ jobs:
         run: |
           echo "Los archivos en el directorio de trabajo son:"
           ls -l
-
   windows:
     runs-on: windows-latest
     steps:
@@ -60,4 +58,3 @@ jobs:
          run: |
           echo "Los archivos en el directorio de trabajo son:"
           ls -l
-
