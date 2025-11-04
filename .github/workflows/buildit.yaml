@@ -12,7 +12,7 @@ jobs:
           submodules: recursive
       - uses: dAppServer/wails-build-action@main
         with:
-          build-name: wails
+          build-name: ChannelVault
           build-platform: linux/amd64
           wails-build-webview2: "embed"
           build-obfuscate: true
@@ -26,7 +26,7 @@ jobs:
           submodules: recursive
       - uses: dAppServer/wails-build-action@main
         with:
-          build-name: wails
+          build-name: ChannelVault
           build-platform: darwin/universal
           build-obfuscate: true
           go-version: "^1.24"
@@ -39,7 +39,7 @@ jobs:
           submodules: recursive
       - uses: dAppServer/wails-build-action@main
         with:
-          build-name: wails.exe
+          build-name: ChannelVault.exe
           build-platform: windows/amd64
           wails-build-webview2: "embed"
           build-obfuscate: true
