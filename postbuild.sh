@@ -6,7 +6,7 @@ DATE=$(date -u +%Y%m%d%H%M%S)
 
 # Check if the first command-line argument is "macOS"
 if [ "$1" = "macOS" ]; then
-   echo work to be done...
+   mv ChannelVault.app.zip ChannelVault-$USERVER-$VERSION-$DATE.zip
 fi
 
 if [ "$1" = "win" ]; then
