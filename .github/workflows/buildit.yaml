@@ -66,5 +66,6 @@ jobs:
           echo "Los archivos en el directorio de trabajo son:"
           export ZIPNAME=$(ls build/bin/ChannelVault*.exe | sed 's/exe/zip/')
           export DSTNAME=$(ls build/bin/ChannelVault*.exe )
+          apt update && apt install -y zip
           zip $ZIPNAME $DSTNAME
           ls -l build/bin
