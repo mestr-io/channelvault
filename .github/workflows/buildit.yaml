@@ -45,7 +45,7 @@ jobs:
           ls -l build/
           ls -l build/bin/
           ls -l build/bin/ChannelVault.app
-          ls -l build/bin/ChannelVault.app/Content
+          ls -l build/bin/ChannelVault.app/Contents
           export ZIPNAME=$(ls build/bin/ChannelVault*.app | sed 's/app/zip/')
           echo $ZIPNAME
   windows:
