@@ -42,7 +42,9 @@ jobs:
         shell: bash
         run: |
           echo "Los archivos en el directorio de trabajo son:"
-          ls -l build/bin
+          ls -l build/
+          ls -l build/bin/
+          ls -l build/bin/ChannelVault*.app
           export ZIPNAME=$(ls build/bin/ChannelVault*.app | sed 's/app/zip/')
           echo $ZIPNAME
   windows:
