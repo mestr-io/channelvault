@@ -22,9 +22,10 @@ jobs:
         shell: bash
         run: |
           echo "Los archivos en el directorio de trabajo son:"
+          export TARNAME=$(ls build/bin/ChannelVault*)
+          echo $TARNAME
+          tar -cvf $TARNAME.tar.gz ./$TARNAME
           ls -l build/bin
-          export ZIPNAME=$(ls build/bin/ChannelVault*).zip
-          echo $ZIPNAME
   macos:
     runs-on: macos-latest
     steps:
@@ -37,17 +38,13 @@ jobs:
           build-platform: darwin/universal
           build-obfuscate: true
           go-version: "^1.24"
-          package: true
+          package: false
       - name: Listar archivos en el repositorio
         shell: bash
         run: |
           echo "Los archivos en el directorio de trabajo son:"
-          ls -l build/
           ls -l build/bin/
-          ls -l build/bin/ChannelVault.app
-          ls -l build/bin/ChannelVault.app/Contents
-          export ZIPNAME=$(ls build/bin/ChannelVault*.app | sed 's/app/zip/')
-          echo $ZIPNAME
+          echo "para guardar (package: true) el .zip generado edite el job ./github/buildit.yaml"
   windows:
     runs-on: windows-latest
     steps:
@@ -67,6 +64,7 @@ jobs:
         shell: bash
         run: |
           echo "Los archivos en el directorio de trabajo son:"
-          ls -l build/bin
           export ZIPNAME=$(ls build/bin/ChannelVault*.exe | sed 's/exe/zip/')
-          echo $ZIPNAME
+          export DSTNAME=$(ls build/bin/ChannelVault*.exe )
+          zip $ZIPNAME $DSTNAME
+          ls -l build/bin
