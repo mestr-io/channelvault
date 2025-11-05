@@ -14,10 +14,12 @@
   "preBuildHooks": {
     "darwin/universal": "sh ../../prebuild.sh macOS",
     "linux/amd64": "sh ../../prebuild.sh linux"
+    "windows/amd64": "sh ../../prebuild.sh win"
   },
   "postBuildHooks": {
     "darwin/universal": "sh ../../postbuild.sh macOS",
     "linux/amd64": "sh ../../postbuild.sh linux"
+    "windows/amd64": "sh ../../postbuild.sh win"
   },
   "info": {
     "companyName": "mestrio",
