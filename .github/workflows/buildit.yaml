@@ -67,4 +67,4 @@ jobs:
           export ZIPNAME=$(ls build/bin/ChannelVault*.exe | sed 's/exe/zip/')
           export DSTNAME=$(ls build/bin/ChannelVault*.exe )
           ls -l build/bin
-	  cd build/bin; Compress-Archive -Path $DSTNAME $ZIPNAME
+          cd build/bin && Compress-Archive -Path $DSTNAME $ZIPNAME
