@@ -44,7 +44,8 @@ jobs:
           echo "Los archivos en el directorio de trabajo son:"
           ls -l build/
           ls -l build/bin/
-          ls -l build/bin/ChannelVault*.app
+          ls -l build/bin/ChannelVault.app
+          ls -l build/bin/ChannelVault.app/Content
           export ZIPNAME=$(ls build/bin/ChannelVault*.app | sed 's/app/zip/')
           echo $ZIPNAME
   windows:
