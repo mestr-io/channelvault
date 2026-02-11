@@ -40,7 +40,7 @@ compile: goversion ##                      Just compile
 
 build: goversion ##                        Build apps
 	$(info) ">>> Install app $(VERSION)-$(RELEASE) ..."
-	@wails build -tags webkit2_41
+	@wails build -tags webkit2_41 fts5
 
 buildwin: goversion##
 	$(info) ">>> Create windows release $(VERSION)-$(RELEASE) ..."
@@ -48,7 +48,7 @@ buildwin: goversion##
 
 dev: goversion ##                          Dev launch
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
-	wails dev -tags webkit2_41
+	wails dev -tags webkit2_41 fts5
 
 test: goversion ##                         Launch app tests
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."

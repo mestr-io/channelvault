@@ -67,6 +67,21 @@ func (r *RepositorySql) SetupSchemas() error {
 			name TEXT NOT NULL,
 			PRIMARY KEY (import_id, id)	
 		);
+		CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
+			text, 
+			content='messages', 
+			content_rowid='rowid'
+		);
+		CREATE TRIGGER IF NOT EXISTS messages_ai AFTER INSERT ON messages BEGIN
+		  INSERT INTO messages_fts(rowid, text) VALUES (new.rowid, new.text);
+		END;
+		CREATE TRIGGER IF NOT EXISTS messages_ad AFTER DELETE ON messages BEGIN
+		  INSERT INTO messages_fts(messages_fts, rowid, text) VALUES('delete', old.rowid, old.text);
+		END;
+		CREATE TRIGGER IF NOT EXISTS messages_au AFTER UPDATE ON messages BEGIN
+		  INSERT INTO messages_fts(messages_fts, rowid, text) VALUES('delete', old.rowid, old.text);
+		  INSERT INTO messages_fts(rowid, text) VALUES (new.rowid, new.text);
+		END;
 		CREATE TABLE IF NOT EXISTS users (
 			import_id INTEGER REFERENCES imports(id) ON DELETE CASCADE,
 			id TEXT,
