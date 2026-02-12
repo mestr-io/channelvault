@@ -107,7 +107,16 @@ function openImportsOverlay() {
   }
 }
 
-async function selectChannel(channel: models.Channel) {
+async function selectChannel(name: string) {
+  let channel: models.Channel | null = null
+  for (var ch of channels) {
+    if (ch.name === name) {
+      channel = ch
+      break
+    }
+  } 
+  if (!channel) return
+
   if (selectedChannel?.id === channel.id && currentView === 'channel') return
   selectedChannel = channel
   messages = []
@@ -211,12 +220,12 @@ function endResize() {
               <button
                 class:active={channel.id === selectedChannel?.id &&
                   currentView === "channel"}
-                onclick={() => selectChannel(channel)}># {channel.name}</button
+                onclick={() => selectChannel(channel.name)}># {channel.name}</button
               >
             </div>
           {/each}
         </div>
-        <SearchBox bind:selectedChannel bind:selectedThread bind:currentTs/>
+        <SearchBox selectChannel={selectChannel} bind:selectedThread bind:currentTs/>
 
         <div class="channel-item settings-button">
           <button onclick={() => openImportsOverlay()}>

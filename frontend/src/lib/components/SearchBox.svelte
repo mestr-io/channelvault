@@ -3,7 +3,7 @@
     import SearchResultsOverlay from './SearchResultsOverlay.svelte';
     import { SearchMessages } from '../../../wailsjs/go/app/App'
 
-    let { selectedThread = $bindable(), selectedChannel = $bindable() , currentTs = $bindable()} = $props()
+    let { selectedThread = $bindable(), selectChannel , currentTs = $bindable()} = $props()
 
     let searchText = $state("");
     let searchResults = $state<models.SearchResult[]>([]);
@@ -42,7 +42,7 @@
 
 {#if showOverlay}
     <SearchResultsOverlay
-        bind:selectedChannel bind:selectedThread bind:currentTs
+        selectChannel={selectChannel} bind:selectedThread bind:currentTs
         {searchResults}
         {searchText}
         onClose={closeOverlay}

@@ -4,17 +4,17 @@
 
     type Props = {
         selectedThread: string
-        selectedChannel: string
+        selectChannel: (name: string) => Promise<void>
         currentTs: string
         searchText: string
         onClose: () => void
         searchResults: models.SearchResult[]
     }
 
-    let { onClose, searchText, searchResults, selectedThread = $bindable(), selectedChannel = $bindable() , currentTs = $bindable()}: Props = $props()
+    let { onClose, searchText, searchResults, selectedThread = $bindable(), selectChannel , currentTs = $bindable()}: Props = $props()
 
-    function selectHandler(channel: string, ts: string, thread_ts: string) {
-        selectedChannel = channel
+    async function selectHandler(channel: string, ts: string, thread_ts: string) {
+        await selectChannel(channel)
         currentTs = ts
         selectedThread = thread_ts
         onClose()
