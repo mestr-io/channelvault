@@ -1,11 +1,25 @@
 <script lang="ts">
-    let searchText = $state("");
+    import { models } from '../../../wailsjs/go/models'
+    import SearchResultsOverlay from './SearchResultsOverlay.svelte';
     import { SearchMessages } from '../../../wailsjs/go/app/App'
+
+    let { selectedThread = $bindable(), selectedChannel = $bindable() , currentTs = $bindable()} = $props()
+
+    let searchText = $state("");
+    let searchResults = $state<models.SearchResult[]>([]);
+    let showOverlay = $state(false);
 
     function handleSearch() {
         console.log("Searching for:", searchText);
-        // No backend functionality yet, just logging for now
-        SearchMessages(searchText).then(() => {});
+        SearchMessages(searchText).then((result) => {
+            searchResults = result;
+            showOverlay = result.length > 0;
+        });
+    }
+
+    function closeOverlay() {
+        showOverlay = false;
+        searchResults = [];
     }
 
     function handleKeyPress(event: KeyboardEvent) {
@@ -25,6 +39,15 @@
     />
     <button onclick={handleSearch} class="search-button">Search</button>
 </header>
+
+{#if showOverlay}
+    <SearchResultsOverlay
+        bind:selectedChannel bind:selectedThread bind:currentTs
+        {searchResults}
+        {searchText}
+        onClose={closeOverlay}
+    />
+{/if}
 
 <style>
     .search-box-container {

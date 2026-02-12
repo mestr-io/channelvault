@@ -406,6 +406,8 @@ export namespace models {
 	    ChannelID: string;
 	    Ts: string;
 	    MatchedText: string;
+	    UserId: string;
+	    ThreadTs: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new SearchResult(source);
@@ -416,6 +418,8 @@ export namespace models {
 	        this.ChannelID = source["ChannelID"];
 	        this.Ts = source["Ts"];
 	        this.MatchedText = source["MatchedText"];
+	        this.UserId = source["UserId"];
+	        this.ThreadTs = source["ThreadTs"];
 	    }
 	}
 	export class SlackImport {

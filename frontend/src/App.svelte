@@ -28,6 +28,7 @@ let viewState = $state<ViewState>('loading')
 // Dashboard state
 let channels = $state<models.Channel[]>([] as models.Channel[])
 let selectedChannel = $state<models.Channel | null>(null)
+let currentTs = $state<string | null>(null)
 let threadMessages = $state<models.Message[]>([] as models.Message[])
 let messages = $state<models.Message[]>([] as models.Message[])
 let groups = $state<AggregatedMessage>([] as AggregatedMessage)
@@ -215,7 +216,7 @@ function endResize() {
             </div>
           {/each}
         </div>
-        <SearchBox/>
+        <SearchBox bind:selectedChannel bind:selectedThread bind:currentTs/>
 
         <div class="channel-item settings-button">
           <button onclick={() => openImportsOverlay()}>

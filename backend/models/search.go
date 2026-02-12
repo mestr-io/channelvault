@@ -5,4 +5,5 @@ type SearchResult struct {
 	Ts          string
 	MatchedText string
 	UserId      string
+	ThreadTs    string
 }
