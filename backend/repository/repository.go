@@ -38,6 +38,9 @@ type Repository interface {
 	MarkFileAsDownloaded(ctx context.Context, importID int64, fileID string) error
 	CountPendingBinaries(ctx context.Context, importID int64) (int64, error)
 
+	// search
+	SearchMessages(ctx context.Context, ChannelID string, userId string, query string) ([]models.SearchResult, error)
+
 	//setup
 	SetupSchemas() error
 

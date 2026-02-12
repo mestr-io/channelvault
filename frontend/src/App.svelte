@@ -15,6 +15,7 @@ import { import_icon } from './lib/components/Icons.svelte'
 import { chevron } from './lib/components/icons'
 
 import type { ThreadID } from './lib/types'
+import SearchBox from './lib/components/SearchBox.svelte';
 
 type ViewState = 'setup' | 'dashboard' | 'loading'
 type AggregatedMessage = models.Message[][]
@@ -184,6 +185,8 @@ function endResize() {
   <Splitpanes on:resize={startResize} on:resized={endResize}>
     <Pane minSize={10} maxSize={30} size={25}>
       <div class="sidebar">
+        <SearchBox/>
+
         <div class="sidebar-header">
           <button
             class="sidebar-header-title"
