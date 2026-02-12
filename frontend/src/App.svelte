@@ -185,8 +185,6 @@ function endResize() {
   <Splitpanes on:resize={startResize} on:resized={endResize}>
     <Pane minSize={10} maxSize={30} size={25}>
       <div class="sidebar">
-        <SearchBox/>
-
         <div class="sidebar-header">
           <button
             class="sidebar-header-title"
@@ -217,6 +215,8 @@ function endResize() {
             </div>
           {/each}
         </div>
+        <SearchBox/>
+
         <div class="channel-item settings-button">
           <button onclick={() => openImportsOverlay()}>
             {@render import_icon("1rem")}

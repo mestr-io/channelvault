@@ -134,6 +134,10 @@ func (a *App) RenameImport(importID int64, name string) error {
 	return a.repository.RenameImport(a.ctx, importID, name)
 }
 
+func (a *App) SearchMessages(query string) ([]models.SearchResult, error) {
+	return a.repository.SearchMessages(a.ctx, query)
+}
+
 func (a *App) DownloadBinaries(importID int64, confirm bool) error {
 	if confirm {
 		selection, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{

@@ -30,6 +30,8 @@ export function RenameImport(arg1:number,arg2:string):Promise<void>;
 
 export function ResumeImport(arg1:number):Promise<void>;
 
+export function SearchMessages(arg1:string):Promise<Array<models.SearchResult>>;
+
 export function SelectImportFile():Promise<void>;
 
 export function WailsGenProgress():Promise<models.Progress>;
