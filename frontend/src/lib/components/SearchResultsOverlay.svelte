@@ -1,25 +1,32 @@
 <script lang="ts">
-    import { models } from '../../../wailsjs/go/models'
-
+    import { models } from "../../../wailsjs/go/models";
 
     type Props = {
-        selectedThread: string
-        selectChannel: (name: string) => Promise<void>
-        currentTs: string
-        searchText: string
-        onClose: () => void
-        searchResults: models.SearchResult[]
+        selectedThread: string;
+        selectChannel: (name: string) => Promise<void>;
+        currentTs: string;
+        searchText: string;
+        onClose: () => void;
+        searchResults: models.SearchResult[];
+    };
+
+    let {
+        onClose,
+        searchText,
+        searchResults,
+        selectedThread = $bindable(),
+        selectChannel,
+        currentTs = $bindable(),
+    }: Props = $props();
+
+    async function selectHandler(
+        channel: string,
+        ts: string,
+        thread_ts: string,
+    ) {
+        await selectChannel(channel, ts);
+        onClose();
     }
-
-    let { onClose, searchText, searchResults, selectedThread = $bindable(), selectChannel , currentTs = $bindable()}: Props = $props()
-
-    async function selectHandler(channel: string, ts: string, thread_ts: string) {
-        await selectChannel(channel)
-        currentTs = ts
-        selectedThread = thread_ts
-        onClose()
-    }
-
 </script>
 
 <div class="overlay-backdrop">
@@ -32,13 +39,21 @@
             {#if searchResults.length > 0}
                 {#each searchResults as result}
                     <div class="search-result-item">
-                        <button onclick={() => selectHandler(result.ChannelID, result.Ts, result.ThreadTs)}>Go</button>
+                        <button
+                            onclick={() =>
+                                selectHandler(
+                                    result.ChannelID,
+                                    result.Ts,
+                                    result.ThreadTs,
+                                )}>Go</button
+                        >
                         <p class="matched-text">
                             {@html result.MatchedText}
                         </p>
                         <p class="metadata">
                             Channel: {result.ChannelID} | User: {result.UserId} |
-                            Timestamp: {result.Ts}
+                            Timestamp: {result.Ts} | Thread: {result.ThreadTs ||
+                                "-"}
                         </p>
                     </div>
                 {/each}

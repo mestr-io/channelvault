@@ -17,11 +17,14 @@ import { getContext } from 'svelte'
 type Props = {
   group: models.Message[]
   selectedThread: ThreadID | null
+  highlight: boolean
 }
 
 const cache: Map<string, string> = getContext('userhandle_cache')
 
-let { group, selectedThread = $bindable() }: Props = $props()
+let { group, selectedThread = $bindable(), highlight }: Props = $props()
+let isHighlighted = $state(highlight);               // local highlight state
+let timeoutId: ReturnType<typeof setTimeout> | undefined;
 let current_version = $state(0)
 let msg = $derived(group[current_version])
 let isTransitioning = $state(false)
@@ -97,9 +100,36 @@ $effect(() => {
     selectedThread.import_id = group[current_version].ImportID
   }
 })
+
+$effect(() => {
+  // When hl becomes true, start/reset the timer
+  if (highlight) {
+    if (timeoutId) clearTimeout(timeoutId);
+    isHighlighted = true;
+    timeoutId = setTimeout(() => {
+      isHighlighted = false;
+      timeoutId = undefined;
+    }, 2000);
+  } else {
+    // If hl becomes false externally, cancel timer and turn off highlight
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = undefined;
+    }
+    isHighlighted = false;
+  }
+
+  // Cleanup function: clear timeout if component unmounts or effect re-runs
+  return () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = undefined;
+    }
+  };
+});
 </script>
 
-<div class="message">
+<div class="message" class:highlight={isHighlighted}>
     <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
     <div class="message-content">
         <div class="message-header">
@@ -184,6 +214,10 @@ $effect(() => {
 
     .content-wrapper.transitioning {
         opacity: 0;
+    }
+
+    .message.highlight {
+        background-color: palegoldenrod;
     }
 
     .message {

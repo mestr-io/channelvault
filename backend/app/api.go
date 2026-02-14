@@ -24,6 +24,10 @@ func (a *App) GetMessages(channelID string, cursor string, pageSize int) ([]mode
 	return a.repository.GetMessages(a.ctx, channelID, cursor, pageSize)
 }
 
+func (a *App) GetMessagesAfter(channelID string, cursor string, pageSize int) ([]models.Message, error) {
+	return a.repository.GetMessagesAfter(a.ctx, channelID, cursor, pageSize)
+}
+
 func (a *App) GetUserAvatar(userId string) (string, error) {
 	return a.repository.GetUserAvatar(a.ctx, userId)
 }
