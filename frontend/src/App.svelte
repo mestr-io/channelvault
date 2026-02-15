@@ -39,7 +39,7 @@
     let messages = $state<models.Message[]>([] as models.Message[]);
     let groups = $state<AggregatedMessage>([] as AggregatedMessage);
     let isLoadingMessages = $state(false);
-    let highlightMessage = $state<string | null>(null)
+    let highlightMessage = $state<string | null>(null);
     let hasOlderMessages = $state(true);
     let hasNewerMessages = $state(true);
     let showThread = $state(false);
@@ -155,7 +155,7 @@
             if (targetIndex !== -1 && vlist_messages) {
                 vlist_messages.scrollToIndex(targetIndex, { align: "center" });
             }
-            highlightMessage = targetTs
+            highlightMessage = targetTs;
         } else {
             // Original behaviour: load latest messages and scroll to bottom
             await loadOlderMessages(); // this should load the most recent messages (cursor = '')
@@ -251,6 +251,7 @@
     async function loadOlderMessages() {
         if (isLoadingMessages || !selectedChannel || !hasOlderMessages) return;
         isLoadingMessages = true;
+        hasNewerMessages = false;
         try {
             const cursor = messages[0]?.ts || "";
             const newMessages: models.Message[] = await GetMessages(
@@ -278,6 +279,7 @@
 
     function handleScroll(offset: number) {
         if (!vlist_messages) return;
+
         const scrollHeight = vlist_messages.getScrollSize();
         const clientHeight = vlist_messages.getViewportSize();
         const threshold = 50; // pixels from top/bottom to trigger load
@@ -363,7 +365,8 @@
                     <VList
                         bind:this={vlist_messages}
                         data={groups}
-                        getKey={(g: models.Message[], _) => `${g[0].ts}`}
+                        getKey={(g: models.Message[], _) =>
+                            `${g[0].ts}${g[0].ImportID}`}
                         overscan={10}
                         shift={true}
                         onscroll={handleScroll}
@@ -375,7 +378,13 @@
                                     ? groups[i - 1][0]
                                     : undefined}
                             />
-                            <Message {group} bind:selectedThread highlight={group.some(msg => msg.ts === highlightMessage)}/>
+                            <Message
+                                {group}
+                                bind:selectedThread
+                                highlight={group.some(
+                                    (msg) => msg.ts === highlightMessage,
+                                )}
+                            />
                         {/snippet}
                     </VList>
                 {:else if currentView === "channel" && selectedChannel && messages.length === 0}
