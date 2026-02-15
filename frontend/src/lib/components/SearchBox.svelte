@@ -25,6 +25,8 @@
     function handleKeyPress(event: KeyboardEvent) {
         if (event.key === "Enter") {
             handleSearch();
+        } else if (event.key === "Escape") {
+            closeOverlay()
         }
     }
 </script>

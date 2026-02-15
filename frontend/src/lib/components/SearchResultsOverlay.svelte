@@ -42,6 +42,7 @@
             year: "numeric",
         });
     };
+    
 </script>
 
 <div class="overlay-backdrop" onclick={onClose}>

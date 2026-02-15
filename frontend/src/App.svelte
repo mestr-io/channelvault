@@ -222,7 +222,7 @@
             isLoadingMessages = false;
         }
     }
-
+    
     async function loadNewerMessages() {
         if (isLoadingMessages || !selectedChannel || !hasNewerMessages) return;
         isLoadingMessages = true;
@@ -562,7 +562,6 @@
     .search-wrapper :global(button) {
         background-color: rgba(255, 255, 255, 0.1) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: #ffffff !important;
         border-radius: 6px !important;
         padding: 0 12px !important;
         height: 28px !important;
