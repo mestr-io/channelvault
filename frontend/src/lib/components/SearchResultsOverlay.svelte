@@ -1,6 +1,6 @@
 <script lang="ts">
     import { models } from "../../../wailsjs/go/models";
-
+    import type { ThreadID } from "../types";
     type Props = {
         selectedThread: string;
         selectChannel: (name: string) => Promise<void>;
@@ -19,12 +19,16 @@
         currentTs = $bindable(),
     }: Props = $props();
 
-    async function selectHandler(
-        channel: string,
-        ts: string,
-        thread_ts: string,
-    ) {
-        await selectChannel(channel, ts);
+    async function selectHandler(result: models.SearchResult) {
+        let thread: ThreadID | null = null;
+        if (result.ThreadTs) {
+            thread = {
+                thread_ts: result.ThreadTs,
+                import_id: result.ImportID,
+                current_ts: result.Ts,
+            };
+        }
+        await selectChannel(result.ChannelID, result.Ts, thread);
         onClose();
     }
 </script>
@@ -39,13 +43,7 @@
             {#if searchResults.length > 0}
                 {#each searchResults as result}
                     <div class="search-result-item">
-                        <button
-                            onclick={() =>
-                                selectHandler(
-                                    result.ChannelID,
-                                    result.Ts,
-                                    result.ThreadTs,
-                                )}>Go</button
+                        <button onclick={() => selectHandler(result)}>Go</button
                         >
                         <p class="matched-text">
                             {@html result.MatchedText}

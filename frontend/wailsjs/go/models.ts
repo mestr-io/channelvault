@@ -408,6 +408,7 @@ export namespace models {
 	    MatchedText: string;
 	    UserId: string;
 	    ThreadTs: string;
+	    ImportID: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new SearchResult(source);
@@ -420,6 +421,7 @@ export namespace models {
 	        this.MatchedText = source["MatchedText"];
 	        this.UserId = source["UserId"];
 	        this.ThreadTs = source["ThreadTs"];
+	        this.ImportID = source["ImportID"];
 	    }
 	}
 	export class SlackImport {

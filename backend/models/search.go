@@ -6,4 +6,5 @@ type SearchResult struct {
 	MatchedText string
 	UserId      string
 	ThreadTs    string
+	ImportID    int64
 }

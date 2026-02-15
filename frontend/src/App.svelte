@@ -74,11 +74,22 @@
                     selectedChannel!.id!,
                     selectedThread!.import_id,
                 );
+                debugger
+
                 if (vlist_thread && threadMessages.length > 0) {
                     await tick();
-                    vlist_thread.scrollToIndex(threadMessages.length - 1, {
-                        align: "end",
-                    });
+                    if (selectedThread.current_ts) {
+                        // find the ts
+                        let i = threadMessages.findIndex((o) => o.ts >= selectedThread.current_ts)
+                        vlist_thread.scrollToIndex(i, {
+                            align: "center",
+                        });
+                    } else {
+                        vlist_thread.scrollToIndex(threadMessages.length - 1, {
+                            align: "end",
+                        });
+                    }
+                    
                 }
             };
             loadThread();
@@ -121,7 +132,12 @@
         }
     }
 
-    async function selectChannel(name: string, targetTs?: string) {
+    async function selectChannel(
+        name: string,
+        targetTs?: string,
+        thread?: ThreadID,
+    ) {
+        
         let channel: models.Channel | null = null;
         for (var ch of channels) {
             if (ch.name === name) {
@@ -140,6 +156,11 @@
             return;
 
         selectedChannel = channel;
+        if (thread) {
+            debugger
+            selectedThread = thread;
+            return;
+        }
         messages = [];
         hasOlderMessages = true;
         hasNewerMessages = true;
