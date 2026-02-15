@@ -1,6 +1,7 @@
 <script lang="ts">
     import { models } from "../../../wailsjs/go/models";
     import type { ThreadID } from "../types";
+
     type Props = {
         selectedThread: string;
         selectChannel: (name: string) => Promise<void>;
@@ -32,54 +33,88 @@
         onClose();
     }
 
-    const formatMessageTime = (ts: string): string => {
-        const date = new Date(parseFloat(ts) * 1000)
-        // Using 'en-US' locale to get AM/PM format
-        return date.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            day: 'numeric',
-            month: 'short',
-        })
-    }
+    // Adjusted to match the "Dec 7th, 2023" style format seen in the screenshot
+    const formatMessageDate = (ts: string): string => {
+        const date = new Date(parseFloat(ts) * 1000);
+        return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    };
 </script>
 
-<div class="overlay-backdrop">
-    <div class="overlay-content">
+<div class="overlay-backdrop" onclick={onClose}>
+    <div class="overlay-content" onclick={(e) => e.stopPropagation()}>
         <div class="overlay-header">
-            <h3>Search Results for "{searchText}"</h3>
+            <h3>Search: <strong>"{searchText}"</strong></h3>
             <button class="close-button" onclick={onClose}>&times;</button>
         </div>
+
         <div class="overlay-body">
             {#if searchResults.length > 0}
                 {#each searchResults as result}
-                    <div class="search-result-item">
-                        <button onclick={() => selectHandler(result)}>Go</button>
-                        <p class="matched-text">
-                            {@html result.MatchedText}
-                        </p>
-                        <p class="metadata">
-                            Channel: {result.ChannelID} | User: {result.UserId} |
-                            Timestamp: {formatMessageTime(result.Ts)} | Thread: {result.ThreadTs ||
-                                "-"}
-                        </p>
+                    <div
+                        class="search-result-item"
+                        onclick={() => selectHandler(result)}
+                    >
+                        <div class="avatar-container">
+                            <img
+                                class="avatar"
+                                src={result.ProfileUrl}
+                                alt="Avatar"
+                            />
+                        </div>
+
+                        <div class="content-container">
+                            <div class="message-header">
+                                <span class="user-name">{result.Username}</span>
+
+                                <span class="context">
+                                    {#if result.ThreadTs}
+                                        Thread in <strong
+                                            ># {result.ChannelID}</strong
+                                        >
+                                    {:else}
+                                        <strong># {result.ChannelID}</strong>
+                                    {/if}
+                                </span>
+
+                                <span class="timestamp"
+                                    >{formatMessageDate(result.Ts)}</span
+                                >
+                            </div>
+
+                            <div class="matched-text">
+                                {@html result.MatchedText}
+                            </div>
+                        </div>
                     </div>
                 {/each}
             {:else}
-                <p>No results found.</p>
+                <div class="no-results">
+                    <p>No results found.</p>
+                </div>
             {/if}
         </div>
     </div>
 </div>
 
 <style>
+    /* Base typography applied to the overlay */
+    .overlay-content {
+        font-family:
+            -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+            Arial, sans-serif;
+    }
+
     .overlay-backdrop {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(0, 0, 0, 0.5); /* Lighter backdrop */
         display: flex;
         justify-content: center;
         align-items: center;
@@ -87,73 +122,151 @@
     }
 
     .overlay-content {
-        background-color: #3e0e42;
-        color: #dbc9e0;
+        background-color: #ffffff; /* Changed to white */
+        color: #1d1c1d; /* Standard dark text */
         border-radius: 8px;
-        width: 80%;
-        max-width: 800px;
-        max-height: 90%;
+        width: 85%;
+        max-width: 900px;
+        height: 85vh;
+        max-height: 800px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .overlay-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #663867;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e2e2e2;
+        background-color: #f8f8f8;
     }
 
     .overlay-header h3 {
         margin: 0;
-        font-size: 1.2rem;
+        font-size: 1.25rem;
+        font-weight: 400;
+        color: #1d1c1d;
     }
 
     .close-button {
         background: none;
         border: none;
-        color: #dbc9e0;
-        font-size: 1.8rem;
+        color: #616061;
+        font-size: 1.5rem;
         cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
     }
 
     .close-button:hover {
-        color: #f9edff;
+        background-color: #e8e8e8;
+        color: #1d1c1d;
     }
 
     .overlay-body {
-        padding: 1.5rem;
         overflow-y: auto;
         flex-grow: 1;
+        background-color: #ffffff;
     }
 
     .search-result-item {
-        background-color: #552958;
-        border-radius: 4px;
-        padding: 1rem;
-        margin-bottom: 1rem;
+        display: flex;
+        padding: 16px 24px;
+        border-bottom: 1px solid #f2f2f2;
+        cursor: pointer;
+        transition: background-color 0.1s ease;
     }
 
-    .search-result-item:last-child {
-        margin-bottom: 0;
+    .search-result-item:hover {
+        background-color: #f8f8f8;
+    }
+
+    .avatar-container {
+        flex-shrink: 0;
+        margin-right: 12px;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 4px; /* Slack style slightly rounded square */
+        object-fit: cover;
+    }
+
+    .content-container {
+        flex-grow: 1;
+        min-width: 0; /* Prevents flex children from overflowing */
+    }
+
+    .message-header {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 4px;
+        gap: 8px;
+    }
+
+    .user-name {
+        font-weight: 900;
+        color: #1d1c1d;
+        font-size: 0.95rem;
+    }
+
+    .context {
+        font-size: 0.85rem;
+        color: #616061;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .context strong {
+        font-weight: 600;
+    }
+
+    .timestamp {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: #616061;
+        flex-shrink: 0;
     }
 
     .matched-text {
+        font-size: 0.95rem;
+        color: #1d1c1d;
+        line-height: 1.46;
+        word-break: break-word;
+    }
+
+    /* Style for highlighted text matching the yellow in the screenshot */
+    :global(.matched-text mark) {
+        background-color: #fbf3d0;
+        color: inherit;
+        padding: 0 3px;
+        border-radius: 3px;
+        font-weight: inherit;
+    }
+
+    /* Additional styling for inline code blocks (like the pink ones in the screenshot) */
+    :global(.matched-text code) {
+        color: #e01e5a;
+        background-color: rgba(29, 28, 29, 0.04);
+        padding: 2px 4px;
+        border-radius: 3px;
+        border: 1px solid rgba(29, 28, 29, 0.13);
+        font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+        font-size: 0.85rem;
+    }
+
+    .no-results {
+        padding: 40px;
+        text-align: center;
+        color: #616061;
         font-size: 1rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .metadata {
-        font-size: 0.8rem;
-        color: #a08fa6;
-    }
-
-    mark {
-        background-color: #a08fa6;
-        color: #3e0e42;
-        padding: 0 2px;
-        border-radius: 2px;
     }
 </style>

@@ -7,4 +7,6 @@ type SearchResult struct {
 	UserId      string
 	ThreadTs    string
 	ImportID    int64
+	ProfileUrl  string
+	Username    string
 }

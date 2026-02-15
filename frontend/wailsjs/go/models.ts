@@ -409,6 +409,8 @@ export namespace models {
 	    UserId: string;
 	    ThreadTs: string;
 	    ImportID: number;
+	    ProfileUrl: string;
+	    Username: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new SearchResult(source);
@@ -422,6 +424,8 @@ export namespace models {
 	        this.UserId = source["UserId"];
 	        this.ThreadTs = source["ThreadTs"];
 	        this.ImportID = source["ImportID"];
+	        this.ProfileUrl = source["ProfileUrl"];
+	        this.Username = source["Username"];
 	    }
 	}
 	export class SlackImport {
