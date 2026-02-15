@@ -42,11 +42,27 @@
             year: "numeric",
         });
     };
-    
 </script>
 
-<div class="overlay-backdrop" onclick={onClose}>
-    <div class="overlay-content" onclick={(e) => e.stopPropagation()}>
+<div
+    class="overlay-backdrop"
+    role="button"
+    tabindex="0"
+    onclick={onClose}
+    onkeydown={(e) => {
+        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+            onClose();
+        }
+    }}
+>
+    <div
+        class="overlay-content"
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+        onclick={(e) => e.stopPropagation()}
+        onkeydown={(e) => e.stopPropagation()}
+    >
         <div class="overlay-header">
             <h3>Search: <strong>"{searchText}"</strong></h3>
             <button class="close-button" onclick={onClose}>&times;</button>
@@ -57,7 +73,15 @@
                 {#each searchResults as result}
                     <div
                         class="search-result-item"
+                        role="button"
+                        tabindex="0"
                         onclick={() => selectHandler(result)}
+                        onkeydown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                selectHandler(result);
+                            }
+                        }}
                     >
                         <div class="avatar-container">
                             <img
@@ -81,9 +105,9 @@
                                     {/if}
                                 </span>
 
-                                <span class="timestamp"
-                                    >{formatMessageDate(result.Ts)}</span
-                                >
+                                <span class="timestamp">
+                                    {formatMessageDate(result.Ts)}
+                                </span>
                             </div>
 
                             <div class="matched-text">

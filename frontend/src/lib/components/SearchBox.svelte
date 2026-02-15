@@ -1,9 +1,13 @@
 <script lang="ts">
-    import { models } from '../../../wailsjs/go/models'
-    import SearchResultsOverlay from './SearchResultsOverlay.svelte';
-    import { SearchMessages } from '../../../wailsjs/go/app/App'
+    import { models } from "../../../wailsjs/go/models";
+    import SearchResultsOverlay from "./SearchResultsOverlay.svelte";
+    import { SearchMessages } from "../../../wailsjs/go/app/App";
 
-    let { selectedThread = $bindable(), selectChannel , currentTs = $bindable()} = $props()
+    let {
+        selectedThread = $bindable(),
+        selectChannel,
+        currentTs = $bindable(),
+    } = $props();
 
     let searchText = $state("");
     let searchResults = $state<models.SearchResult[]>([]);
@@ -26,7 +30,7 @@
         if (event.key === "Enter") {
             handleSearch();
         } else if (event.key === "Escape") {
-            closeOverlay()
+            closeOverlay();
         }
     }
 </script>
@@ -44,7 +48,9 @@
 
 {#if showOverlay}
     <SearchResultsOverlay
-        selectChannel={selectChannel} bind:selectedThread bind:currentTs
+        {selectChannel}
+        bind:selectedThread
+        bind:currentTs
         {searchResults}
         {searchText}
         onClose={closeOverlay}
