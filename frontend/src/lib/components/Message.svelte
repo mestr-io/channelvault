@@ -17,13 +17,13 @@ import { getContext } from 'svelte'
 type Props = {
   group: models.Message[]
   selectedThread: ThreadID | null
-  highlight: boolean
+  highlightTs?: string
 }
 
 const cache: Map<string, string> = getContext('userhandle_cache')
 
-let { group, selectedThread = $bindable(), highlight }: Props = $props()
-let isHighlighted = $state(highlight);               // local highlight state
+let { group, selectedThread = $bindable(), highlightTs = $bindable() }: Props = $props()
+let isHighlighted = $derived(group.some((msg) => msg.ts === highlightTs))
 let timeoutId: ReturnType<typeof setTimeout> | undefined;
 let current_version = $state(0)
 let msg = $derived(group[current_version])
@@ -103,11 +103,11 @@ $effect(() => {
 
 $effect(() => {
   // When hl becomes true, start/reset the timer
-  if (highlight) {
+  if (isHighlighted) {
     if (timeoutId) clearTimeout(timeoutId);
-    isHighlighted = true;
     timeoutId = setTimeout(() => {
       isHighlighted = false;
+      highlightTs = undefined;
       timeoutId = undefined;
     }, 2000);
   } else {
@@ -123,6 +123,7 @@ $effect(() => {
   return () => {
     if (timeoutId) {
       clearTimeout(timeoutId);
+      highlightTs = undefined;
       timeoutId = undefined;
     }
   };
@@ -216,8 +217,16 @@ $effect(() => {
         opacity: 0;
     }
 
+    @keyframes highlight-blink {
+        0% { background-color: palegoldenrod; }
+        20% { background-color: #fff3b0; } /* lighter pulse */
+        40% { background-color: palegoldenrod; }
+        60% { background-color: #fff3b0; }
+        80% { background-color: palegoldenrod; }
+        100% { background-color: palegoldenrod; } /* end at highlight color */
+    }
     .message.highlight {
-        background-color: palegoldenrod;
+        animation: highlight-blink 5s ease;
     }
 
     .message {

@@ -39,7 +39,7 @@
     let messages = $state<models.Message[]>([] as models.Message[]);
     let groups = $state<AggregatedMessage>([] as AggregatedMessage);
     let isLoadingMessages = $state(false);
-    let highlightMessage = $state<string | null>(null);
+    let highlightMessage = $state<string | undefined>(undefined);
     let hasOlderMessages = $state(true);
     let hasNewerMessages = $state(true);
     let showThread = $state(false);
@@ -74,22 +74,24 @@
                     selectedChannel!.id!,
                     selectedThread!.import_id,
                 );
-                debugger
+                debugger;
 
                 if (vlist_thread && threadMessages.length > 0) {
                     await tick();
                     if (selectedThread.current_ts) {
                         // find the ts
-                        let i = threadMessages.findIndex((o) => o.ts >= selectedThread.current_ts)
+                        let i = threadMessages.findIndex(
+                            (o) => o.ts >= selectedThread.current_ts,
+                        );
                         vlist_thread.scrollToIndex(i, {
                             align: "center",
                         });
+                        highlightMessage = selectedThread.current_ts;
                     } else {
                         vlist_thread.scrollToIndex(threadMessages.length - 1, {
                             align: "end",
                         });
                     }
-                    
                 }
             };
             loadThread();
@@ -137,7 +139,6 @@
         targetTs?: string,
         thread?: ThreadID,
     ) {
-        
         let channel: models.Channel | null = null;
         for (var ch of channels) {
             if (ch.name === name) {
@@ -157,7 +158,7 @@
 
         selectedChannel = channel;
         if (thread) {
-            debugger
+            debugger;
             selectedThread = thread;
             return;
         }
@@ -402,9 +403,7 @@
                             <Message
                                 {group}
                                 bind:selectedThread
-                                highlight={group.some(
-                                    (msg) => msg.ts === highlightMessage,
-                                )}
+                                bind:highlightTs={highlightMessage}
                             />
                         {/snippet}
                     </VList>
@@ -455,7 +454,11 @@
                                 current={msg}
                                 previous={threadMessages[i - 1]}
                             />
-                            <Message group={[msg]} bind:selectedThread />
+                            <Message
+                                group={[msg]}
+                                bind:selectedThread
+                                bind:highlightTs={highlightMessage}
+                            />
                         {/snippet}
                     </VList>
                 </div>

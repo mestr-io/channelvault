@@ -31,6 +31,17 @@
         await selectChannel(result.ChannelID, result.Ts, thread);
         onClose();
     }
+
+    const formatMessageTime = (ts: string): string => {
+        const date = new Date(parseFloat(ts) * 1000)
+        // Using 'en-US' locale to get AM/PM format
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            day: 'numeric',
+            month: 'short',
+        })
+    }
 </script>
 
 <div class="overlay-backdrop">
@@ -43,14 +54,13 @@
             {#if searchResults.length > 0}
                 {#each searchResults as result}
                     <div class="search-result-item">
-                        <button onclick={() => selectHandler(result)}>Go</button
-                        >
+                        <button onclick={() => selectHandler(result)}>Go</button>
                         <p class="matched-text">
                             {@html result.MatchedText}
                         </p>
                         <p class="metadata">
                             Channel: {result.ChannelID} | User: {result.UserId} |
-                            Timestamp: {result.Ts} | Thread: {result.ThreadTs ||
+                            Timestamp: {formatMessageTime(result.Ts)} | Thread: {result.ThreadTs ||
                                 "-"}
                         </p>
                     </div>
