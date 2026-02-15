@@ -56,7 +56,6 @@
         gap: 10px;
         align-items: center;
         background-color: #552958; /* Match sidebar background */
-        border-bottom: 1px solid #7a4b87; /* Match sidebar header border */
     }
 
     .search-input {

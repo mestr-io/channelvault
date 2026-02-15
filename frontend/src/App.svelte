@@ -333,138 +333,146 @@
 <ImportManager bind:this={importsOverlayComponent} />
 
 <main class="dashboard">
-    <Splitpanes on:resize={startResize} on:resized={endResize}>
-        <Pane minSize={10} maxSize={30} size={25}>
-            <div class="sidebar">
-                <div class="sidebar-header">
-                    <button
-                        class="sidebar-header-title"
-                        onclick={() => (showChannelFilter = !showChannelFilter)}
-                    >
-                        <div class="header-options-chevron">
-                            {@render chevron(showChannelFilter)}
-                        </div>
-                        Channels
-                    </button>
-                    {#if showChannelFilter}
-                        <input
-                            type="text"
-                            placeholder="Filter..."
-                            bind:value={channelFilter}
-                            class="channel-filter-input"
-                        />
-                    {/if}
-                </div>
-                <div class="channel-list">
-                    {#each filteredChannels as channel (channel.id)}
-                        <div class="channel-item">
-                            <button
-                                class:active={channel.id ===
-                                    selectedChannel?.id &&
-                                    currentView === "channel"}
-                                onclick={() => selectChannel(channel.name)}
-                                ># {channel.name}</button
-                            >
-                        </div>
-                    {/each}
-                </div>
-                <SearchBox {selectChannel} bind:selectedThread bind:currentTs />
+    <header class="app-top-bar">
+        <div class="search-wrapper">
+            <SearchBox {selectChannel} bind:selectedThread bind:currentTs />
+        </div>
+    </header>
 
-                <div class="channel-item settings-button">
-                    <button onclick={() => openImportsOverlay()}>
-                        {@render import_icon("1rem")}
-                        Imports
-                    </button>
-                </div>
-            </div></Pane
-        >
-        <Pane>
-            <div class="main-content" id="main-content">
-                {#if currentView === "channel" && selectedChannel && messages.length > 0}
-                    <header class="channel-header">
-                        <h2># {selectedChannel.name}</h2>
-                    </header>
-                    <VList
-                        bind:this={vlist_messages}
-                        data={groups}
-                        getKey={(g: models.Message[], _) =>
-                            `${g[0].ts}${g[0].ImportID}`}
-                        overscan={10}
-                        shift={true}
-                        onscroll={handleScroll}
-                    >
-                        {#snippet children(group, i)}
-                            <DayDivider
-                                current={group[0]}
-                                previous={groups[i - 1]
-                                    ? groups[i - 1][0]
-                                    : undefined}
-                            />
-                            <Message
-                                {group}
-                                bind:selectedThread
-                                bind:highlightTs={highlightMessage}
-                            />
-                        {/snippet}
-                    </VList>
-                {:else if currentView === "channel" && selectedChannel && messages.length === 0}
-                    <NoMessages />
-                {:else}
-                    <Welcome />
-                {/if}
-            </div>
-        </Pane>
-
-        {#if showThread}
-            <Pane size={30}>
-                <div class="main-content">
-                    <header class="channel-header">
-                        <h2>Thread</h2>
+    <div class="workspace-layout">
+        <Splitpanes on:resize={startResize} on:resized={endResize}>
+            <Pane minSize={10} maxSize={30} size={25}>
+                <div class="sidebar">
+                    <div class="sidebar-header">
                         <button
-                            class="close-thread-btn"
-                            aria-label="Close thread"
-                            onclick={() => (showThread = false)}
+                            class="sidebar-header-title"
+                            onclick={() => (showChannelFilter = !showChannelFilter)}
                         >
-                            <svg
-                                viewBox="0 0 20 20"
-                                width="20"
-                                height="20"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                fill="none"
-                                shape-rendering="geometricPrecision"
-                            >
-                                <path d="M15 5L5 15"></path>
-                                <path d="M5 5L15 15"></path>
-                            </svg>
+                            <div class="header-options-chevron">
+                                {@render chevron(showChannelFilter)}
+                            </div>
+                            Channels
                         </button>
-                    </header>
-                    <VList
-                        bind:this={vlist_thread}
-                        data={threadMessages}
-                        getKey={(msg: models.Message, _) =>
-                            `${msg.ts}${msg.ImportID}`}
-                        overscan={10}
-                        shift={true}
-                    >
-                        {#snippet children(msg, i)}
-                            <DayDivider
-                                current={msg}
-                                previous={threadMessages[i - 1]}
+                        {#if showChannelFilter}
+                            <input
+                                type="text"
+                                placeholder="Filter..."
+                                bind:value={channelFilter}
+                                class="channel-filter-input"
                             />
-                            <Message
-                                group={[msg]}
-                                bind:selectedThread
-                                bind:highlightTs={highlightMessage}
-                            />
-                        {/snippet}
-                    </VList>
+                        {/if}
+                    </div>
+                    <div class="channel-list">
+                        {#each filteredChannels as channel (channel.id)}
+                            <div class="channel-item">
+                                <button
+                                    class:active={channel.id ===
+                                        selectedChannel?.id &&
+                                        currentView === "channel"}
+                                    onclick={() => selectChannel(channel.name)}
+                                    ># {channel.name}</button
+                                >
+                            </div>
+                        {/each}
+                    </div>
+
+                    <div class="channel-item settings-button">
+                        <button onclick={() => openImportsOverlay()}>
+                            {@render import_icon("1rem")}
+                            Imports
+                        </button>
+                    </div>
                 </div>
             </Pane>
-        {/if}
-    </Splitpanes>
+            
+            <Pane>
+                <div class="main-content" id="main-content">
+                    {#if currentView === "channel" && selectedChannel && messages.length > 0}
+                        <header class="channel-header">
+                            <h2># {selectedChannel.name}</h2>
+                        </header>
+                        <VList
+                            bind:this={vlist_messages}
+                            data={groups}
+                            getKey={(g: models.Message[], _) =>
+                                `${g[0].ts}${g[0].ImportID}`}
+                            overscan={10}
+                            shift={true}
+                            onscroll={handleScroll}
+                        >
+                            {#snippet children(group, i)}
+                                <DayDivider
+                                    current={group[0]}
+                                    previous={groups[i - 1]
+                                        ? groups[i - 1][0]
+                                        : undefined}
+                                />
+                                <Message
+                                    {group}
+                                    bind:selectedThread
+                                    bind:highlightTs={highlightMessage}
+                                />
+                            {/snippet}
+                        </VList>
+                    {:else if currentView === "channel" && selectedChannel && messages.length === 0}
+                        <NoMessages />
+                    {:else}
+                        <Welcome />
+                    {/if}
+                </div>
+            </Pane>
+
+            {#if showThread}
+                <Pane size={30}>
+                    <div class="main-content">
+                        <header class="channel-header">
+                            <h2>Thread</h2>
+                            <button
+                                class="close-thread-btn"
+                                aria-label="Close thread"
+                                onclick={() => (showThread = false)}
+                            >
+                                <svg
+                                    viewBox="0 0 20 20"
+                                    width="20"
+                                    height="20"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    fill="none"
+                                    shape-rendering="geometricPrecision"
+                                >
+                                    <path d="M15 5L5 15"></path>
+                                    <path d="M5 5L15 15"></path>
+                                </svg>
+                            </button>
+                        </header>
+                        <VList
+                            bind:this={vlist_thread}
+                            data={threadMessages}
+                            getKey={(msg: models.Message, _) =>
+                                `${msg.ts}${msg.ImportID}`}
+                            overscan={10}
+                            shift={true}
+                        >
+                            {#snippet children(msg, i)}
+                                <DayDivider
+                                    current={msg}
+                                    previous={threadMessages[i - 1]}
+                                />
+                                <Message
+                                    group={[msg]}
+                                    bind:selectedThread
+                                    bind:highlightTs={highlightMessage}
+                                />
+                            {/snippet}
+                        </VList>
+                    </div>
+                </Pane>
+            {/if}
+        </Splitpanes>
+    </div>
 </main>
 
 <style>
@@ -490,20 +498,107 @@
         -moz-user-select: none !important;
         -ms-user-select: none !important;
     }
+    
     .dashboard {
         display: flex;
+        flex-direction: column; 
         height: 100vh;
+        overflow: hidden;
     }
+
+    /* Fixed Top Bar Styling */
+    .app-top-bar {
+        background-color: #39063a; 
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+        z-index: 10;
+    }
+
+    .search-wrapper {
+        width: 100%;
+        max-width: 500px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Force the SearchBox component to drop its old background & conform to a Slack-like pill shape */
+    .search-wrapper :global(> *) {
+        background-color: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .search-wrapper :global(input) {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        border-radius: 6px !important;
+        padding: 0 12px !important;
+        height: 28px !important;
+        font-size: 13px !important;
+        outline: none !important;
+        flex-grow: 1;
+        transition: background-color 0.2s ease;
+    }
+
+    .search-wrapper :global(input:focus) {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+    }
+
+    .search-wrapper :global(input::placeholder) {
+        color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    .search-wrapper :global(button) {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        border-radius: 6px !important;
+        padding: 0 12px !important;
+        height: 28px !important;
+        font-size: 13px !important;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .search-wrapper :global(button:hover) {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .workspace-layout {
+        flex-grow: 1;
+        display: flex;
+        min-height: 0;
+        width: 100%; 
+    }
+
+    /* Enforce Splitpanes layout inheritance so it doesn't collapse */
+    :global(.splitpanes) {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
     .sidebar {
         flex-shrink: 0;
         overflow-y: auto;
         height: 100%;
         overflow-x: hidden;
-        background-color: #552958;
+        background-color: #552958; /* Left this as your original color so it contrasts nicely */
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
     }
+    
     .channel-list {
         flex-grow: 1;
         overflow-y: auto;
@@ -611,7 +706,7 @@
         flex-grow: 1;
         display: flex;
         flex-direction: column;
-        height: 100vh;
+        height: 100%; 
     }
 
     .channel-header h2 {
