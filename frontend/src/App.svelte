@@ -8,10 +8,11 @@ import DayDivider from './lib/components/DayDivider.svelte'
 import Message from './lib/components/Message.svelte'
 import Welcome from './lib/components/Welcome.svelte'
 import ImportManager from './lib/components/ImportManager.svelte'
+import SearchManager from './lib/components/SearchManager.svelte'
 import ImageOverlay from './lib/components/ImageOverlay.svelte'
 import NoMessages from './lib/components/NoMessages.svelte'
 import { models } from '../wailsjs/go/models'
-import { import_icon } from './lib/components/Icons.svelte'
+import { import_icon, search_icon } from './lib/components/Icons.svelte'
 import { chevron } from './lib/components/icons'
 
 import type { ThreadID } from './lib/types'
@@ -21,6 +22,7 @@ type AggregatedMessage = models.Message[][]
 
 let imageOverlayComponent: ImageOverlay
 let importsOverlayComponent: ImportManager
+let searchOverlayComponent: SearchManager
 
 let viewState = $state<ViewState>('loading')
 
@@ -105,6 +107,21 @@ function openImportsOverlay() {
   }
 }
 
+function openSearchOverlay() {
+  if (searchOverlayComponent) {
+    searchOverlayComponent.showOverlay()
+  }
+}
+
+function handleSearchNavigation(result: models.SearchResult) {
+  const channel = channels.find(c => c.name === result.channel_name || c.id === result.channel_id)
+  if (channel) {
+    selectChannel(channel)
+  } else {
+    console.warn('Channel not found for search result:', result)
+  }
+}
+
 async function selectChannel(channel: models.Channel) {
   if (selectedChannel?.id === channel.id && currentView === 'channel') return
   selectedChannel = channel
@@ -179,6 +196,7 @@ function endResize() {
 
 <ImageOverlay bind:this={imageOverlayComponent} />
 <ImportManager bind:this={importsOverlayComponent} />
+<SearchManager bind:this={searchOverlayComponent} onNavigate={handleSearchNavigation} />
 
 <main class="dashboard">
   <Splitpanes on:resize={startResize} on:resized={endResize}>
@@ -213,6 +231,12 @@ function endResize() {
               >
             </div>
           {/each}
+        </div>
+        <div class="channel-item settings-button">
+          <button onclick={() => openSearchOverlay()}>
+            {@render search_icon("1rem")}
+            Search
+          </button>
         </div>
         <div class="channel-item settings-button">
           <button onclick={() => openImportsOverlay()}>
