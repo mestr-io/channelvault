@@ -1,332 +1,288 @@
 <script lang="ts">
-    import * as runtime from "../wailsjs/runtime";
-    import { onMount, setContext, onDestroy, tick } from "svelte";
-    import {
-        GetViewState,
-        GetChannels,
-        GetMessages,
-        GetMessagesAfter,
-        GetThreadByTs,
-    } from "../wailsjs/go/app/App";
-    import { Pane, Splitpanes } from "svelte-splitpanes";
-    import { VList, type VListHandle } from "virtua/svelte";
-    import DayDivider from "./lib/components/DayDivider.svelte";
-    import Message from "./lib/components/Message.svelte";
-    import Welcome from "./lib/components/Welcome.svelte";
-    import ImportManager from "./lib/components/ImportManager.svelte";
-    import ImageOverlay from "./lib/components/ImageOverlay.svelte";
-    import NoMessages from "./lib/components/NoMessages.svelte";
-    import { models } from "../wailsjs/go/models";
-    import { import_icon } from "./lib/components/Icons.svelte";
-    import { chevron } from "./lib/components/icons";
+import * as runtime from '../wailsjs/runtime'
+import { onMount, setContext, onDestroy, tick } from 'svelte'
+import { GetViewState, GetChannels, GetMessages, GetMessagesAfter, GetThreadByTs } from '../wailsjs/go/app/App'
+import { Pane, Splitpanes } from 'svelte-splitpanes'
+import { VList, type VListHandle } from 'virtua/svelte'
+import DayDivider from './lib/components/DayDivider.svelte'
+import Message from './lib/components/Message.svelte'
+import Welcome from './lib/components/Welcome.svelte'
+import ImportManager from './lib/components/ImportManager.svelte'
+import ImageOverlay from './lib/components/ImageOverlay.svelte'
+import NoMessages from './lib/components/NoMessages.svelte'
+import { models } from '../wailsjs/go/models'
+import { import_icon } from './lib/components/Icons.svelte'
+import { chevron } from './lib/components/icons'
 
-    import type { ThreadID } from "./lib/types";
-    import SearchBox from "./lib/components/SearchBox.svelte";
+import type { ThreadID } from './lib/types'
+import SearchBox from './lib/components/SearchBox.svelte'
 
-    type ViewState = "setup" | "dashboard" | "loading";
-    type AggregatedMessage = models.Message[][];
+type ViewState = 'setup' | 'dashboard' | 'loading'
+type AggregatedMessage = models.Message[][]
 
-    let imageOverlayComponent: ImageOverlay;
-    let importsOverlayComponent: ImportManager;
+let imageOverlayComponent: ImageOverlay
+let importsOverlayComponent: ImportManager
 
-    let viewState = $state<ViewState>("loading");
+let viewState = $state<ViewState>('loading')
 
-    // Dashboard state
-    let channels = $state<models.Channel[]>([] as models.Channel[]);
-    let selectedChannel = $state<models.Channel | null>(null);
-    let currentTs = $state<string | null>(null);
-    let threadMessages = $state<models.Message[]>([] as models.Message[]);
-    let messages = $state<models.Message[]>([] as models.Message[]);
-    let groups = $state<AggregatedMessage>([] as AggregatedMessage);
-    let isLoadingMessages = $state(false);
-    let highlightMessage = $state<string | undefined>(undefined);
-    let hasOlderMessages = $state(true);
-    let hasNewerMessages = $state(true);
-    let showThread = $state(false);
-    let selectedThread = $state<ThreadID | null>(null);
-    let currentView = $state<"welcome" | "channel" | "imports">("welcome");
-    let channelFilter = $state(""); // New state variable for channel filter
-    let showChannelFilter = $state(false); // New state variable to control filter visibility
-    // svelte-ignore non_reactive_update
-    let vlist_messages: VListHandle;
-    // svelte-ignore non_reactive_update
-    let vlist_thread: VListHandle;
+// Dashboard state
+let channels = $state<models.Channel[]>([] as models.Channel[])
+let selectedChannel = $state<models.Channel | null>(null)
+let currentTs = $state<string | null>(null)
+let threadMessages = $state<models.Message[]>([] as models.Message[])
+let messages = $state<models.Message[]>([] as models.Message[])
+let groups = $state<AggregatedMessage>([] as AggregatedMessage)
+let isLoadingMessages = $state(false)
+let highlightMessage = $state<string | undefined>(undefined)
+let hasOlderMessages = $state(true)
+let hasNewerMessages = $state(true)
+let showThread = $state(false)
+let selectedThread = $state<ThreadID | null>(null)
+let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
+let channelFilter = $state('') // New state variable for channel filter
+let showChannelFilter = $state(false) // New state variable to control filter visibility
+// svelte-ignore non_reactive_update
+let vlist_messages: VListHandle
+// svelte-ignore non_reactive_update
+let vlist_thread: VListHandle
 
-    $effect(() => {
-        if (!showThread) selectedThread = null;
-    });
+$effect(() => {
+  if (!showThread) selectedThread = null
+})
 
-    $effect(() => {
-        if (!selectedThread) showThread = false;
-    });
+$effect(() => {
+  if (!selectedThread) showThread = false
+})
 
-    const filteredChannels = $derived(
-        channels.filter((channel) =>
-            channel.name.toLowerCase().includes(channelFilter.toLowerCase()),
-        ),
-    );
+const filteredChannels = $derived(
+  channels.filter(channel => channel.name.toLowerCase().includes(channelFilter.toLowerCase())),
+)
 
-    $effect(() => {
-        if (selectedThread && selectedChannel) {
-            const loadThread = async () => {
-                threadMessages = await GetThreadByTs(
-                    selectedThread!.thread_ts,
-                    selectedChannel!.id!,
-                    selectedThread!.import_id,
-                );
-                debugger;
+$effect(() => {
+  if (selectedThread && selectedChannel) {
+    const loadThread = async () => {
+      threadMessages = await GetThreadByTs(selectedThread!.thread_ts, selectedChannel!.id!, selectedThread!.import_id)
+      debugger
 
-                if (vlist_thread && threadMessages.length > 0) {
-                    await tick();
-                    if (selectedThread.current_ts) {
-                        // find the ts
-                        let i = threadMessages.findIndex(
-                            (o) => o.ts >= selectedThread.current_ts,
-                        );
-                        vlist_thread.scrollToIndex(i, {
-                            align: "center",
-                        });
-                        highlightMessage = selectedThread.current_ts;
-                    } else {
-                        vlist_thread.scrollToIndex(threadMessages.length - 1, {
-                            align: "end",
-                        });
-                    }
-                }
-            };
-            loadThread();
-            showThread = true;
-        }
-    });
-
-    runtime.EventsOn("backend:viewState", (newState: string) => {
-        viewState = newState as ViewState;
-    });
-    runtime.EventsOn("importComplete", async () => {
-        channels = await GetChannels();
-    });
-    runtime.EventsOn("importDeleted", async () => {
-        channels = await GetChannels();
-    });
-
-    onMount(async () => {
-        viewState = (await GetViewState()) as ViewState;
-        channels = await GetChannels();
-    });
-
-    onDestroy(() => {
-        document.body.classList.remove("is-resizing-panes");
-    });
-
-    setContext("avatar_cache", new Map<string, string>());
-    setContext("userhandle_cache", new Map<string, string>());
-    setContext("imageOverlay", { openImageOverlay });
-
-    function openImageOverlay(src: string) {
-        if (imageOverlayComponent) {
-            imageOverlayComponent.showOverlay(src);
-        }
-    }
-
-    function openImportsOverlay() {
-        if (importsOverlayComponent) {
-            importsOverlayComponent.showOverlay();
-        }
-    }
-
-    async function selectChannel(
-        name: string,
-        targetTs?: string,
-        thread?: ThreadID,
-    ) {
-        let channel: models.Channel | null = null;
-        for (var ch of channels) {
-            if (ch.name === name) {
-                channel = ch;
-                break;
-            }
-        }
-        if (!channel) return;
-
-        // If already in this channel and no target, just return
-        if (
-            selectedChannel?.id === channel.id &&
-            currentView === "channel" &&
-            !targetTs
-        )
-            return;
-
-        selectedChannel = channel;
-        if (thread) {
-            debugger;
-            selectedThread = thread;
-            return;
-        }
-        messages = [];
-        hasOlderMessages = true;
-        hasNewerMessages = true;
-        showThread = false;
-        currentView = "channel";
-
-        if (targetTs) {
-            // Load messages around the target timestamp
-            await loadMessagesAround(targetTs);
-            // After loading, find the index of the target message and scroll to it
-            await tick();
-            const targetIndex = messages.findIndex((m) => m.ts === targetTs);
-            if (targetIndex !== -1 && vlist_messages) {
-                vlist_messages.scrollToIndex(targetIndex, { align: "center" });
-            }
-            highlightMessage = targetTs;
+      if (vlist_thread && threadMessages.length > 0) {
+        await tick()
+        if (selectedThread.current_ts) {
+          // find the ts
+          let i = threadMessages.findIndex(o => o.ts >= selectedThread.current_ts)
+          vlist_thread.scrollToIndex(i, {
+            align: 'center',
+          })
+          highlightMessage = selectedThread.current_ts
         } else {
-            // Original behaviour: load latest messages and scroll to bottom
-            await loadOlderMessages(); // this should load the most recent messages (cursor = '')
-            if (vlist_messages && messages.length > 0) {
-                await tick();
-                vlist_messages.scrollToIndex(messages.length - 1, {
-                    align: "end",
-                });
-            }
+          vlist_thread.scrollToIndex(threadMessages.length - 1, {
+            align: 'end',
+          })
         }
+      }
+    }
+    loadThread()
+    showThread = true
+  }
+})
+
+runtime.EventsOn('backend:viewState', (newState: string) => {
+  viewState = newState as ViewState
+})
+runtime.EventsOn('importComplete', async () => {
+  channels = await GetChannels()
+})
+runtime.EventsOn('importDeleted', async () => {
+  channels = await GetChannels()
+})
+
+onMount(async () => {
+  viewState = (await GetViewState()) as ViewState
+  channels = await GetChannels()
+})
+
+onDestroy(() => {
+  document.body.classList.remove('is-resizing-panes')
+})
+
+setContext('avatar_cache', new Map<string, string>())
+setContext('userhandle_cache', new Map<string, string>())
+setContext('imageOverlay', { openImageOverlay })
+
+function openImageOverlay(src: string) {
+  if (imageOverlayComponent) {
+    imageOverlayComponent.showOverlay(src)
+  }
+}
+
+function openImportsOverlay() {
+  if (importsOverlayComponent) {
+    importsOverlayComponent.showOverlay()
+  }
+}
+
+async function selectChannel(name: string, targetTs?: string, thread?: ThreadID) {
+  let channel: models.Channel | null = null
+  for (var ch of channels) {
+    if (ch.name === name) {
+      channel = ch
+      break
+    }
+  }
+  if (!channel) return
+
+  // If already in this channel and no target, just return
+  if (selectedChannel?.id === channel.id && currentView === 'channel' && !targetTs) return
+
+  selectedChannel = channel
+  if (thread) {
+    debugger
+    selectedThread = thread
+    return
+  }
+  messages = []
+  hasOlderMessages = true
+  hasNewerMessages = true
+  showThread = false
+  currentView = 'channel'
+
+  if (targetTs) {
+    // Load messages around the target timestamp
+    await loadMessagesAround(targetTs)
+    // After loading, find the index of the target message and scroll to it
+    await tick()
+    const targetIndex = messages.findIndex(m => m.ts === targetTs)
+    if (targetIndex !== -1 && vlist_messages) {
+      vlist_messages.scrollToIndex(targetIndex, { align: 'center' })
+    }
+    highlightMessage = targetTs
+  } else {
+    // Original behaviour: load latest messages and scroll to bottom
+    await loadOlderMessages() // this should load the most recent messages (cursor = '')
+    if (vlist_messages && messages.length > 0) {
+      await tick()
+      vlist_messages.scrollToIndex(messages.length - 1, {
+        align: 'end',
+      })
+    }
+  }
+}
+
+async function loadMessagesAround(ts: string, limit: number = 50) {
+  isLoadingMessages = true
+  try {
+    // Load older messages
+    const older = await GetMessages(selectedChannel!.id, ts, limit)
+    // Load newer messages (new backend method)
+    const newer = await GetMessagesAfter(selectedChannel!.id, ts, limit)
+
+    // Combine: older (chronological) + newer
+    // older are already reversed because GetMessages returns them in reverse chronological order?
+    // We'll assume GetMessages returns oldest-to-newest or we need to handle order.
+    // Usually GetMessages(ts) returns messages before ts, sorted newest first.
+    // We need to ensure final `messages` array is oldest → newest.
+    // Let's assume both functions return messages in chronological order (oldest first) for simplicity.
+    // Adjust based on actual API.
+
+    // Placeholder: combine and sort
+    const all = [...older, ...newer].sort((a, b) => a.ts.localeCompare(b.ts))
+    messages = all
+    groups = groupMessagesByDay(messages)
+  } catch (error) {
+    console.error('Failed to load messages around', ts, error)
+  } finally {
+    isLoadingMessages = false
+  }
+}
+
+async function loadNewerMessages() {
+  if (isLoadingMessages || !selectedChannel || !hasNewerMessages) return
+  isLoadingMessages = true
+  try {
+    const cursor = messages[messages.length - 1]?.ts || ''
+    const newMessages = await GetMessagesAfter(selectedChannel.id, cursor, 100)
+    if (newMessages?.length > 0) {
+      messages = [...messages, ...newMessages]
+      groups = groupMessagesByDay(messages)
+    } else {
+      hasNewerMessages = false
+    }
+  } catch (error) {
+    console.error('Failed to load newer messages', error)
+  } finally {
+    isLoadingMessages = false
+  }
+  await tick()
+}
+
+function groupMessagesByDay(messages: models.Message[]): AggregatedMessage {
+  if (!messages || messages.length === 0) {
+    return []
+  }
+
+  const groups = messages.reduce((acc: AggregatedMessage, msg) => {
+    const lastGroup = acc.length > 0 ? acc[acc.length - 1] : null
+
+    if (lastGroup) {
+      const lastGroupDate = lastGroup[0].ts
+      if (lastGroupDate === msg.ts) {
+        lastGroup.push(msg)
+        return acc
+      }
     }
 
-    async function loadMessagesAround(ts: string, limit: number = 50) {
-        isLoadingMessages = true;
-        try {
-            // Load older messages
-            const older = await GetMessages(selectedChannel!.id, ts, limit);
-            // Load newer messages (new backend method)
-            const newer = await GetMessagesAfter(
-                selectedChannel!.id,
-                ts,
-                limit,
-            );
+    acc.push([msg])
+    return acc
+  }, [])
 
-            // Combine: older (chronological) + newer
-            // older are already reversed because GetMessages returns them in reverse chronological order?
-            // We'll assume GetMessages returns oldest-to-newest or we need to handle order.
-            // Usually GetMessages(ts) returns messages before ts, sorted newest first.
-            // We need to ensure final `messages` array is oldest → newest.
-            // Let's assume both functions return messages in chronological order (oldest first) for simplicity.
-            // Adjust based on actual API.
+  return groups
+}
 
-            // Placeholder: combine and sort
-            const all = [...older, ...newer].sort((a, b) =>
-                a.ts.localeCompare(b.ts),
-            );
-            messages = all;
-            groups = groupMessagesByDay(messages);
-        } catch (error) {
-            console.error("Failed to load messages around", ts, error);
-        } finally {
-            isLoadingMessages = false;
-        }
+async function loadOlderMessages() {
+  if (isLoadingMessages || !selectedChannel || !hasOlderMessages) return
+  isLoadingMessages = true
+  hasNewerMessages = false
+  try {
+    const cursor = messages[0]?.ts || ''
+    const newMessages: models.Message[] = await GetMessages(selectedChannel.id, cursor, 100)
+
+    if (newMessages?.length > 0) {
+      messages = [...newMessages.reverse(), ...messages]
+      groups = groupMessagesByDay(messages)
+    } else {
+      hasOlderMessages = false
     }
-    
-    async function loadNewerMessages() {
-        if (isLoadingMessages || !selectedChannel || !hasNewerMessages) return;
-        isLoadingMessages = true;
-        try {
-            const cursor = messages[messages.length - 1]?.ts || "";
-            const newMessages = await GetMessagesAfter(
-                selectedChannel.id,
-                cursor,
-                100,
-            );
-            if (newMessages?.length > 0) {
-                messages = [...messages, ...newMessages];
-                groups = groupMessagesByDay(messages);
-            } else {
-                hasNewerMessages = false;
-            }
-        } catch (error) {
-            console.error("Failed to load newer messages", error);
-        } finally {
-            isLoadingMessages = false;
-        }
-        await tick();
-    }
+  } catch (error) {
+    console.error(`Failed to get messages for channel ${selectedChannel.id}:`, error)
+  } finally {
+    isLoadingMessages = false
+  }
+  await tick()
+}
 
-    function groupMessagesByDay(messages: models.Message[]): AggregatedMessage {
-        if (!messages || messages.length === 0) {
-            return [];
-        }
+function handleScroll(offset: number) {
+  if (!vlist_messages) return
 
-        const groups = messages.reduce((acc: AggregatedMessage, msg) => {
-            const lastGroup = acc.length > 0 ? acc[acc.length - 1] : null;
+  const scrollHeight = vlist_messages.getScrollSize()
+  const clientHeight = vlist_messages.getViewportSize()
+  const threshold = 50 // pixels from top/bottom to trigger load
 
-            if (lastGroup) {
-                const lastGroupDate = lastGroup[0].ts;
-                if (lastGroupDate === msg.ts) {
-                    lastGroup.push(msg);
-                    return acc;
-                }
-            }
+  // Load older when near top
+  if (offset <= threshold && hasOlderMessages && !isLoadingMessages) {
+    loadOlderMessages() // rename loadMoreMessages to loadOlderMessages
+  }
 
-            acc.push([msg]);
-            return acc;
-        }, []);
+  // Load newer when near bottom
+  if (offset + clientHeight >= scrollHeight - threshold && hasNewerMessages && !isLoadingMessages) {
+    loadNewerMessages()
+  }
+}
 
-        return groups;
-    }
-
-    async function loadOlderMessages() {
-        if (isLoadingMessages || !selectedChannel || !hasOlderMessages) return;
-        isLoadingMessages = true;
-        hasNewerMessages = false;
-        try {
-            const cursor = messages[0]?.ts || "";
-            const newMessages: models.Message[] = await GetMessages(
-                selectedChannel.id,
-                cursor,
-                100,
-            );
-
-            if (newMessages?.length > 0) {
-                messages = [...newMessages.reverse(), ...messages];
-                groups = groupMessagesByDay(messages);
-            } else {
-                hasOlderMessages = false;
-            }
-        } catch (error) {
-            console.error(
-                `Failed to get messages for channel ${selectedChannel.id}:`,
-                error,
-            );
-        } finally {
-            isLoadingMessages = false;
-        }
-        await tick();
-    }
-
-    function handleScroll(offset: number) {
-        if (!vlist_messages) return;
-
-        const scrollHeight = vlist_messages.getScrollSize();
-        const clientHeight = vlist_messages.getViewportSize();
-        const threshold = 50; // pixels from top/bottom to trigger load
-
-        // Load older when near top
-        if (offset <= threshold && hasOlderMessages && !isLoadingMessages) {
-            loadOlderMessages(); // rename loadMoreMessages to loadOlderMessages
-        }
-
-        // Load newer when near bottom
-        if (
-            offset + clientHeight >= scrollHeight - threshold &&
-            hasNewerMessages &&
-            !isLoadingMessages
-        ) {
-            loadNewerMessages();
-        }
-    }
-
-    function startResize() {
-        document.body.classList.add("is-resizing-panes");
-    }
-    function endResize() {
-        document.body.classList.remove("is-resizing-panes");
-    }
+function startResize() {
+  document.body.classList.add('is-resizing-panes')
+}
+function endResize() {
+  document.body.classList.remove('is-resizing-panes')
+}
 </script>
 
 <ImageOverlay bind:this={imageOverlayComponent} />

@@ -23,8 +23,8 @@ type Props = {
 const cache: Map<string, string> = getContext('userhandle_cache')
 
 let { group, selectedThread = $bindable(), highlightTs = $bindable() }: Props = $props()
-let isHighlighted = $derived(group.some((msg) => msg.ts === highlightTs))
-let timeoutId: ReturnType<typeof setTimeout> | undefined;
+let isHighlighted = $derived(group.some(msg => msg.ts === highlightTs))
+let timeoutId: ReturnType<typeof setTimeout> | undefined
 let current_version = $state(0)
 let msg = $derived(group[current_version])
 let isTransitioning = $state(false)
@@ -104,30 +104,30 @@ $effect(() => {
 $effect(() => {
   // When hl becomes true, start/reset the timer
   if (isHighlighted) {
-    if (timeoutId) clearTimeout(timeoutId);
+    if (timeoutId) clearTimeout(timeoutId)
     timeoutId = setTimeout(() => {
-      isHighlighted = false;
-      highlightTs = undefined;
-      timeoutId = undefined;
-    }, 2000);
+      isHighlighted = false
+      highlightTs = undefined
+      timeoutId = undefined
+    }, 2000)
   } else {
     // If hl becomes false externally, cancel timer and turn off highlight
     if (timeoutId) {
-      clearTimeout(timeoutId);
-      timeoutId = undefined;
+      clearTimeout(timeoutId)
+      timeoutId = undefined
     }
-    isHighlighted = false;
+    isHighlighted = false
   }
 
   // Cleanup function: clear timeout if component unmounts or effect re-runs
   return () => {
     if (timeoutId) {
-      clearTimeout(timeoutId);
-      highlightTs = undefined;
-      timeoutId = undefined;
+      clearTimeout(timeoutId)
+      highlightTs = undefined
+      timeoutId = undefined
     }
-  };
-});
+  }
+})
 </script>
 
 <div class="message" class:highlight={isHighlighted}>

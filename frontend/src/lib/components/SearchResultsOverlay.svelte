@@ -1,47 +1,47 @@
 <script lang="ts">
-    import { models } from "../../../wailsjs/go/models";
-    import type { ThreadID } from "../types";
+import { models } from '../../../wailsjs/go/models'
+import type { ThreadID } from '../types'
 
-    type Props = {
-        selectedThread: string;
-        selectChannel: (name: string) => Promise<void>;
-        currentTs: string;
-        searchText: string;
-        onClose: () => void;
-        searchResults: models.SearchResult[];
-    };
+type Props = {
+  selectedThread: string
+  selectChannel: (name: string) => Promise<void>
+  currentTs: string
+  searchText: string
+  onClose: () => void
+  searchResults: models.SearchResult[]
+}
 
-    let {
-        onClose,
-        searchText,
-        searchResults,
-        selectedThread = $bindable(),
-        selectChannel,
-        currentTs = $bindable(),
-    }: Props = $props();
-    
-    async function selectHandler(result: models.SearchResult) {
-        let thread: ThreadID | null = null;
-        if (result.ThreadTs) {
-            thread = {
-                thread_ts: result.ThreadTs,
-                import_id: result.ImportID,
-                current_ts: result.Ts,
-            };
-        }
-        await selectChannel(result.ChannelID, result.Ts, thread);
-        onClose();
+let {
+  onClose,
+  searchText,
+  searchResults,
+  selectedThread = $bindable(),
+  selectChannel,
+  currentTs = $bindable(),
+}: Props = $props()
+
+async function selectHandler(result: models.SearchResult) {
+  let thread: ThreadID | null = null
+  if (result.ThreadTs) {
+    thread = {
+      thread_ts: result.ThreadTs,
+      import_id: result.ImportID,
+      current_ts: result.Ts,
     }
+  }
+  await selectChannel(result.ChannelID, result.Ts, thread)
+  onClose()
+}
 
-    // Adjusted to match the "Dec 7th, 2023" style format seen in the screenshot
-    const formatMessageDate = (ts: string): string => {
-        const date = new Date(parseFloat(ts) * 1000);
-        return date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        });
-    };
+// Adjusted to match the "Dec 7th, 2023" style format seen in the screenshot
+const formatMessageDate = (ts: string): string => {
+  const date = new Date(parseFloat(ts) * 1000)
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
 </script>
 
 <div

@@ -1,38 +1,34 @@
 <script lang="ts">
-    import { models } from "../../../wailsjs/go/models";
-    import SearchResultsOverlay from "./SearchResultsOverlay.svelte";
-    import { SearchMessages } from "../../../wailsjs/go/app/App";
+import { models } from '../../../wailsjs/go/models'
+import SearchResultsOverlay from './SearchResultsOverlay.svelte'
+import { SearchMessages } from '../../../wailsjs/go/app/App'
 
-    let {
-        selectedThread = $bindable(),
-        selectChannel,
-        currentTs = $bindable(),
-    } = $props();
+let { selectedThread = $bindable(), selectChannel, currentTs = $bindable() } = $props()
 
-    let searchText = $state("");
-    let searchResults = $state<models.SearchResult[]>([]);
-    let showOverlay = $state(false);
+let searchText = $state('')
+let searchResults = $state<models.SearchResult[]>([])
+let showOverlay = $state(false)
 
-    function handleSearch() {
-        console.log("Searching for:", searchText);
-        SearchMessages(searchText).then((result) => {
-            searchResults = result;
-            showOverlay = true;
-        });
-    }
+function handleSearch() {
+  console.log('Searching for:', searchText)
+  SearchMessages(searchText).then(result => {
+    searchResults = result
+    showOverlay = true
+  })
+}
 
-    function closeOverlay() {
-        showOverlay = false;
-        searchResults = [];
-    }
+function closeOverlay() {
+  showOverlay = false
+  searchResults = []
+}
 
-    function handleKeyPress(event: KeyboardEvent) {
-        if (event.key === "Enter") {
-            handleSearch();
-        } else if (event.key === "Escape") {
-            closeOverlay();
-        }
-    }
+function handleKeyPress(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    handleSearch()
+  } else if (event.key === 'Escape') {
+    closeOverlay()
+  }
+}
 </script>
 
 <header class="search-box-container">
