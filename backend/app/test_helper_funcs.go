@@ -174,6 +174,14 @@ func (m *MockRepository) GetUserHandle(ctx context.Context, userId string) (stri
 	return args.String(0), args.Error(1)
 }
 
+func (m *MockRepository) SearchMessages(ctx context.Context, query string) ([]models.SearchResult, error) {
+	args := m.Called(ctx, query)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.SearchResult), args.Error(1)
+}
+
 func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.SlackImport, error) {
 	args := m.Called(ctx, path)
 	// Handle the case where the first return value might be nil

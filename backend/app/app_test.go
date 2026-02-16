@@ -2,11 +2,10 @@ package app
 
 import (
 	"context"
-	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
-
 
 func TestNew(t *testing.T) {
 	mockRepo := new(MockRepository)
@@ -34,4 +33,3 @@ func TestGetViewState(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
-

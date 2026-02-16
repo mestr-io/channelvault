@@ -2,8 +2,8 @@ package app_helpers
 
 import (
 	"path/filepath"
-	"testing"
 	"strings"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -18,11 +18,11 @@ func TestGetLineAndNo(t *testing.T) {
 }
 
 func TestGetLineAndNoBis(t *testing.T) {
-    result := GetLineAndNo(0)
-    if !strings.Contains(result, "generic_test.go") && !strings.Contains(result, "generic.go") {
-        t.Errorf("Expected file name in result, got: %s", result)
-    }
-    if !strings.Contains(result, ":") {
-        t.Errorf("Expected ':' in result, got: %s", result)
-    }
+	result := GetLineAndNo(0)
+	if !strings.Contains(result, "generic_test.go") && !strings.Contains(result, "generic.go") {
+		t.Errorf("Expected file name in result, got: %s", result)
+	}
+	if !strings.Contains(result, ":") {
+		t.Errorf("Expected ':' in result, got: %s", result)
+	}
 }

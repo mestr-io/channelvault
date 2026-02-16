@@ -167,3 +167,7 @@ func (a *App) DownloadBinaries(importID int64, confirm bool) error {
 	}()
 	return nil
 }
+
+func (a *App) SearchMessages(query string) ([]models.SearchResult, error) {
+	return a.repository.SearchMessages(a.ctx, query)
+}

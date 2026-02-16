@@ -142,6 +142,27 @@ WHERE downloaded = 0 AND import_id = ? AND url_private != '';
 ```
 *   **Test Status:** ✅ Verified
 
+### `SearchMessages`
+Performs a simple text search on the message content.
+```sql
+SELECT 
+    m.ts, 
+    m.text, 
+    m.channel_id,
+    c.name AS channel_name,
+    m.user_id, 
+    u.real_name AS user_name,
+    u.profile_image_url AS user_profile_url,
+    m.import_id
+FROM messages m
+JOIN channels c ON m.channel_id = c.name AND m.import_id = c.import_id
+JOIN users u ON m.user_id = u.id AND m.import_id = u.import_id
+WHERE m.text LIKE ?
+ORDER BY m.ts DESC
+LIMIT 100;
+```
+*   **Test Status:** ✅ Verified
+
 ---
 
 ## Users (`users.go`)
