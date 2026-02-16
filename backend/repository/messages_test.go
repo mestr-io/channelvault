@@ -179,3 +179,68 @@ func TestGetFileById(t *testing.T) {
 		t.Errorf("unexpected file name: %s", file.Name)
 	}
 }
+
+func TestSearchMessages(t *testing.T) {
+	repo := setup(t)
+	defer func() {
+		if err := repo.db.Close(); err != nil {
+			panic(err)
+		}
+	}()
+	ctx := context.Background()
+	imp := models.SlackImport{}
+	imp.ID = 66
+	ctx = context.WithValue(ctx, "import", &imp)
+
+	err := repo.BulkInsertUsers(ctx, []models.User{{ID: "U1", Name: "user1", RealName: "User One"}})
+	if err != nil {
+		t.Fatalf("BulkInsertUsers() error = %v", err)
+	}
+	err = repo.BulkInsertChannels(ctx, []models.Channel{{ID: "C1", Name: "channel1"}})
+	if err != nil {
+		t.Fatalf("BulkInsertChannels() error = %v", err)
+	}
+	messages := []models.Message{
+		{Ts: "100.001", UserId: "U1", Text: "Hello World"},
+		{Ts: "100.002", UserId: "U1", Text: "Testing search functionality"},
+		{Ts: "100.003", UserId: "U1", Text: "Another message"},
+	}
+
+	err = repo.BulkInsertMessages(ctx, "channel1", messages)
+	if err != nil {
+		t.Fatalf("BulkInsertMessages() error = %v", err)
+	}
+
+	// Test 1: Exact match
+	results, err := repo.SearchMessages(ctx, "Testing")
+	if err != nil {
+		t.Fatalf("SearchMessages() error = %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("expected 1 result, got %d", len(results))
+	}
+	if results[0].Text != "Testing search functionality" {
+		t.Errorf("unexpected result text: %s", results[0].Text)
+	}
+
+	// Test 2: Partial match
+	results, err = repo.SearchMessages(ctx, "World")
+	if err != nil {
+		t.Fatalf("SearchMessages() error = %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("expected 1 result, got %d", len(results))
+	}
+	if results[0].Text != "Hello World" {
+		t.Errorf("unexpected result text: %s", results[0].Text)
+	}
+
+	// Test 3: No match
+	results, err = repo.SearchMessages(ctx, "Banana")
+	if err != nil {
+		t.Fatalf("SearchMessages() error = %v", err)
+	}
+	if len(results) != 0 {
+		t.Errorf("expected 0 results, got %d", len(results))
+	}
+}

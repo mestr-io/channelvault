@@ -3,7 +3,7 @@ package app_helpers
 import (
 	"context"
 	"io"
-	"log/slog"	
+	"log/slog"
 	"strings"
 	"sync"
 )
@@ -50,7 +50,7 @@ func (h *CustomTextHandler) WithGroup(name string) slog.Handler {
 // Handle processes a slog record and writes it to the output.
 func (h *CustomTextHandler) Handle(ctx context.Context, r slog.Record) error {
 	//add message to values
-	strs := []string{r.Message+"\n"}
+	strs := []string{r.Message + "\n"}
 
 	if r.NumAttrs() != 0 {
 		r.Attrs(func(a slog.Attr) bool {

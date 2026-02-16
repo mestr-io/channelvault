@@ -3,18 +3,18 @@
 package app_helpers
 
 import (
-	"path/filepath"
+	"bytes"
+	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
-	"bytes"
-	"fmt"		
-	"os"	
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitWailsLog_InitializesLogger(t *testing.T) {		
+func TestInitWailsLog_InitializesLogger(t *testing.T) {
 	waitTeardown, ctx, err, _ := GetSomeWailsContext(t, "")
 	if err != nil {
 		t.Fatalf("Error getting Wails context: %s", err.Error())
@@ -37,7 +37,6 @@ func TestInitWailsLog_InitializesLogger(t *testing.T) {
 	}
 }
 
-
 func TestCoreLogfBeforeInitWailsLog(t *testing.T) {
 	var buf bytes.Buffer
 	th := NewCustomTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug, AddSource: false})
@@ -47,36 +46,35 @@ func TestCoreLogfBeforeInitWailsLog(t *testing.T) {
 	// Reset appLogger for testing
 	appLogger = nil
 
-
 	tests := []struct {
-		name          string
-		levelLabel    string
-		message       string
-		logMethod     func(format string, v ...any)
+		name       string
+		levelLabel string
+		message    string
+		logMethod  func(format string, v ...any)
 	}{
 		{
-			name: "Logging INF before InitWailsLog",
+			name:       "Logging INF before InitWailsLog",
 			levelLabel: "INF",
-			message: "test message 1",
-			logMethod: Infof,
+			message:    "test message 1",
+			logMethod:  Infof,
 		},
 		{
-			name: "Logging DEB before InitWailsLog",
+			name:       "Logging DEB before InitWailsLog",
 			levelLabel: "DEB",
-			message: "test message 2",
-			logMethod: Debugf,
+			message:    "test message 2",
+			logMethod:  Debugf,
 		},
 		{
-			name: "Logging WAR before InitWailsLog",
+			name:       "Logging WAR before InitWailsLog",
 			levelLabel: "WAR",
-			message: "test message 3",
-			logMethod: Warningf,
+			message:    "test message 3",
+			logMethod:  Warningf,
 		},
 		{
-			name: "Logging ERR before InitWailsLog",
+			name:       "Logging ERR before InitWailsLog",
 			levelLabel: "ERR",
-			message: "test message 4",
-			logMethod: Errorf,
+			message:    "test message 4",
+			logMethod:  Errorf,
 		},
 	}
 	for _, tt := range tests {
@@ -92,7 +90,7 @@ func TestCoreLogfBeforeInitWailsLog(t *testing.T) {
 }
 
 func TestCoreLogfAfterInitWailsLog(t *testing.T) {
-	// Next tests have been commented due to a present race condition on some wails's 
+	// Next tests have been commented due to a present race condition on some wails's
 	// Frontend interface implementation on dev mode. Let's wait for next version
 	t.Skip()
 	var buf bytes.Buffer
@@ -104,34 +102,34 @@ func TestCoreLogfAfterInitWailsLog(t *testing.T) {
 	appLogger = nil
 
 	tests := []struct {
-		name          string
-		levelLabel    string
-		message       string
-		logMethod     func(format string, v ...any)
+		name       string
+		levelLabel string
+		message    string
+		logMethod  func(format string, v ...any)
 	}{
 		{
-			name: "Logging INF after InitWailsLog",
+			name:       "Logging INF after InitWailsLog",
 			levelLabel: "INF",
-			message: "test message 5",
-			logMethod: Infof,
+			message:    "test message 5",
+			logMethod:  Infof,
 		},
 		{
-			name: "Logging DEB after InitWailsLog",
+			name:       "Logging DEB after InitWailsLog",
 			levelLabel: "DEB",
-			message: "test message 6",
-			logMethod: Debugf,
+			message:    "test message 6",
+			logMethod:  Debugf,
 		},
 		{
-			name: "Logging WAR after InitWailsLog",
+			name:       "Logging WAR after InitWailsLog",
 			levelLabel: "WAR",
-			message: "test message 7",
-			logMethod: Warningf,			
+			message:    "test message 7",
+			logMethod:  Warningf,
 		},
 		{
-			name: "Logging ERR after InitWailsLog",
+			name:       "Logging ERR after InitWailsLog",
 			levelLabel: "ERR",
-			message: "test message 8",
-			logMethod: Errorf,
+			message:    "test message 8",
+			logMethod:  Errorf,
 		},
 	}
 
@@ -159,7 +157,7 @@ func TestCoreLogfAfterInitWailsLog(t *testing.T) {
 			if err != nil {
 				fmt.Printf("Error reading log file: %v\n", err)
 				return
-			}			
+			}
 			fileContentString := string(contentBytes)
 			fileContentString = strings.TrimSuffix(fileContentString, "\n")
 
@@ -173,7 +171,7 @@ func TestCoreLogfAfterInitWailsLog(t *testing.T) {
 			// Log line checks
 			assert.Contains(t, lastLine, tt.levelLabel)
 			assert.Contains(t, lastLine, tt.message)
-			assert.Contains(t, lastLine, "logger_headless_test.go") 			
+			assert.Contains(t, lastLine, "logger_headless_test.go")
 		})
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAppLoggerIsNilBeforeInitLog(t *testing.T) {	
+func TestAppLoggerIsNilBeforeInitLog(t *testing.T) {
 	assert := assert.New(t)
 	var nilPtr *WailsAppLogger
 	assert.EqualValues(appLogger, nilPtr)

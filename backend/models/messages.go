@@ -115,17 +115,29 @@ type File struct {
 
 // Attachment represents a URL attachment with a preview.
 type Attachment struct {
-    ID           int    `json:"id"`
-    FromURL      string `json:"from_url"`
-    OriginalURL  string `json:"original_url"`
-    Fallback     string `json:"fallback"`
-    Text         string `json:"text"`
-    Title        string `json:"title"`
-    TitleLink    string `json:"title_link"`
-    ImageURL     string `json:"image_url"`
-    ImageWidth   int    `json:"image_width"`
-    ImageHeight  int    `json:"image_height"`
-    ImageBytes   int    `json:"image_bytes"`
-    ServiceIcon  string `json:"service_icon"`
-    ServiceName  string `json:"service_name"`
+	ID          int    `json:"id"`
+	FromURL     string `json:"from_url"`
+	OriginalURL string `json:"original_url"`
+	Fallback    string `json:"fallback"`
+	Text        string `json:"text"`
+	Title       string `json:"title"`
+	TitleLink   string `json:"title_link"`
+	ImageURL    string `json:"image_url"`
+	ImageWidth  int    `json:"image_width"`
+	ImageHeight int    `json:"image_height"`
+	ImageBytes  int    `json:"image_bytes"`
+	ServiceIcon string `json:"service_icon"`
+	ServiceName string `json:"service_name"`
+}
+
+// SearchResult represents a match found during text search.
+type SearchResult struct {
+	Ts             string `json:"ts"`
+	Text           string `json:"text"`
+	ChannelID      string `json:"channel_id"`
+	ChannelName    string `json:"channel_name"`
+	UserID         string `json:"user_id"`
+	UserName       string `json:"user_name"`
+	UserProfileUrl string `json:"user_profile_url"`
+	ImportID       int64  `json:"import_id"`
 }

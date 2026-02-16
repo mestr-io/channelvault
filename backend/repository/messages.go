@@ -177,10 +177,19 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 		var usersJson sql.NullString
 		var filesJson sql.NullString
 		var attachmentsJson sql.NullString
+		var userName sql.NullString
+		var userProfileUrl sql.NullString
 
-		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson, &attachmentsJson, &msg.ImportID); err != nil {
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &userName, &userProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson, &attachmentsJson, &msg.ImportID); err != nil {
 			// Error during row scanning is a server-side issue.
 			return nil, fmt.Errorf("could not scan message row: %v", err)
+		}
+
+		if userName.Valid {
+			msg.UserName = userName.String
+		}
+		if userProfileUrl.Valid {
+			msg.UserProfileUrl = userProfileUrl.String
 		}
 
 		if usersJson.Valid {
@@ -365,4 +374,67 @@ func (r *RepositorySql) MarkFileAsDownloaded(ctx context.Context, importID int64
 		return fmt.Errorf("failed update file for import %d and id %s failed: %v", importID, fileID, err)
 	}
 	return nil
+}
+
+func (r *RepositorySql) SearchMessages(ctx context.Context, query string) ([]models.SearchResult, error) {
+	sqlQuery := `
+        SELECT 
+            m.ts, 
+            m.text, 
+            m.channel_id,
+            c.name AS channel_name,
+            m.user_id, 
+            u.real_name AS user_name,
+            u.profile_image_url AS user_profile_url,
+            m.import_id
+        FROM messages m
+        JOIN channels c ON m.channel_id = c.name AND m.import_id = c.import_id
+        JOIN users u ON m.user_id = u.id AND m.import_id = u.import_id
+        WHERE m.text LIKE ?
+        ORDER BY m.ts DESC
+        LIMIT 100;
+    `
+	searchTerm := "%" + query + "%"
+	rows, err := r.db.QueryContext(ctx, sqlQuery, searchTerm)
+	if err != nil {
+		return nil, fmt.Errorf("search failed: %w", err)
+	}
+	defer func() {
+		err = errors.Join(err, rows.Close())
+	}()
+
+	var results []models.SearchResult
+	for rows.Next() {
+		var res models.SearchResult
+		var userName sql.NullString
+		var userProfileUrl sql.NullString
+
+		if err := rows.Scan(
+			&res.Ts,
+			&res.Text,
+			&res.ChannelID,
+			&res.ChannelName,
+			&res.UserID,
+			&userName,
+			&userProfileUrl,
+			&res.ImportID,
+		); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+
+		if userName.Valid {
+			res.UserName = userName.String
+		}
+		if userProfileUrl.Valid {
+			res.UserProfileUrl = userProfileUrl.String
+		}
+
+		results = append(results, res)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration failed: %w", err)
+	}
+
+	return results, nil
 }

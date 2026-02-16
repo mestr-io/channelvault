@@ -1,9 +1,10 @@
-//go:build (dev&&headless)
+//go:build dev && headless
+
 package app
 
 import (
-	"testing"
 	"context"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,6 @@ func TestSetViewState(t *testing.T) {
 
 	_ = ah.StartupFakeApp(app, "", nil)
 
-
 	// Wait for app context to be ready, polling with timeout instead of fixed sleep
 	var ctx context.Context
 	timeout := time.After(5 * time.Second)
@@ -40,7 +40,7 @@ func TestSetViewState(t *testing.T) {
 		case <-tick:
 			ctx = app.GetContext()
 			if ctx != nil {
-				ever = false				
+				ever = false
 			}
 		}
 	}
