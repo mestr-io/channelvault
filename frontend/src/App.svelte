@@ -39,6 +39,7 @@ let selectedThread = $state<ThreadID | null>(null)
 let currentView = $state<'welcome' | 'channel' | 'imports'>('welcome')
 let channelFilter = $state('') // New state variable for channel filter
 let showChannelFilter = $state(false) // New state variable to control filter visibility
+let highlightTerm = $state('')
 // svelte-ignore non_reactive_update
 let vlist_messages: VListHandle
 // svelte-ignore non_reactive_update
@@ -116,14 +117,15 @@ function openSearchOverlay() {
 function handleSearchNavigation(result: models.SearchResult) {
   const channel = channels.find(c => c.name === result.channel_name || c.id === result.channel_id)
   if (channel) {
-    selectChannel(channel)
+    highlightTerm = result.text // Store the text for highlighting (will implement next)
+    selectChannel(channel, true)
   } else {
     console.warn('Channel not found for search result:', result)
   }
 }
 
-async function selectChannel(channel: models.Channel) {
-  if (selectedChannel?.id === channel.id && currentView === 'channel') return
+async function selectChannel(channel: models.Channel, force = false) {
+  if (selectedChannel?.id === channel.id && currentView === 'channel' && !force) return
   selectedChannel = channel
   messages = []
   hasMoreMessages = true
@@ -265,7 +267,7 @@ function endResize() {
                 current={group[0]}
                 previous={groups[i - 1] ? groups[i - 1][0] : undefined}
               />
-              <Message {group} bind:selectedThread />
+              <Message {group} bind:selectedThread {highlightTerm} />
             {/snippet}
           </VList>
         {:else if currentView === "channel" && selectedChannel && messages.length === 0}
@@ -311,7 +313,7 @@ function endResize() {
           >
             {#snippet children(msg, i)}
               <DayDivider current={msg} previous={threadMessages[i - 1]} />
-              <Message group={[msg]} bind:selectedThread />
+              <Message group={[msg]} bind:selectedThread {highlightTerm} />
             {/snippet}
           </VList>
         </div>

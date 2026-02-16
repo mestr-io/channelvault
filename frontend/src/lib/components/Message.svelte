@@ -17,15 +17,16 @@ import { getContext } from 'svelte'
 type Props = {
   group: models.Message[]
   selectedThread: ThreadID | null
+  highlightTerm?: string
 }
 
 const cache: Map<string, string> = getContext('userhandle_cache')
 
-let { group, selectedThread = $bindable() }: Props = $props()
+let { group, selectedThread = $bindable(), highlightTerm = '' }: Props = $props()
 let current_version = $state(0)
 let msg = $derived(group[current_version])
 let isTransitioning = $state(false)
-let message_text = $derived(replaceUserIDWithHandle(msg.text || ''))
+let message_text = $derived(replaceUserIDWithHandle(msg.text || '').then(text => highlightText(text, highlightTerm)))
 
 // Markdown
 const mapped = [svelte('a', Link)]
@@ -60,6 +61,14 @@ async function replaceUserIDWithHandle(text: string): Promise<string> {
   }
 
   return result
+}
+
+function highlightText(text: string, term: string): string {
+  if (!term || !text) return text
+  // Escape regex special characters in term
+  const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // Case insensitive replace
+  return text.replace(new RegExp(`(${escapedTerm})`, 'gi'), '<mark>$1</mark>')
 }
 
 /**
