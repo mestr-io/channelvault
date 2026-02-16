@@ -111,6 +111,11 @@ func (m *MockRepository) GetMessages(ctx context.Context, channelID string, curs
 	panic("GetMessages not defined in mock")
 }
 
+func (m *MockRepository) GetMessagesAfter(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
+	args := m.Called(ctx, channelID, cursor, pageSize)
+	return args.Get(0).([]models.Message), args.Error(1)
+}
+
 func (m *MockRepository) ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error) {
 	panic("ListChannelFiles not defined in mock")
 }
@@ -145,6 +150,14 @@ func (m *MockRepository) FinishedImport(ctx context.Context, id int64) error {
 func (m *MockRepository) GetUserHandle(ctx context.Context, userId string) (string, error) {
 	args := m.Called(ctx, userId)
 	return args.String(0), args.Error(1)
+}
+
+func (m *MockRepository) SearchMessages(ctx context.Context, query string) ([]models.SearchResult, error) {
+	args := m.Called(ctx, query)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.SearchResult), args.Error(1)
 }
 
 // Helper function to create a test zip file in memory.
