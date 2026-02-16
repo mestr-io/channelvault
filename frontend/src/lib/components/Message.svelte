@@ -32,7 +32,7 @@ let message_text = $derived(replaceUserIDWithHandle(msg.text || '').then(text =>
 const mapped = [svelte('a', Link)]
 const options: Options = {
   extensions: [emoji(), component(mapped, initializeComponents)],
-  sanitizer: DOMPurify.sanitize,
+  sanitizer: html => DOMPurify.sanitize(html, { ADD_TAGS: ['mark'] }),
 }
 
 export const carta = new Carta(options)
