@@ -34,7 +34,7 @@ func (r *RepositorySql) SearchMessages(ctx context.Context, query string) ([]mod
 	}
 	defer func() { err = errors.Join(rows.Close(), err) }()
 
-	var results []models.SearchResult
+	results := []models.SearchResult{}
 	for rows.Next() {
 		var res models.SearchResult
 

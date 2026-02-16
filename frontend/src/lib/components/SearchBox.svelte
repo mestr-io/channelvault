@@ -17,7 +17,7 @@
         console.log("Searching for:", searchText);
         SearchMessages(searchText).then((result) => {
             searchResults = result;
-            showOverlay = result.length > 0;
+            showOverlay = true;
         });
     }
 

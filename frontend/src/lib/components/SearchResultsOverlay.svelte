@@ -19,7 +19,7 @@
         selectChannel,
         currentTs = $bindable(),
     }: Props = $props();
-
+    
     async function selectHandler(result: models.SearchResult) {
         let thread: ThreadID | null = null;
         if (result.ThreadTs) {
