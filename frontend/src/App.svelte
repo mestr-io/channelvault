@@ -62,7 +62,6 @@ $effect(() => {
   if (selectedThread && selectedChannel) {
     const loadThread = async () => {
       threadMessages = await GetThreadByTs(selectedThread!.thread_ts, selectedChannel!.id!, selectedThread!.import_id)
-      debugger
 
       if (vlist_thread && threadMessages.length > 0) {
         await tick()
@@ -135,7 +134,6 @@ async function selectChannel(name: string, targetTs?: string, thread?: ThreadID)
 
   selectedChannel = channel
   if (thread) {
-    debugger
     selectedThread = thread
     return
   }
@@ -150,7 +148,7 @@ async function selectChannel(name: string, targetTs?: string, thread?: ThreadID)
     await loadMessagesAround(targetTs)
     // After loading, find the index of the target message and scroll to it
     await tick()
-    const targetIndex = messages.findIndex(m => m.ts === targetTs)
+    const targetIndex = groups.findIndex(g => g.some(m => m.ts === targetTs))
     if (targetIndex !== -1 && vlist_messages) {
       vlist_messages.scrollToIndex(targetIndex, { align: 'center' })
     }
@@ -158,9 +156,9 @@ async function selectChannel(name: string, targetTs?: string, thread?: ThreadID)
   } else {
     // Original behaviour: load latest messages and scroll to bottom
     await loadOlderMessages() // this should load the most recent messages (cursor = '')
-    if (vlist_messages && messages.length > 0) {
+    if (vlist_messages && groups.length > 0) {
       await tick()
-      vlist_messages.scrollToIndex(messages.length - 1, {
+      vlist_messages.scrollToIndex(groups.length - 1, {
         align: 'end',
       })
     }
@@ -302,7 +300,8 @@ function endResize() {
                     <div class="sidebar-header">
                         <button
                             class="sidebar-header-title"
-                            onclick={() => (showChannelFilter = !showChannelFilter)}
+                            onclick={() =>
+                                (showChannelFilter = !showChannelFilter)}
                         >
                             <div class="header-options-chevron">
                                 {@render chevron(showChannelFilter)}
@@ -340,7 +339,7 @@ function endResize() {
                     </div>
                 </div>
             </Pane>
-            
+
             <Pane>
                 <div class="main-content" id="main-content">
                     {#if currentView === "channel" && selectedChannel && messages.length > 0}
@@ -454,17 +453,17 @@ function endResize() {
         -moz-user-select: none !important;
         -ms-user-select: none !important;
     }
-    
+
     .dashboard {
         display: flex;
-        flex-direction: column; 
+        flex-direction: column;
         height: 100vh;
         overflow: hidden;
     }
 
     /* Fixed Top Bar Styling */
     .app-top-bar {
-        background-color: #39063a; 
+        background-color: #39063a;
         height: 44px;
         display: flex;
         align-items: center;
@@ -534,7 +533,7 @@ function endResize() {
         flex-grow: 1;
         display: flex;
         min-height: 0;
-        width: 100%; 
+        width: 100%;
     }
 
     /* Enforce Splitpanes layout inheritance so it doesn't collapse */
@@ -553,7 +552,7 @@ function endResize() {
         flex-direction: column;
         justify-content: flex-start;
     }
-    
+
     .channel-list {
         flex-grow: 1;
         overflow-y: auto;
@@ -661,7 +660,7 @@ function endResize() {
         flex-grow: 1;
         display: flex;
         flex-direction: column;
-        height: 100%; 
+        height: 100%;
     }
 
     .channel-header h2 {
