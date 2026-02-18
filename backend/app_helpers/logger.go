@@ -2,10 +2,12 @@ package app_helpers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/logger"
 	wruntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -153,4 +155,91 @@ func coreLogf(label string, wailsLogFun func(string, ...any), nonWailsLogFun fun
 		return
 	}
 	wailsLogFun(format, v...)
+}
+
+func DebugJSONUnmarshal(data []byte, v any) error {
+	err := json.Unmarshal(data, v)
+	if err == nil {
+		return nil
+	}
+
+	// Check if it's a Type Mismatch error
+	if typeErr, ok := err.(*json.UnmarshalTypeError); ok {
+		fmt.Println("---------------------------------------------------")
+		fmt.Printf("❌ JSON TYPE MISMATCH:\n")
+		fmt.Printf("   • Field:    %s\n", typeErr.Field) // The struct field, e.g., "fields.name"
+		fmt.Printf("   • Expected: %v\n", typeErr.Type)  // What Go wanted, e.g., "int"
+		fmt.Printf("   • Got:      %s\n", typeErr.Value) // What JSON had, e.g., "string"
+
+		// Grab context around the error (e.g., 20 chars before/after)
+		start := typeErr.Offset - 100
+		if start < 0 {
+			start = 0
+		}
+		end := typeErr.Offset + 100
+		if end > int64(len(data)) {
+			end = int64(len(data))
+		}
+
+		snippet := string(data[start:end])
+		// Add a marker to show exactly where the error is
+		pointer := strings.Repeat(" ", int(typeErr.Offset-start)) + "^"
+
+		fmt.Printf("   • Context:  ...%s...\n", snippet)
+		fmt.Printf("                  %s\n", pointer)
+		fmt.Println("---------------------------------------------------")
+	} else {
+		// Handle syntax errors (missing braces, commas, etc.)
+		if syntaxErr, ok := err.(*json.SyntaxError); ok {
+			fmt.Printf("❌ JSON SYNTAX ERROR at byte %d: %s\n", syntaxErr.Offset, syntaxErr.Error())
+		} else {
+			fmt.Printf("❌ JSON ERROR: %s\n", err.Error())
+		}
+	}
+
+	return err
+}
+
+func DescribeJSONError(err error, data []byte) string {
+	if err == nil {
+		return ""
+	}
+
+	var sb strings.Builder
+
+	// Check if it's a Type Mismatch error (the most common "Field" error)
+	if typeErr, ok := err.(*json.UnmarshalTypeError); ok {
+		fmt.Fprintf(&sb, "❌ JSON TYPE MISMATCH:\n")
+		fmt.Fprintf(&sb, "   • Field:    %s\n", typeErr.Field)
+		fmt.Fprintf(&sb, "   • Expected: %v\n", typeErr.Type)
+		fmt.Fprintf(&sb, "   • Got:      %s\n", typeErr.Value)
+
+		// Calculate context window (20 chars before/after)
+		start := int(typeErr.Offset) - 100
+		if start < 0 {
+			start = 0
+		}
+		end := int(typeErr.Offset) + 100
+		if end > len(data) {
+			end = len(data)
+		}
+
+		// Create the snippet and the pointer line
+		snippet := string(data[start:end])
+		// Calculate spaces needed for the pointer: (Offset - start)
+		ptrOffset := int(typeErr.Offset) - start
+		pointer := strings.Repeat(" ", ptrOffset) + "^"
+
+		fmt.Fprintf(&sb, "   • Context:  ...%s...\n", snippet)
+		fmt.Fprintf(&sb, "                  %s\n", pointer)
+
+	} else if syntaxErr, ok := err.(*json.SyntaxError); ok {
+		// Handle Syntax Errors (e.g., missing commas)
+		fmt.Fprintf(&sb, "❌ JSON SYNTAX ERROR at byte %d: %s\n", syntaxErr.Offset, syntaxErr.Error())
+	} else {
+		// Generic errors
+		fmt.Fprintf(&sb, "❌ JSON ERROR: %s\n", err.Error())
+	}
+
+	return sb.String()
 }

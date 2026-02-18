@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
 	"github.com/mestr-io/slack-export-viewer/backend/repository"
 )
@@ -52,8 +53,10 @@ func (i *Importer) processUsers(zf *zip.File) (err error) {
 
 	var result []models.User
 	err = json.Unmarshal(data, &result)
+
 	if err != nil {
-		return fmt.Errorf("fail to deserialize 'users.json': %v", err)
+		desc := app_helpers.DescribeJSONError(err, data)
+		return fmt.Errorf("fail to deserialize 'users.json':\n %s", desc)
 	}
 
 	return i.repository.BulkInsertUsers(i.ctx, result)
@@ -78,7 +81,8 @@ func (i *Importer) processChannels(zf *zip.File) (err error) {
 	var result []models.Channel
 	err = json.Unmarshal(data, &result)
 	if err != nil {
-		return fmt.Errorf("fail to deserialize 'channels.json': %v", err)
+		desc := app_helpers.DescribeJSONError(err, data)
+		return fmt.Errorf("fail to deserialize 'channels.json': %v", desc)
 	}
 
 	return i.repository.BulkInsertChannels(i.ctx, result)
@@ -100,7 +104,8 @@ func (i *Importer) processMessages(ChannelID string, f *zip.File) (err error) {
 	var result []models.Message
 	err = json.Unmarshal(data, &result)
 	if err != nil {
-		return fmt.Errorf("fail to deserialize 'users.json': %v", err)
+		desc := app_helpers.DescribeJSONError(err, data)
+		return fmt.Errorf("fail to deserialize message %s:\n%s", f.Name, desc)
 	}
 
 	return i.repository.BulkInsertMessages(i.ctx, ChannelID, result)
