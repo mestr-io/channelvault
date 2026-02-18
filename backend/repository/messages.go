@@ -380,7 +380,7 @@ func (r *RepositorySql) SearchMessages(ctx context.Context, query string) ([]mod
 	sqlQuery := `
         SELECT 
             m.ts, 
-            m.text, 
+            highlight(messages_fts, 0, '<mark>', '</mark>') AS text,
             m.channel_id,
             c.name AS channel_name,
             m.user_id, 
@@ -388,14 +388,14 @@ func (r *RepositorySql) SearchMessages(ctx context.Context, query string) ([]mod
             u.profile_image_url AS user_profile_url,
             m.import_id
         FROM messages m
+        JOIN messages_fts fts ON m.rowid = fts.rowid
         JOIN channels c ON m.channel_id = c.name AND m.import_id = c.import_id
         JOIN users u ON m.user_id = u.id AND m.import_id = u.import_id
-        WHERE m.text LIKE ?
-        ORDER BY m.ts DESC
+        WHERE messages_fts MATCH ?
+        ORDER BY rank
         LIMIT 100;
     `
-	searchTerm := "%" + query + "%"
-	rows, err := r.db.QueryContext(ctx, sqlQuery, searchTerm)
+	rows, err := r.db.QueryContext(ctx, sqlQuery, query)
 	if err != nil {
 		return nil, fmt.Errorf("search failed: %w", err)
 	}

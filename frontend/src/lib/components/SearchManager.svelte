@@ -47,7 +47,7 @@ let { onNavigate } = $props()
 
 function selectResult(result: models.SearchResult) {
   if (onNavigate) {
-    onNavigate(result)
+    onNavigate(result, query)
     closeOverlay()
   }
 }
@@ -98,7 +98,7 @@ function selectResult(result: models.SearchResult) {
                 <span class="channel-name">#{result.channel_name}</span>
                 <span class="timestamp">{new Date(parseFloat(result.ts) * 1000).toLocaleString()}</span>
               </div>
-              <div class="result-text">{result.text}</div>
+              <div class="result-text">{@html result.text}</div>
             </button>
           {/each}
         {/if}

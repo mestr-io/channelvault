@@ -114,10 +114,10 @@ function openSearchOverlay() {
   }
 }
 
-function handleSearchNavigation(result: models.SearchResult) {
+function handleSearchNavigation(result: models.SearchResult, query: string) {
   const channel = channels.find(c => c.name === result.channel_name || c.id === result.channel_id)
   if (channel) {
-    highlightTerm = result.text // Store the text for highlighting (will implement next)
+    highlightTerm = query
     selectChannel(channel, true)
   } else {
     console.warn('Channel not found for search result:', result)

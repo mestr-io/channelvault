@@ -65,10 +65,27 @@ async function replaceUserIDWithHandle(text: string): Promise<string> {
 
 function highlightText(text: string, term: string): string {
   if (!term || !text) return text
-  // Escape regex special characters in term
-  const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  // Case insensitive replace
-  return text.replace(new RegExp(`(${escapedTerm})`, 'gi'), '<mark>$1</mark>')
+
+  const terms = term
+    .split(/\s+/)
+    .filter(t => !['AND', 'OR', 'NOT'].includes(t))
+    .map(t => {
+      let clean = t.replace(/['"]/g, '')
+      if (clean.endsWith('*')) {
+        return clean.slice(0, -1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\w*'
+      }
+      return clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    })
+    .filter(t => t.length > 0)
+
+  if (terms.length === 0) return text
+
+  const pattern = `(${terms.join('|')})`
+  try {
+    return text.replace(new RegExp(pattern, 'gi'), '<mark>$1</mark>')
+  } catch (e) {
+    return text
+  }
 }
 
 /**

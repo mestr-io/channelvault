@@ -76,9 +76,36 @@ func (r *RepositorySql) SetupSchemas() error {
 			is_bot INTEGER DEFAULT 0,
 			profile_image_url TEXT,
 			PRIMARY KEY (import_id, id)	
-		);`
+		);
+		
+		-- FTS5 Virtual Table
+		CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
+			text,
+			content='messages',
+			content_rowid='rowid'
+		);
+
+		-- Triggers to keep FTS index in sync
+		CREATE TRIGGER IF NOT EXISTS messages_ai AFTER INSERT ON messages BEGIN
+			INSERT INTO messages_fts(rowid, text) VALUES (new.rowid, new.text);
+		END;
+		CREATE TRIGGER IF NOT EXISTS messages_ad AFTER DELETE ON messages BEGIN
+			INSERT INTO messages_fts(messages_fts, rowid, text) VALUES('delete', old.rowid, old.text);
+		END;
+		CREATE TRIGGER IF NOT EXISTS messages_au AFTER UPDATE ON messages BEGIN
+			INSERT INTO messages_fts(messages_fts, rowid, text) VALUES('delete', old.rowid, old.text);
+			INSERT INTO messages_fts(rowid, text) VALUES (new.rowid, new.text);
+		END;
+		`
 	if _, err := r.db.Exec(createTableSQL); err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
+	}
+
+	// Rebuild the FTS index to ensure it matches current data (idempotent, but can be slow on huge datasets)
+	// For a desktop app startup, this is acceptable for consistency, or we could check if it's empty.
+	// Given we are using External Content, 'rebuild' is the standard way to fix integrity.
+	if _, err := r.db.Exec("INSERT INTO messages_fts(messages_fts) VALUES('rebuild');"); err != nil {
+		return fmt.Errorf("failed to rebuild FTS index: %v", err)
 	}
 
 	if _, err := r.db.Exec("VACUUM;"); err != nil {

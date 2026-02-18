@@ -219,11 +219,13 @@ func TestSearchMessages(t *testing.T) {
 	if len(results) != 1 {
 		t.Errorf("expected 1 result, got %d", len(results))
 	}
-	if results[0].Text != "Testing search functionality" {
-		t.Errorf("unexpected result text: %s", results[0].Text)
+	// Verify highlighting
+	expectedHighlight := "<mark>Testing</mark> search functionality"
+	if results[0].Text != expectedHighlight {
+		t.Errorf("unexpected result text: got '%s', want '%s'", results[0].Text, expectedHighlight)
 	}
 
-	// Test 2: Partial match
+	// Test 2: Partial match (FTS token match)
 	results, err = repo.SearchMessages(ctx, "World")
 	if err != nil {
 		t.Fatalf("SearchMessages() error = %v", err)
@@ -231,8 +233,9 @@ func TestSearchMessages(t *testing.T) {
 	if len(results) != 1 {
 		t.Errorf("expected 1 result, got %d", len(results))
 	}
-	if results[0].Text != "Hello World" {
-		t.Errorf("unexpected result text: %s", results[0].Text)
+	expectedHighlight = "Hello <mark>World</mark>"
+	if results[0].Text != expectedHighlight {
+		t.Errorf("unexpected result text: got '%s', want '%s'", results[0].Text, expectedHighlight)
 	}
 
 	// Test 3: No match
@@ -242,5 +245,14 @@ func TestSearchMessages(t *testing.T) {
 	}
 	if len(results) != 0 {
 		t.Errorf("expected 0 results, got %d", len(results))
+	}
+
+	// Test 4: Wildcard match
+	results, err = repo.SearchMessages(ctx, "Test*")
+	if err != nil {
+		t.Fatalf("SearchMessages() error = %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("expected 1 result for wildcard, got %d", len(results))
 	}
 }
