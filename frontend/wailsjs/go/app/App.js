@@ -30,6 +30,10 @@ export function GetMessages(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetMessages'](arg1, arg2, arg3);
 }
 
+export function GetMessagesAfter(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetMessagesAfter'](arg1, arg2, arg3);
+}
+
 export function GetThreadByTs(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetThreadByTs'](arg1, arg2, arg3);
 }
@@ -56,6 +60,10 @@ export function RenameImport(arg1, arg2) {
 
 export function ResumeImport(arg1) {
   return window['go']['app']['App']['ResumeImport'](arg1);
+}
+
+export function SearchMessages(arg1) {
+  return window['go']['app']['App']['SearchMessages'](arg1);
 }
 
 export function SelectImportFile() {

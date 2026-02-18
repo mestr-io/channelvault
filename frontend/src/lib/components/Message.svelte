@@ -17,11 +17,14 @@ import { getContext } from 'svelte'
 type Props = {
   group: models.Message[]
   selectedThread: ThreadID | null
+  highlightTs?: string
 }
 
 const cache: Map<string, string> = getContext('userhandle_cache')
 
-let { group, selectedThread = $bindable() }: Props = $props()
+let { group, selectedThread = $bindable(), highlightTs = $bindable() }: Props = $props()
+let isHighlighted = $derived(group.some(msg => msg.ts === highlightTs))
+let timeoutId: ReturnType<typeof setTimeout> | undefined
 let current_version = $state(0)
 let msg = $derived(group[current_version])
 let isTransitioning = $state(false)
@@ -97,9 +100,37 @@ $effect(() => {
     selectedThread.import_id = group[current_version].ImportID
   }
 })
+
+$effect(() => {
+  // When hl becomes true, start/reset the timer
+  if (isHighlighted) {
+    if (timeoutId) clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => {
+      isHighlighted = false
+      highlightTs = undefined
+      timeoutId = undefined
+    }, 2000)
+  } else {
+    // If hl becomes false externally, cancel timer and turn off highlight
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      timeoutId = undefined
+    }
+    isHighlighted = false
+  }
+
+  // Cleanup function: clear timeout if component unmounts or effect re-runs
+  return () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      highlightTs = undefined
+      timeoutId = undefined
+    }
+  }
+})
 </script>
 
-<div class="message">
+<div class="message" class:highlight={isHighlighted}>
     <img class="avatar" src={msg.avatar_url} alt={msg.user_name} />
     <div class="message-content">
         <div class="message-header">
@@ -184,6 +215,18 @@ $effect(() => {
 
     .content-wrapper.transitioning {
         opacity: 0;
+    }
+
+    @keyframes highlight-blink {
+        0% { background-color: palegoldenrod; }
+        20% { background-color: #fff3b0; } /* lighter pulse */
+        40% { background-color: palegoldenrod; }
+        60% { background-color: #fff3b0; }
+        80% { background-color: palegoldenrod; }
+        100% { background-color: palegoldenrod; } /* end at highlight color */
+    }
+    .message.highlight {
+        animation: highlight-blink 5s ease;
     }
 
     .message {

@@ -2,6 +2,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "chrome",
+      "url": "http://localhost:34115/",
+      "webRoot": "${workspaceFolder}/frontend"
+    },
+    {
       "name": "Wails: Production slack-viewer",
       "type": "go",
       "request": "launch",

@@ -31,12 +31,16 @@ type Repository interface {
 	//messages
 	BulkInsertMessages(ctx context.Context, ChannelID string, messages []models.Message) (err error)
 	GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error)
+	GetMessagesAfter(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error)
 	ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error)
 	GetThreadByTs(ctx context.Context, threadTs string, channelID string, importID int64) ([]models.Message, error)
 	GetFileById(ctx context.Context, fileId string) (*models.File, error)
 	ListPendingBinaries(ctx context.Context, importID int64, pageSize int) ([]models.File, error)
 	MarkFileAsDownloaded(ctx context.Context, importID int64, fileID string) error
 	CountPendingBinaries(ctx context.Context, importID int64) (int64, error)
+
+	// search
+	SearchMessages(ctx context.Context, query string) ([]models.SearchResult, error)
 
 	//setup
 	SetupSchemas() error

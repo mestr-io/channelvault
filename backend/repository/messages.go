@@ -132,10 +132,10 @@ func (r *RepositorySql) BulkInsertMessages(ctx context.Context, ChannelID string
 
 func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
 	query := `
-        SELECT 
-			ts, text, 
-			user_id, 
-			u.real_name as author, 
+        SELECT
+			ts, text,
+			user_id,
+			u.real_name as author,
 			u.profile_image_url as profile_url,
 			thread_ts,
 			reply_count,
@@ -148,7 +148,7 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = channel_id AND c.import_id = m.import_id
-        WHERE c.id = ? AND (thread_ts = ts OR thread_ts = "") 
+        WHERE c.id = ? AND (thread_ts = ts OR thread_ts = "")
     `
 	args := []interface{}{channelID}
 
@@ -213,16 +213,99 @@ func (r *RepositorySql) GetMessages(ctx context.Context, channelID string, curso
 	return messages, nil
 }
 
+func (r *RepositorySql) GetMessagesAfter(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
+	query := `
+        SELECT
+			ts, text,
+			user_id,
+			u.real_name as author,
+			u.profile_image_url as profile_url,
+			thread_ts,
+			reply_count,
+			latest_reply,
+			reply_users_json,
+			reply_users_count,
+			files_json,
+			attachments_json,
+			m.import_id
+        FROM messages AS m
+		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
+		JOIN channels AS c ON c.name = channel_id AND c.import_id = m.import_id
+        WHERE c.id = ? AND (thread_ts = ts OR thread_ts = "")
+    `
+	args := []interface{}{channelID}
+
+	// If a cursor is provided, add a condition to fetch messages older than the cursor.
+	// This is a common pattern for keyset/cursor-based pagination.
+	if cursor != "" {
+		query += " AND ts >= ?"
+		args = append(args, cursor)
+	}
+
+	// Always order by timestamp to ensure consistent pagination, and limit the result size.
+	query += " ORDER BY ts ASC LIMIT ?"
+	args = append(args, pageSize)
+
+	// Execute the query using the context for cancellation safety.
+	// Pass query parameters as arguments to prevent SQL injection.
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("could not query messages for channel %s: %v", channelID, err)
+	}
+	defer func() { err = errors.Join(rows.Close(), err) }()
+
+	var messages []models.Message
+	for rows.Next() {
+		var msg models.Message
+		var usersJson sql.NullString
+		var filesJson sql.NullString
+		var attachmentsJson sql.NullString
+
+		if err := rows.Scan(&msg.Ts, &msg.Text, &msg.UserId, &msg.UserName, &msg.UserProfileUrl, &msg.ThreadTs, &msg.ReplyCount, &msg.LatestReply, &usersJson, &msg.ReplyUsersCount, &filesJson, &attachmentsJson, &msg.ImportID); err != nil {
+			// Error during row scanning is a server-side issue.
+			return nil, fmt.Errorf("could not scan message row: %v", err)
+		}
+
+		if usersJson.Valid {
+			err = json.Unmarshal([]byte(usersJson.String), &msg.ReplyUsers)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize reply users: %v", err)
+			}
+		}
+		if filesJson.Valid {
+			err = json.Unmarshal([]byte(filesJson.String), &msg.Files)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize files: %v", err)
+			}
+		}
+		if attachmentsJson.Valid {
+			err = json.Unmarshal([]byte(attachmentsJson.String), &msg.Attachments)
+			if err != nil {
+				return nil, fmt.Errorf("could not deserialize attachments: %w", err)
+			}
+		}
+
+		messages = append(messages, msg)
+	}
+
+	// Check for any errors that occurred during iteration.
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating message rows: %v", err)
+	}
+
+	return messages, nil
+}
+
 func (r *RepositorySql) ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error) {
 	panic("not implemented")
 }
 
 func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, channelID string, importID int64) (messages []models.Message, err error) {
 	query := `
-        SELECT 
-			ts, text, 
-			user_id, 
-			u.real_name as author, 
+        SELECT
+			ts, text,
+			user_id,
+			u.real_name as author,
 			u.profile_image_url as profile_url,
 			'' as thread_ts,
 			reply_count,
@@ -236,7 +319,7 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
         FROM messages AS m
 		JOIN users AS u ON u.id = m.user_id AND u.import_id = m.import_id
 		JOIN channels AS c ON c.name = m.channel_id AND c.import_id = m.import_id
-        WHERE c.id = $1 AND thread_ts = $2 AND m.import_id = $3 
+        WHERE c.id = $1 AND thread_ts = $2 AND m.import_id = $3
     `
 	args := []interface{}{channelID, threadTs, importID}
 
@@ -301,7 +384,7 @@ func (r *RepositorySql) GetThreadByTs(ctx context.Context, threadTs string, chan
 
 func (r *RepositorySql) GetFileById(ctx context.Context, fileId string) (*models.File, error) {
 	query := `
-        SELECT 
+        SELECT
 			id,
 			name,
 			title,
@@ -309,8 +392,8 @@ func (r *RepositorySql) GetFileById(ctx context.Context, fileId string) (*models
 			url_private,
 			user,
 			import_id
-        FROM files 
-        WHERE id = ?; 
+        FROM files
+        WHERE id = ?;
     `
 	args := []interface{}{fileId}
 

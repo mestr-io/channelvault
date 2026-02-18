@@ -402,6 +402,32 @@ export namespace models {
 	}
 	
 	
+	export class SearchResult {
+	    ChannelID: string;
+	    Ts: string;
+	    MatchedText: string;
+	    UserId: string;
+	    ThreadTs: string;
+	    ImportID: number;
+	    ProfileUrl: string;
+	    Username: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SearchResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ChannelID = source["ChannelID"];
+	        this.Ts = source["Ts"];
+	        this.MatchedText = source["MatchedText"];
+	        this.UserId = source["UserId"];
+	        this.ThreadTs = source["ThreadTs"];
+	        this.ImportID = source["ImportID"];
+	        this.ProfileUrl = source["ProfileUrl"];
+	        this.Username = source["Username"];
+	    }
+	}
 	export class SlackImport {
 	    ID: number;
 	    Path: string;

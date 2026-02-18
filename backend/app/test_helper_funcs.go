@@ -130,6 +130,14 @@ func (m *MockRepository) GetMessages(ctx context.Context, channelID string, curs
 	return args.Get(0).([]models.Message), args.Error(1)
 }
 
+func (m *MockRepository) GetMessagesAfter(ctx context.Context, channelID string, cursor string, pageSize int) ([]models.Message, error) {
+	args := m.Called(ctx, channelID, cursor, pageSize)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.Message), args.Error(1)
+}
+
 func (m *MockRepository) ListChannelFiles(ctx context.Context, channelID string, pageSize int, cursor int) ([]models.File, error) {
 	args := m.Called(ctx, channelID, pageSize, cursor)
 	if args.Get(0) == nil {
@@ -172,6 +180,14 @@ func (m *MockRepository) GetUserAvatar(ctx context.Context, userId string) (stri
 func (m *MockRepository) GetUserHandle(ctx context.Context, userId string) (string, error) {
 	args := m.Called(ctx, userId)
 	return args.String(0), args.Error(1)
+}
+
+func (m *MockRepository) SearchMessages(ctx context.Context, query string) ([]models.SearchResult, error) {
+	args := m.Called(ctx, query)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.SearchResult), args.Error(1)
 }
 
 func (m *MockRepository) StoreImport(ctx context.Context, path string) (*models.SlackImport, error) {

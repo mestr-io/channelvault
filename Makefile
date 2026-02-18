@@ -40,7 +40,7 @@ compile: goversion ##                      Just compile
 
 build: goversion ##                        Build apps
 	$(info) ">>> Install app $(VERSION)-$(RELEASE) ..."
-	@wails build -tags webkit2_41
+	@wails build -tags webkit2_41 fts5
 
 buildwin: goversion##
 	$(info) ">>> Create windows release $(VERSION)-$(RELEASE) ..."
@@ -48,23 +48,23 @@ buildwin: goversion##
 
 dev: goversion ##                          Dev launch
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
-	wails dev -tags webkit2_41
+	wails dev -tags webkit2_41 fts5
 
 test: goversion ##                         Launch app tests
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
-	@go test -cover -count=1 -v -tags=dev,webkit2_41 ./...
+	@go test -cover -count=1 -v -tags=dev,webkit2_41,fts5 ./...
 
 cover: goversion ##                        Launch app tests just cover report
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
-	@go test -cover -count=1 -tags=dev,webkit2_41 ./...
+	@go test -cover -count=1 -tags=dev,webkit2_41,fts5 ./...
 
 testh: goversion ##                        Launch headless app tests
 	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
-	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -v -tags=dev,headless,webkit2_41 ./...
+	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -v -tags=dev,headless,webkit2_41,fts5 ./...
 
 coverh: goversion ##                       Launch headless app tests just cover report
 	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
-	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -tags=dev,headless,webkit2_41 ./...
+	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -tags=dev,headless,webkit2_41,fts5 ./...
 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
