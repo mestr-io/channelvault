@@ -18,7 +18,7 @@ GOPROXY ?= ""
 # Inject the version in a global variable
 LDFLAGS  := "-X 'main.version=$(VERSION)-$(RELEASE)'"
 
-.PHONY: help build dev compile goversion fmt check-fmt test cover clean testh coverh
+.PHONY: help build dev compile goversion fmt check-fmt test cover clean testh coverh test-fe
 
 all: help
 
@@ -52,19 +52,19 @@ dev: goversion ##                          Dev launch
 
 test: goversion ##                         Launch app tests
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
-	@go test -cover -count=1 -v -tags=dev,webkit2_41,fts5 ./...
+	@go test -cover -count=1 -v -tags=headless,webkit2_41,fts5 ./...
 
 cover: goversion ##                        Launch app tests just cover report
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."
-	@go test -cover -count=1 -tags=dev,webkit2_41,fts5 ./...
+	@go test -cover -count=1 -tags=headless,webkit2_41,fts5 ./...
 
 testh: goversion ##                        Launch headless app tests
 	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
-	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -v -tags=dev,headless,webkit2_41,fts5 ./...
+	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -v -tags=headless,webkit2_41,fts5 ./...
 
 coverh: goversion ##                       Launch headless app tests just cover report
-	$(info) ">>> Launch headless tests for app $(VERSION)-$(RELEASE) ..."
-	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -tags=dev,headless,webkit2_41,fts5 ./...
+	$(info) ">>> Launch headless app tests just cover report $(VERSION)-$(RELEASE) ..."
+	DISPLAY=:99 xvfb-run -a go test -cover -count=1 -tags=headless,webkit2_41,fts5 ./...
 
 jsdeps: ##                       Refresh nodejs deps
 	cd $(TOP)/frontend && npm update && npm install
@@ -89,5 +89,9 @@ fmt-check:
 	$(info) ">>> Check format on JS/TS code $(VERSION)-$(RELEASE) ..."
 	cd $(TOP)/frontend && \
 	$(TOP)/frontend/node_modules/@biomejs/biome/bin/biome format
+
+test-fe: ##                         Launch frontend tests
+	$(info) ">>> Launch frontend tests $(VERSION)-$(RELEASE) ..."
+	cd $(TOP)/frontend && npm run test:run
 
 info := @printf "\033[32;01m%s\033[0m\n"

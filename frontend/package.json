@@ -7,17 +7,23 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@biomejs/biome": "2.1.4",
     "@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/svelte": "^5.3.1",
     "@tsconfig/svelte": "^5.0.4",
+    "jsdom": "^28.1.0",
     "svelte": "^5.0.0-next.154",
     "svelte-check": "^3.8.1",
     "tslib": "^2.6.3",
     "typescript": "^5.5.2",
-    "vite": "^5.3.1"
+    "vite": "^5.3.1",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@cartamd/plugin-component": "^1.1.1",
