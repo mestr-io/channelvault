@@ -10,6 +10,7 @@ import (
 	"io"
 	"path/filepath"
 	"regexp"
+	"slices"
 
 	"github.com/mestr-io/slack-export-viewer/backend/app_helpers"
 	"github.com/mestr-io/slack-export-viewer/backend/models"
@@ -157,13 +158,10 @@ func (i *Importer) Import(c chan models.Progress) error {
 		return fmt.Errorf("fail to open unzip users.json file: %w", err)
 	}
 
-	found := false
-	for _, p := range files {
-		if f.Name == p {
-			found = true
-			break
-		}
-	}
+	found := slices.ContainsFunc(files, func(s string) bool {
+		return s == f.Name
+	})
+
 	if found {
 		err = i.processUsers(f)
 		if err != nil {
@@ -180,12 +178,10 @@ func (i *Importer) Import(c chan models.Progress) error {
 	if err != nil {
 		return fmt.Errorf("fail to open unzip channels.json file: %w", err)
 	}
-	for _, p := range files {
-		if f.Name == p {
-			found = true
-			break
-		}
-	}
+
+	found = slices.ContainsFunc(files, func(s string) bool {
+		return s == f.Name
+	})
 	if found {
 		err = i.processChannels(f)
 		if err != nil {
@@ -203,12 +199,10 @@ func (i *Importer) Import(c chan models.Progress) error {
 			// The context was cancelled (e.g., app is shutting down).
 			return i.ctx.Err()
 		default:
-			for _, p := range files {
-				if f.Name == p {
-					found = true
-					break
-				}
-			}
+			found = slices.ContainsFunc(files, func(s string) bool {
+				return s == f.Name
+			})
+
 			if !found {
 				continue
 			}

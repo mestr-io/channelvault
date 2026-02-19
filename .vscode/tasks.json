@@ -7,23 +7,23 @@
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
-          "CGO_ENABLED": "1"
-        }
+          "CGO_ENABLED": "1",
+        },
       },
       "osx": {
         "options": {
           "env": {
             "CGO_CFLAGS": "-mmacosx-version-min=10.13",
-            "CGO_LDFLAGS": "-framework UniformTypeIdentifiers -mmacosx-version-min=10.13"
-          }
-        }
+            "CGO_LDFLAGS": "-framework UniformTypeIdentifiers -mmacosx-version-min=10.13",
+          },
+        },
       },
       "windows": {
         "options": {
           "env": {
-            "CGO_ENABLED": "1"
-          }
-        }
+            "CGO_ENABLED": "1",
+          },
+        },
       },
       "command": "go",
       "args": [
@@ -31,10 +31,10 @@
         "-tags",
         "production,desktop,fts5",
         "-gcflags",
-        "all=-N -l",
+        "all=-N",
         "-o",
-        "build/bin/slack-viewer"
-      ]
+        "build/bin/slack-viewer",
+      ],
     },
     {
       "label": "build debug",
@@ -42,23 +42,23 @@
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
-          "CGO_ENABLED": "1"
-        }
+          "CGO_ENABLED": "1",
+        },
       },
       "osx": {
         "options": {
           "env": {
             "CGO_CFLAGS": "-mmacosx-version-min=10.13",
-            "CGO_LDFLAGS": "-framework UniformTypeIdentifiers -mmacosx-version-min=10.13"
-          }
-        }
+            "CGO_LDFLAGS": "-framework UniformTypeIdentifiers -mmacosx-version-min=10.13",
+          },
+        },
       },
       "windows": {
         "options": {
           "env": {
-            "CGO_ENABLED": "1"
-          }
-        }
+            "CGO_ENABLED": "1",
+          },
+        },
       },
       "command": "go",
       "args": [
@@ -68,8 +68,8 @@
         "-gcflags",
         "all=-N -l",
         "-o",
-        "build/bin/slack-viewer"
-      ]
+        "build/bin/slack-viewer",
+      ],
     },
     {
       "label": "build dev",
@@ -77,23 +77,23 @@
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
-          "CGO_ENABLED": "1"
-        }
+          "CGO_ENABLED": "1",
+        },
       },
       "osx": {
         "options": {
           "env": {
             "CGO_CFLAGS": "-mmacosx-version-min=10.13",
-            "CGO_LDFLAGS": "-framework UniformTypeIdentifiers -mmacosx-version-min=10.13"
-          }
-        }
+            "CGO_LDFLAGS": "-framework UniformTypeIdentifiers -mmacosx-version-min=10.13",
+          },
+        },
       },
       "windows": {
         "options": {
           "env": {
-            "CGO_ENABLED": "1"
-          }
-        }
+            "CGO_ENABLED": "1",
+          },
+        },
       },
       "command": "go",
       "args": [
@@ -103,9 +103,8 @@
         "-gcflags",
         "all=-N -l",
         "-o",
-        "build/bin/slack-viewer"
-      ]
-    }
-  ]
+        "build/bin/slack-viewer",
+      ],
+    },
+  ],
 }
-  

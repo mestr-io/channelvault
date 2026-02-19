@@ -60,18 +60,23 @@ const filteredChannels = $derived(
 
 $effect(() => {
   if (selectedThread && selectedChannel) {
+    // effect is not threadsafe, so get a copy
+    const thread = selectedThread
+    const channel = selectedChannel
+
     const loadThread = async () => {
-      threadMessages = await GetThreadByTs(selectedThread!.thread_ts, selectedChannel!.id!, selectedThread!.import_id)
+      threadMessages = await GetThreadByTs(thread.thread_ts, channel.id, thread.import_id)
 
       if (vlist_thread && threadMessages.length > 0) {
         await tick()
-        if (selectedThread.current_ts) {
+        if (thread.current_ts) {
           // find the ts
-          let i = threadMessages.findIndex(o => o.ts >= selectedThread.current_ts)
+          const targetTs = thread.current_ts
+          let i = threadMessages.findIndex(o => o.ts >= targetTs)
           vlist_thread.scrollToIndex(i, {
             align: 'center',
           })
-          highlightMessage = selectedThread.current_ts
+          highlightMessage = thread.current_ts
         } else {
           vlist_thread.scrollToIndex(threadMessages.length - 1, {
             align: 'end',
