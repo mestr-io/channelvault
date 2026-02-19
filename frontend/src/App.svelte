@@ -196,8 +196,19 @@ async function loadNewerMessages() {
   if (isLoadingMessages || !selectedChannel || !hasNewerMessages) return
   isLoadingMessages = true
   try {
-    const cursor = messages[messages.length - 1]?.ts || ''
+    const lastMessage = messages[messages.length - 1]
+    const cursor = lastMessage?.ts || ''
     const newMessages = await GetMessagesAfter(selectedChannel.id, cursor, 100)
+
+    // i am not proud, but ...
+    if (
+      newMessages?.length === 1 &&
+      newMessages[0].ImportID === lastMessage?.ImportID &&
+      newMessages[0].ts === lastMessage?.ts
+    ) {
+      return
+    }
+
     if (newMessages?.length > 0) {
       messages = [...messages, ...newMessages]
       groups = groupMessagesByDay(messages)
