@@ -1,6 +1,6 @@
 # ChannelVault
 
-![ChannelVault Logo](build/appicon.png)
+![ChannelVault Logo](build/appicon_small.png)
 
 **Private, fast, and local desktop viewer and search engine for Slack export archives.**
 
