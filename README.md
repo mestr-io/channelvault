@@ -1,21 +1,15 @@
 # ChannelVault
 
-<p align="center">
-  <strong>Private, fast, and local desktop viewer and search engine for Slack export archives.</strong>
-</p>
+![ChannelVault Logo](build/appicon.png)
 
-<p align="center">
-  <img src="build/appicon.png" alt="ChannelVault Logo" width="128" />
-</p>
+**Private, fast, and local desktop viewer and search engine for Slack export archives.**
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Go-1.27%2B-00ADD8?style=flat&logo=go" alt="Go Version" />
-  <img src="https://img.shields.io/badge/Wails-v2.17-DF1A55?style=flat" alt="Wails Version" />
-  <img src="https://img.shields.io/badge/Svelte-5.57-FF3E00?style=flat&logo=svelte" alt="Svelte Version" />
-  <img src="https://img.shields.io/badge/Vite-7.3-646CFF?style=flat&logo=vite" alt="Vite Version" />
-  <img src="https://img.shields.io/badge/SQLite-FTS5-003B57?style=flat&logo=sqlite" alt="SQLite" />
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
-</p>
+[![Go Version](https://img.shields.io/badge/Go-1.27%2B-00ADD8?style=flat&logo=go)](https://go.dev)
+[![Wails Version](https://img.shields.io/badge/Wails-v2.17-DF1A55?style=flat)](https://wails.io)
+[![Svelte Version](https://img.shields.io/badge/Svelte-5.57-FF3E00?style=flat&logo=svelte)](https://svelte.dev)
+[![Vite Version](https://img.shields.io/badge/Vite-7.3-646CFF?style=flat&logo=vite)](https://vitejs.dev)
+[![SQLite](https://img.shields.io/badge/SQLite-FTS5-003B57?style=flat&logo=sqlite)](https://www.sqlite.org/fts5.html)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
 
@@ -60,7 +54,9 @@ Zero telemetry, zero cloud dependency — all your communications, channels, thr
 ## Prerequisites
 
 ### 1. Go and Node.js (via [mise](https://mise.jdx.dev) recommended)
+
 ChannelVault is configured for seamless development using `mise`:
+
 ```bash
 mise use -g go@1.27.3
 mise use -g node@lts
@@ -68,11 +64,15 @@ mise use -g "go:github.com/wailsapp/wails/v2/cmd/wails@v2.17.1"
 ```
 
 ### 2. Linux Dependencies (EndeavourOS / Arch / Ubuntu / Debian)
+
 - **Arch / EndeavourOS:**
+
   ```bash
   sudo pacman -S gtk3 webkit2gtk-4.1 pkgconf gcc
   ```
+
 - **Ubuntu / Debian:**
+
   ```bash
   sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config gcc
   ```
@@ -82,20 +82,25 @@ mise use -g "go:github.com/wailsapp/wails/v2/cmd/wails@v2.17.1"
 ## Development
 
 ### 1. Install Frontend Dependencies
+
 ```bash
 cd frontend && npm install && cd ..
 ```
 
 ### 2. Run Live Development Mode
+
 Start the live development environment with hot-reloading (backend + frontend):
+
 ```bash
 make dev
 ```
+
 *(Runs `wails dev -tags webkit2_41,fts5`)*
 
 During development, the frontend dev server is accessible in your browser at `http://localhost:34115` with Go bindings available in devtools.
 
 ### 3. Run Backend & Frontend Tests
+
 ```bash
 # Run backend test suite with coverage
 make test
@@ -109,12 +114,15 @@ cd frontend && npm run check
 ## Building for Production
 
 To produce a self-contained, optimized native desktop binary for your current OS:
+
 ```bash
 make build
 ```
+
 *(Outputs the executable to `build/bin/ChannelVault`)*
 
 ### Cross-Compilation (Windows from Linux)
+
 ```bash
 make buildwin
 ```
@@ -162,70 +170,31 @@ ChannelVault bundles and relies on open-source libraries and assets. We grateful
 
 ### Backend Libraries (Go)
 
-- **[Wails](https://github.com/wailsapp/wails)**  
-  License: MIT  
-  Copyright (c) 2018-present Lea Anthony & Wails Contributors
-
-- **[go-sqlite3](https://github.com/mattn/go-sqlite3)**  
-  License: MIT  
-  Copyright (c) 2014 Yasuhiro Matsumoto
-
-- **[xdg](https://github.com/adrg/xdg)**  
-  License: MIT  
-  Copyright (c) 2018-present Adrian Rostovsky
-
-- **[testify](https://github.com/stretchr/testify)**  
-  License: MIT  
-  Copyright (c) 2012-present Mat Ryer, Tyler Bunnell and contributors
-
-- **[golang.org/x/net](https://pkg.go.dev/golang.org/x/net)**  
-  License: BSD-3-Clause  
-  Copyright (c) 2009 The Go Authors
+| Library | License | Copyright |
+| :--- | :--- | :--- |
+| [Wails](https://github.com/wailsapp/wails) | MIT | Copyright (c) 2018-present Lea Anthony & Wails Contributors |
+| [go-sqlite3](https://github.com/mattn/go-sqlite3) | MIT | Copyright (c) 2014 Yasuhiro Matsumoto |
+| [xdg](https://github.com/adrg/xdg) | MIT | Copyright (c) 2018-present Adrian Rostovsky |
+| [testify](https://github.com/stretchr/testify) | MIT | Copyright (c) 2012-present Mat Ryer, Tyler Bunnell and contributors |
+| [golang.org/x/net](https://pkg.go.dev/golang.org/x/net) | BSD-3-Clause | Copyright (c) 2009 The Go Authors |
 
 ### Frontend Libraries (JavaScript / TypeScript)
 
-- **[Svelte](https://github.com/sveltejs/svelte)**  
-  License: MIT  
-  Copyright (c) 2016-present Svelte Contributors
-
-- **[Vite](https://github.com/vitejs/vite)**  
-  License: MIT  
-  Copyright (c) 2019-present Evan You & Vite Contributors
-
-- **[virtua](https://github.com/inokawa/virtua)**  
-  License: MIT  
-  Copyright (c) 2023-present inokawa
-
-- **[carta-md](https://github.com/BearToCode/carta)** (`carta-md`, `@cartamd/plugin-component`, `@cartamd/plugin-emoji`)  
-  License: MIT  
-  Copyright (c) 2023-present BearToCode
-
-- **[isomorphic-dompurify](https://github.com/kkomelin/isomorphic-dompurify)** / **[DOMPurify](https://github.com/cure53/DOMPurify)**  
-  License: MIT / Apache 2.0  
-  Copyright (c) 2020-present Konstantin Komelin / Copyright (c) 2014-present Cure53
-
-- **[emoji-js](https://github.com/iamcal/js-emoji)**  
-  License: MIT  
-  Copyright (c) 2014-present Cal Henderson
-
-- **[svelte-splitpanes](https://github.com/orefalo/svelte-splitpanes)**  
-  License: MIT  
-  Copyright (c) 2023-present Olivier Refalo
-
-- **[Biome](https://github.com/biomejs/biome)**  
-  License: MIT / Apache 2.0  
-  Copyright (c) 2023-present Biome Authors & Emanuele Stoppa
-
-- **[TypeScript](https://github.com/microsoft/TypeScript)**  
-  License: Apache-2.0  
-  Copyright (c) Microsoft Corporation
-
-- **[tslib](https://github.com/Microsoft/tslib)**  
-  License: 0BSD  
-  Copyright (c) Microsoft Corporation
+| Library | License | Copyright |
+| :--- | :--- | :--- |
+| [Svelte](https://github.com/sveltejs/svelte) | MIT | Copyright (c) 2016-present Svelte Contributors |
+| [Vite](https://github.com/vitejs/vite) | MIT | Copyright (c) 2019-present Evan You & Vite Contributors |
+| [virtua](https://github.com/inokawa/virtua) | MIT | Copyright (c) 2023-present inokawa |
+| [carta-md](https://github.com/BearToCode/carta) | MIT | Copyright (c) 2023-present BearToCode |
+| [isomorphic-dompurify](https://github.com/kkomelin/isomorphic-dompurify) / [DOMPurify](https://github.com/cure53/DOMPurify) | MIT / Apache-2.0 | Copyright (c) 2020-present Konstantin Komelin / Copyright (c) 2014-present Cure53 |
+| [emoji-js](https://github.com/iamcal/js-emoji) | MIT | Copyright (c) 2014-present Cal Henderson |
+| [svelte-splitpanes](https://github.com/orefalo/svelte-splitpanes) | MIT | Copyright (c) 2023-present Olivier Refalo |
+| [Biome](https://github.com/biomejs/biome) | MIT / Apache-2.0 | Copyright (c) 2023-present Biome Authors & Emanuele Stoppa |
+| [TypeScript](https://github.com/microsoft/TypeScript) | Apache-2.0 | Copyright (c) Microsoft Corporation |
+| [tslib](https://github.com/Microsoft/tslib) | 0BSD | Copyright (c) Microsoft Corporation |
 
 ### Fonts & Assets
 
-- **[Nunito Font](https://fonts.google.com/specimen/Nunito)**  
-  License: [SIL Open Font License 1.1](frontend/src/assets/fonts/OFL.txt)  
-  Copyright (c) 2016 The Nunito Project Authors (contact@sansoxygen.com)
+| Asset | License | Copyright |
+| :--- | :--- | :--- |
+| [Nunito Font](https://fonts.google.com/specimen/Nunito) | [SIL Open Font License 1.1](frontend/src/assets/fonts/OFL.txt) | Copyright (c) 2016 The Nunito Project Authors (contact@sansoxygen.com) |
