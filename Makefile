@@ -40,15 +40,15 @@ compile: goversion ##                      Just compile
 
 build: goversion ##                        Build apps
 	$(info) ">>> Install app $(VERSION)-$(RELEASE) ..."
-	@wails build -tags webkit2_41 fts5
+	@wails build -tags webkit2_41,fts5
 
 buildwin: goversion##
 	$(info) ">>> Create windows release $(VERSION)-$(RELEASE) ..."
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX_FOR_TARGET=x86_64-w64-mingw32-g++ CC_FOR_TARGET=x86_64-w64-mingw32-gcc wails build -tags webkit2_41 -platform windows -debug
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX_FOR_TARGET=x86_64-w64-mingw32-g++ CC_FOR_TARGET=x86_64-w64-mingw32-gcc wails build -tags webkit2_41,fts5 -platform windows -debug
 
 dev: goversion ##                          Dev launch
 	$(info) ">>> Launch app $(VERSION)-$(RELEASE) ..."
-	wails dev -tags webkit2_41 fts5
+	wails dev -tags webkit2_41,fts5
 
 test: goversion ##                         Launch app tests
 	$(info) ">>> Launch tests for app $(VERSION)-$(RELEASE) ..."

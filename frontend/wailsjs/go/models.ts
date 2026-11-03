@@ -113,7 +113,7 @@ export namespace models {
 	export class ChannelPin {
 	    id: string;
 	    type: string;
-	    created: string;
+	    created: number;
 	    user: string;
 	    owner: string;
 	
@@ -133,7 +133,7 @@ export namespace models {
 	export class ChannelPurpose {
 	    value: string;
 	    creator: string;
-	    last_set: string;
+	    last_set: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new ChannelPurpose(source);
@@ -149,7 +149,7 @@ export namespace models {
 	export class ChannelTopic {
 	    value: string;
 	    creator: string;
-	    last_set: string;
+	    last_set: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new ChannelTopic(source);
@@ -165,7 +165,7 @@ export namespace models {
 	export class Channel {
 	    id: string;
 	    name: string;
-	    created: string;
+	    created: number;
 	    creator: string;
 	    is_archived: boolean;
 	    is_general: boolean;
