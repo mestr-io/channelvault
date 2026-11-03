@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="frontend/src/assets/images/logo-universal.png" alt="ChannelVault Logo" width="128" />
+  <img src="build/appicon.png" alt="ChannelVault Logo" width="128" />
 </p>
 
 <p align="center">
