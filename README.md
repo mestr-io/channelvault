@@ -53,9 +53,24 @@ Zero telemetry, zero cloud dependency — all your communications, channels, thr
 
 ## Prerequisites
 
-### 1. Go and Node.js (via [mise](https://mise.jdx.dev) recommended)
+### 1. Go, Node.js & Wails CLI
 
-ChannelVault is configured for seamless development using `mise`:
+Install the official toolchains:
+
+- **[Go](https://go.dev/dl/)**: Go `1.26+` (Go `1.27` recommended).
+- **[Node.js](https://nodejs.org/)**: Node.js LTS (`>=22.x`) and `npm`.
+- **Wails v2 CLI**: Install globally using `go install`:
+  ```bash
+  go install github.com/wailsapp/wails/v2/cmd/wails@latest
+  ```
+  Make sure `$(go env GOPATH)/bin` is in your shell's `PATH`:
+  ```bash
+  export PATH="$PATH:$(go env GOPATH)/bin"
+  ```
+
+#### Alternative: Using [mise](https://mise.jdx.dev)
+
+If you manage runtimes with `mise`, you can pin and install all tools automatically:
 
 ```bash
 mise use -g go@1.27.3
@@ -63,19 +78,27 @@ mise use -g node@lts
 mise use -g "go:github.com/wailsapp/wails/v2/cmd/wails@v2.17.1"
 ```
 
-### 2. Linux Dependencies (EndeavourOS / Arch / Ubuntu / Debian)
+### 2. Native System Dependencies
+
+#### Linux
 
 - **Arch / EndeavourOS:**
-
   ```bash
   sudo pacman -S gtk3 webkit2gtk-4.1 pkgconf gcc
   ```
-
 - **Ubuntu / Debian:**
-
   ```bash
   sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config gcc
   ```
+
+#### macOS
+- Requires Xcode Command Line Tools:
+  ```bash
+  xcode-select --install
+  ```
+
+#### Windows
+- Requires the Microsoft Edge WebView2 runtime (pre-installed on Windows 10/11) and a C compiler (like MinGW-w64 or MSVC).
 
 ---
 
