@@ -10,3 +10,15 @@ bin
 slack-export-viewer.code-workspace
 zips
 gimp
+
+# Databases & Slack exports
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.zip
+*.tar.gz
+
+# Local temporary files
+tmp/
